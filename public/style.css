@@ -1,0 +1,646 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --bg: #070b14;
+    --panel: #0d1321;
+    --panel2: #111a2b;
+    --border: #1e2a40;
+    --text: #f3f6fb;
+    --muted: #8995a9;
+    --blue: #4f8cff;
+    --blue2: #75aaff;
+    --green: #22c55e;
+    --red: #ef4444;
+    --shadow: 0 15px 45px rgba(0, 0, 0, 0.35);
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    min-height: 100vh;
+    background:
+        radial-gradient(
+            circle at 20% 0%,
+            rgba(79, 140, 255, 0.12),
+            transparent 30%
+        ),
+        var(--bg);
+    color: var(--text);
+    font-family:
+        "Pretendard",
+        "Noto Sans KR",
+        Arial,
+        sans-serif;
+}
+
+
+/* ========================================
+   공통
+======================================== */
+
+button,
+input {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+.hide {
+    display: none !important;
+}
+
+.up {
+    color: var(--green);
+}
+
+.down {
+    color: var(--red);
+}
+
+
+/* ========================================
+   로그인
+======================================== */
+
+#auth {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 430px;
+    padding: 45px 40px;
+    background: rgba(13, 19, 33, 0.94);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(20px);
+}
+
+.logo {
+    width: 65px;
+    height: 65px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+    border-radius: 18px;
+    background: linear-gradient(
+        135deg,
+        #4f8cff,
+        #7c5cff
+    );
+    font-size: 23px;
+    font-weight: 900;
+    letter-spacing: -1px;
+}
+
+.auth-card h1 {
+    font-size: 32px;
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    color: var(--muted);
+    margin-bottom: 30px;
+}
+
+.input-group {
+    margin-bottom: 13px;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 15px 16px;
+    background: #080e1a;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: white;
+    outline: none;
+    transition: 0.2s;
+}
+
+.input-group input:focus {
+    border-color: var(--blue);
+    box-shadow:
+        0 0 0 3px
+        rgba(79, 140, 255, 0.12);
+}
+
+.primary-button {
+    width: 100%;
+    padding: 15px;
+    margin-top: 10px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--blue);
+    color: white;
+    font-weight: 800;
+    transition: 0.2s;
+}
+
+.primary-button:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+}
+
+.text-button {
+    display: block;
+    margin: 18px auto 0;
+    border: 0;
+    background: transparent;
+    color: var(--blue2);
+}
+
+
+/* ========================================
+   상단바
+======================================== */
+
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 34px;
+    background: rgba(7, 11, 20, 0.88);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(18px);
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.brand-logo {
+    font-size: 21px;
+    font-weight: 900;
+    color: var(--blue2);
+}
+
+.brand-name {
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.top-actions {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.top-actions button {
+    padding: 9px 13px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--muted);
+    transition: 0.2s;
+}
+
+.top-actions button:hover {
+    background: var(--panel2);
+    color: white;
+}
+
+.top-actions .logout {
+    margin-left: 8px;
+    color: #ff7777;
+}
+
+
+/* ========================================
+   페이지
+======================================== */
+
+.page {
+    max-width: 1400px;
+    margin: auto;
+    padding: 42px 34px 80px;
+}
+
+.hero {
+    min-height: 230px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 42px;
+    margin-bottom: 30px;
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    background:
+        linear-gradient(
+            135deg,
+            rgba(79, 140, 255, 0.15),
+            rgba(124, 92, 255, 0.06)
+        ),
+        var(--panel);
+    box-shadow: var(--shadow);
+}
+
+.hero h1 {
+    font-size: 44px;
+    margin: 7px 0;
+}
+
+.hero p:not(.eyebrow) {
+    color: var(--muted);
+}
+
+.eyebrow {
+    color: var(--blue2);
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 2px;
+}
+
+.market-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 999px;
+    background: rgba(34, 197, 94, 0.08);
+    color: #8ee5a8;
+    font-size: 13px;
+}
+
+.live-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow:
+        0 0 12px
+        rgba(34, 197, 94, 0.8);
+}
+
+
+/* ========================================
+   종목 카드
+======================================== */
+
+.cards {
+    display: grid;
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(250px, 1fr)
+        );
+    gap: 18px;
+}
+
+.card {
+    position: relative;
+    padding: 24px;
+    min-height: 250px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    transition:
+        transform 0.2s,
+        border-color 0.2s,
+        box-shadow 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    border-color: #304362;
+    box-shadow: var(--shadow);
+}
+
+.ticker {
+    display: inline-block;
+    padding: 5px 8px;
+    margin-bottom: 13px;
+    border-radius: 6px;
+    background: #182238;
+    color: var(--blue2);
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.card h2 {
+    font-size: 20px;
+    margin-bottom: 17px;
+}
+
+.price {
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: -1px;
+}
+
+.card .up,
+.card .down {
+    margin-top: 6px;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.card p {
+    margin-top: 17px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.card button {
+    width: 100%;
+    margin-top: 18px;
+    padding: 11px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: #111a2b;
+    color: white;
+    transition: 0.2s;
+}
+
+.card button:hover {
+    background: var(--blue);
+    border-color: var(--blue);
+}
+
+
+/* ========================================
+   상세정보
+======================================== */
+
+#detail {
+    animation: pageIn 0.25s ease;
+}
+
+@keyframes pageIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#detail > button:first-child {
+    padding: 10px 14px;
+    margin-bottom: 25px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    background: var(--panel);
+    color: white;
+}
+
+#detail h1 {
+    font-size: 36px;
+    margin-bottom: 7px;
+}
+
+#detail h2 {
+    font-size: 31px;
+    margin-bottom: 25px;
+}
+
+.chart {
+    width: 100%;
+    overflow-x: auto;
+    padding: 20px;
+    margin: 20px 0;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+}
+
+.chart canvas {
+    display: block;
+    width: 100%;
+    min-width: 700px;
+    height: 300px;
+}
+
+#detail > p {
+    color: var(--muted);
+    line-height: 2;
+}
+
+
+/* ========================================
+   통계
+======================================== */
+
+.stats {
+    display: grid;
+    grid-template-columns:
+        repeat(
+            4,
+            1fr
+        );
+    gap: 15px;
+    margin: 25px 0;
+}
+
+.stat {
+    padding: 20px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    color: var(--muted);
+}
+
+.stat b {
+    display: block;
+    margin-top: 9px;
+    color: white;
+    font-size: 20px;
+}
+
+
+/* ========================================
+   매수 / 매도
+======================================== */
+
+.trade {
+    display: flex;
+    gap: 10px;
+    margin: 25px 0;
+}
+
+.trade input {
+    width: 130px;
+    padding: 13px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--panel);
+    color: white;
+    outline: none;
+}
+
+.trade button {
+    min-width: 110px;
+    border: 0;
+    border-radius: 10px;
+    color: white;
+    font-weight: 800;
+}
+
+.trade .buy {
+    background: var(--green);
+}
+
+.trade .sell {
+    background: var(--red);
+}
+
+.trade button:hover {
+    filter: brightness(1.12);
+}
+
+
+/* ========================================
+   차트 범위 버튼
+======================================== */
+
+#detail p button {
+    padding: 7px 12px;
+    margin: 3px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: var(--panel2);
+    color: white;
+}
+
+#detail p button:hover {
+    border-color: var(--blue);
+    background: #182b4c;
+}
+
+
+/* ========================================
+   패널
+======================================== */
+
+.section-header {
+    margin-bottom: 25px;
+}
+
+.section-header h1 {
+    margin-top: 8px;
+    font-size: 36px;
+}
+
+.panel {
+    padding: 25px;
+    margin-top: 20px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+}
+
+.panel h2 {
+    margin-bottom: 20px;
+}
+
+.panel p {
+    padding: 15px 5px;
+    border-bottom: 1px solid var(--border);
+    color: var(--muted);
+}
+
+.panel p:last-child {
+    border-bottom: 0;
+}
+
+.panel p b {
+    color: white;
+}
+
+
+/* ========================================
+   반응형
+======================================== */
+
+@media (max-width: 850px) {
+
+    .topbar {
+        height: auto;
+        padding: 16px;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .top-actions {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .top-actions button {
+        white-space: nowrap;
+    }
+
+    .page {
+        padding: 25px 16px 60px;
+    }
+
+    .hero {
+        min-height: auto;
+        padding: 28px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+    }
+
+    .hero h1 {
+        font-size: 34px;
+    }
+
+    .stats {
+        grid-template-columns:
+            repeat(
+                2,
+                1fr
+            );
+    }
+
+    .auth-card {
+        padding: 32px 25px;
+    }
+
+}
+
+
+@media (max-width: 500px) {
+
+    .stats {
+        grid-template-columns:
+            1fr;
+    }
+
+    .trade {
+        flex-wrap: wrap;
+    }
+
+    .trade input {
+        width: 100%;
+    }
+
+    .trade button {
+        flex: 1;
+    }
+
+}

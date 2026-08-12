@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>VSM - Virtual Stock Market</title>
+
+    <link
+        rel="stylesheet"
+        href="/style.css"
+    >
+
+</head>
+
+
+<body>
+
+
+<!-- ======================================
+     로그인 / 회원가입
+====================================== -->
+
+<div id="auth">
+
+    <div class="auth-card">
+
+        <div class="logo">
+            VSM
+        </div>
+
+        <h1 id="title">
+            로그인
+        </h1>
+
+        <p class="subtitle">
+            Virtual Stock Market
+        </p>
+
+
+        <div class="input-group">
+
+            <input
+                id="user"
+                type="text"
+                placeholder="아이디"
+                autocomplete="username"
+            >
+
+        </div>
+
+
+        <div class="input-group">
+
+            <input
+                id="nick"
+                type="text"
+                placeholder="닉네임"
+                autocomplete="nickname"
+            >
+
+        </div>
+
+
+        <div class="input-group">
+
+            <input
+                id="pass"
+                type="password"
+                placeholder="비밀번호"
+                autocomplete="current-password"
+            >
+
+        </div>
+
+
+        <button
+            id="authbtn"
+            class="primary-button"
+        >
+            로그인
+        </button>
+
+
+        <button
+            id="toggle"
+            class="text-button"
+        >
+            회원가입
+        </button>
+
+    </div>
+
+</div>
+
+
+
+<!-- ======================================
+     메인 앱
+====================================== -->
+
+<div
+    id="app"
+    class="hide"
+>
+
+
+    <!-- 상단바 -->
+
+    <header class="topbar">
+
+        <div class="brand">
+
+            <span class="brand-logo">
+                VSM
+            </span>
+
+            <span class="brand-name">
+                Virtual Stock Market
+            </span>
+
+        </div>
+
+
+        <div class="top-actions">
+
+            <button
+                onclick="page('market')"
+            >
+                시장
+            </button>
+
+            <button
+                onclick="page('portfolio')"
+            >
+                내 자산
+            </button>
+
+            <button
+                onclick="page('tx')"
+            >
+                거래내역
+            </button>
+
+            <button
+                onclick="page('rank')"
+            >
+                랭킹
+            </button>
+
+            <button
+                onclick="logout()"
+                class="logout"
+            >
+                로그아웃
+            </button>
+
+        </div>
+
+    </header>
+
+
+
+    <!-- ==================================
+         시장
+    ================================== -->
+
+    <main
+        id="market"
+        class="page"
+    >
+
+        <section class="hero">
+
+            <div>
+
+                <p class="eyebrow">
+                    LIVE MARKET
+                </p>
+
+                <h1>
+                    가상 주식시장
+                </h1>
+
+                <p>
+                    실시간으로 변동하는 VSM 시장입니다.
+                </p>
+
+            </div>
+
+
+            <div class="market-status">
+
+                <span class="live-dot"></span>
+
+                시장 운영 중
+
+            </div>
+
+        </section>
+
+
+        <section>
+
+            <div
+                id="cards"
+                class="cards"
+            ></div>
+
+        </section>
+
+    </main>
+
+
+
+    <!-- ==================================
+         상세정보
+    ================================== -->
+
+    <main
+        id="detail"
+        class="page hide"
+    ></main>
+
+
+
+    <!-- ==================================
+         내 자산
+    ================================== -->
+
+    <main
+        id="portfolio"
+        class="page hide"
+    >
+
+        <section class="section-header">
+
+            <div>
+
+                <p class="eyebrow">
+                    PORTFOLIO
+                </p>
+
+                <h1>
+                    내 자산
+                </h1>
+
+            </div>
+
+        </section>
+
+
+        <section
+            id="sum"
+            class="stats"
+        ></section>
+
+
+        <section class="panel">
+
+            <h2>
+                보유 종목
+            </h2>
+
+            <div id="pos">
+                불러오는 중...
+            </div>
+
+        </section>
+
+    </main>
+
+
+
+    <!-- ==================================
+         거래내역
+    ================================== -->
+
+    <main
+        id="tx"
+        class="page hide"
+    >
+
+        <section class="section-header">
+
+            <div>
+
+                <p class="eyebrow">
+                    TRANSACTIONS
+                </p>
+
+                <h1>
+                    거래내역
+                </h1>
+
+            </div>
+
+        </section>
+
+
+        <section class="panel">
+
+            <div id="txlist">
+                불러오는 중...
+            </div>
+
+        </section>
+
+    </main>
+
+
+
+    <!-- ==================================
+         랭킹
+    ================================== -->
+
+    <main
+        id="rank"
+        class="page hide"
+    >
+
+        <section class="section-header">
+
+            <div>
+
+                <p class="eyebrow">
+                    RANKING
+                </p>
+
+                <h1>
+                    자산 랭킹
+                </h1>
+
+            </div>
+
+        </section>
+
+
+        <section class="panel">
+
+            <div id="ranklist">
+                불러오는 중...
+            </div>
+
+        </section>
+
+    </main>
+
+
+</div>
+
+
+
+<script src="/app.js"></script>
+
+</body>
+
+</html>
