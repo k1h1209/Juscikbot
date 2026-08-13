@@ -12,7 +12,7 @@ const DATA_FILE = path.join(__dirname, "data.json");
 // 기본 설정
 // ========================================
 
-const STARTING_CASH = 10000;
+const STARTING_CASH = 100000;
 
 const companies = [
     ["SKNX", "스카닉스하이닉스", 4250, 0.08],
