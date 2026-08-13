@@ -1601,19 +1601,22 @@ async function updateStocks() {
             const stock =
                 result.rows[0];
 
-            const random =
-                Math.random() - 0.5;
+            // 주가 변동: 한 번에 500원 ~ 3,000원
+const changeAmount =
+    Math.floor(
+        Math.random() * 2501
+    ) + 500;
 
-            const changePercent =
-                random * 0.10;
+// 상승 또는 하락
+const direction =
+    Math.random() < 0.5
+        ? -1
+        : 1;
 
-            let nextPrice =
-                Number(stock.price)
-                *
-                (
-                    1 +
-                    changePercent
-                );
+let nextPrice =
+    stock.price
+    +
+    changeAmount * direction;
 
             nextPrice =
                 Math.round(
