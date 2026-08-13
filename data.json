@@ -1,6 +1,19 @@
 {
   "users": {},
   "sessions": {},
-  "stocks": {},
-  "history": {}
+  "stocks": {
+    "SKNX": { ... },
+    "SAMS": { ... },
+    "TWAI": { ... },
+    "NVR": { ... },
+    "NFLX": { ... },
+    "PASC": { ... },
+    "LG": { ... },
+    "HYUN": { ... },
+    "NVDO": { ... },
+    "MHD": { ... }
+  },
+  "history": {
+    ...
+  }
 }
