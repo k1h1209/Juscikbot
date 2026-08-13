@@ -106,71 +106,166 @@ async function initializeDatabase() {
             )
         `);
 
-        // 기존 주식이 없으면 초기화
-        for (const company of companies) {
+       // ========================================
+// 주식 초기화 / 손상 데이터 자동 복구
+// ========================================
 
-            const [
+for (const company of companies) {
+
+    const [
+        id,
+        name,
+        startingPrice,
+        volatility
+    ] = company;
+
+    const result = await client.query(
+        `
+        SELECT *
+        FROM stocks
+        WHERE id = $1
+        `,
+        [id]
+    );
+
+    // ====================================
+    // 주식이 아예 없으면 생성
+    // ====================================
+
+    if (result.rows.length === 0) {
+
+        await client.query(
+            `
+            INSERT INTO stocks
+            (
                 id,
                 name,
-                startingPrice,
-                volatility
-            ] = company;
+                volatility,
+                price,
+                previous,
+                open_price,
+                high,
+                low,
+                volume
+            )
+            VALUES
+            ($1,$2,$3,$4,$4,$4,$4,$4,0)
+            `,
+            [
+                id,
+                name,
+                volatility,
+                startingPrice
+            ]
+        );
 
-            const result = await client.query(
-                `
-                SELECT id
-                FROM stocks
-                WHERE id = $1
-                `,
-                [id]
+        await client.query(
+            `
+            INSERT INTO price_history
+            (
+                stock_id,
+                time,
+                price
+            )
+            VALUES
+            ($1,$2,$3)
+            `,
+            [
+                id,
+                Date.now(),
+                startingPrice
+            ]
+        );
+
+        console.log(
+            `주식 생성: ${id} = ${startingPrice}원`
+        );
+
+    }
+
+    // ====================================
+    // 기존 주식 데이터 검사
+    // ====================================
+
+    else {
+
+        const stock = result.rows[0];
+
+        const price =
+            Number(stock.price);
+
+        const previous =
+            Number(stock.previous);
+
+        const openPrice =
+            Number(stock.open_price);
+
+        const high =
+            Number(stock.high);
+
+        const low =
+            Number(stock.low);
+
+        // ====================================
+        // NaN / NULL / 잘못된 값 자동 복구
+        // ====================================
+
+        if (
+            !Number.isFinite(price) ||
+            !Number.isFinite(previous) ||
+            !Number.isFinite(openPrice) ||
+            !Number.isFinite(high) ||
+            !Number.isFinite(low)
+        ) {
+
+            console.log(
+                `⚠️ ${id} 주식 데이터 손상 → ${startingPrice}원으로 복구`
             );
 
-            if (result.rows.length === 0) {
+            await client.query(
+                `
+                UPDATE stocks
+                SET
+                    name = $1,
+                    volatility = $2,
+                    price = $3,
+                    previous = $3,
+                    open_price = $3,
+                    high = $3,
+                    low = $3
+                WHERE id = $4
+                `,
+                [
+                    name,
+                    volatility,
+                    startingPrice,
+                    id
+                ]
+            );
 
-                await client.query(
-                    `
-                    INSERT INTO stocks
-                    (
-                        id,
-                        name,
-                        volatility,
-                        price,
-                        previous,
-                        open_price,
-                        high,
-                        low,
-                        volume
-                    )
-                    VALUES
-                    ($1,$2,$3,$4,$4,$4,$4,$4,0)
-                    `,
-                    [
-                        id,
-                        name,
-                        volatility,
-                        startingPrice
-                    ]
-                );
+            await client.query(
+                `
+                INSERT INTO price_history
+                (
+                    stock_id,
+                    time,
+                    price
+                )
+                VALUES
+                ($1,$2,$3)
+                `,
+                [
+                    id,
+                    Date.now(),
+                    startingPrice
+                ]
+            );
 
-                await client.query(
-                    `
-                    INSERT INTO price_history
-                    (
-                        stock_id,
-                        time,
-                        price
-                    )
-                    VALUES
-                    ($1,$2,$3)
-                    `,
-                    [
-                        id,
-                        Date.now(),
-                        startingPrice
-                    ]
-                );
-            }
         }
+
+    }
+
+}
 
         await client.query("COMMIT");
 
@@ -1562,6 +1657,10 @@ app.get(
 // 주가 변동
 // ========================================
 
+// ========================================
+// 주가 변동
+// ========================================
+
 async function updateStocks() {
 
     const client =
@@ -1571,13 +1670,13 @@ async function updateStocks() {
 
         await client.query("BEGIN");
 
-        for (
-            const company
-            of companies
-        ) {
+        for (const company of companies) {
 
             const id =
                 company[0];
+
+            const startingPrice =
+                Number(company[2]);
 
             const result =
                 await client.query(
@@ -1594,9 +1693,254 @@ async function updateStocks() {
                 result.rows.length === 0
             ) {
 
+                console.log(
+                    `⚠️ ${id} 주식이 없어 건너뜁니다.`
+                );
+
                 continue;
 
             }
+
+            const stock =
+                result.rows[0];
+
+            // ====================================
+            // 현재 주가 숫자 변환
+            // ====================================
+
+            let currentPrice =
+                Number(stock.price);
+
+            // ====================================
+            // NaN이면 즉시 복구
+            // ====================================
+
+            if (
+                !Number.isFinite(currentPrice)
+                ||
+                currentPrice <= 0
+            ) {
+
+                currentPrice =
+                    startingPrice;
+
+                console.log(
+                    `⚠️ ${id} 현재가 비정상 → ${currentPrice}원으로 복구`
+                );
+
+                await client.query(
+                    `
+                    UPDATE stocks
+                    SET
+                        price = $1,
+                        previous = $1,
+                        open_price = $1,
+                        high = $1,
+                        low = $1
+                    WHERE id = $2
+                    `,
+                    [
+                        currentPrice,
+                        id
+                    ]
+                );
+
+            }
+
+            // ====================================
+            // 변동 금액
+            // 500원 ~ 3000원
+            // ====================================
+
+            const changeAmount =
+                Math.floor(
+                    Math.random() * 2501
+                ) + 500;
+
+            // ====================================
+            // 상승 / 하락
+            // ====================================
+
+            const direction =
+                Math.random() < 0.5
+                    ? -1
+                    : 1;
+
+            // ====================================
+            // 다음 주가
+            // ====================================
+
+            let nextPrice =
+                currentPrice
+                +
+                changeAmount * direction;
+
+            // ====================================
+            // 100원 단위
+            // ====================================
+
+            nextPrice =
+                Math.round(
+                    nextPrice / 100
+                )
+                * 100;
+
+            // ====================================
+            // 최소 / 최대 가격
+            // ====================================
+
+            if (
+                nextPrice < 1000
+            ) {
+
+                nextPrice = 1000;
+
+            }
+
+            if (
+                nextPrice > 1000000
+            ) {
+
+                nextPrice = 1000000;
+
+            }
+
+            // ====================================
+            // 기존 고가 / 저가
+            // ====================================
+
+            let high =
+                Number(stock.high);
+
+            let low =
+                Number(stock.low);
+
+            if (
+                !Number.isFinite(high)
+            ) {
+
+                high =
+                    currentPrice;
+
+            }
+
+            if (
+                !Number.isFinite(low)
+            ) {
+
+                low =
+                    currentPrice;
+
+            }
+
+            high =
+                Math.max(
+                    high,
+                    nextPrice
+                );
+
+            low =
+                Math.min(
+                    low,
+                    nextPrice
+                );
+
+            // ====================================
+            // 주가 업데이트
+            // ====================================
+
+            await client.query(
+                `
+                UPDATE stocks
+                SET
+                    previous = $1,
+                    price = $2,
+                    high = $3,
+                    low = $4
+                WHERE id = $5
+                `,
+                [
+                    currentPrice,
+                    nextPrice,
+                    high,
+                    low,
+                    id
+                ]
+            );
+
+            // ====================================
+            // 주가 기록
+            // ====================================
+
+            await client.query(
+                `
+                INSERT INTO price_history
+                (
+                    stock_id,
+                    time,
+                    price
+                )
+                VALUES
+                ($1,$2,$3)
+                `,
+                [
+                    id,
+                    Date.now(),
+                    nextPrice
+                ]
+            );
+
+        }
+
+        // ====================================
+        // 30일보다 오래된 차트 기록 삭제
+        // ====================================
+
+        await client.query(
+            `
+            DELETE FROM price_history
+            WHERE time < $1
+            `,
+            [
+                Date.now()
+                -
+                2592000000
+            ]
+        );
+
+        await client.query(
+            "COMMIT"
+        );
+
+    } catch (error) {
+
+        try {
+
+            await client.query(
+                "ROLLBACK"
+            );
+
+        } catch (rollbackError) {
+
+            console.error(
+                "ROLLBACK 오류:",
+                rollbackError
+            );
+
+        }
+
+        console.error(
+            "주가 업데이트 오류:",
+            error
+        );
+
+    } finally {
+
+        client.release();
+
+    }
+
+}
 
             const stock =
                 result.rows[0];
@@ -1796,7 +2140,7 @@ async function startServer() {
         // 5초마다 주가 변경
         setInterval(
             updateStocks,
-            5000
+            3000
         );
 
     } catch (error) {
