@@ -1,1267 +1,280 @@
-# VSM `public/index.html` 최종본
-
 ```html
-<!DOCTYPE html>
-<html lang="ko">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>VSM - Virtual Stock Market</title>
-
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        html,
-        body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            min-height: 100%;
-            font-family: Arial, "Noto Sans KR", sans-serif;
-        }
-
-        body {
-            background: #f4f6f8;
-            color: #202124;
-            transition: background 0.25s, color 0.25s;
-        }
-
-        /* ================================
-           상단바
-        ================================= */
-
-        .topbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 58px;
-
-            display: flex;
-            align-items: center;
-
-            padding: 0 16px;
-
-            background: rgba(255, 255, 255, 0.92);
-            border-bottom: 1px solid #e5e7eb;
-
-            backdrop-filter: blur(12px);
-
-            z-index: 1000;
-        }
-
-        .logo {
-            font-size: 20px;
-            font-weight: 800;
-            margin-right: 18px;
-            white-space: nowrap;
-        }
-
-        .menu-button,
-        .icon-button {
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .menu-button {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            font-size: 22px;
-        }
-
-        .icon-button {
-            width: 38px;
-            height: 38px;
-            border-radius: 10px;
-            font-size: 19px;
-        }
-
-        .menu-button:hover,
-        .icon-button:hover {
-            background: #eef1f4;
-        }
-
-        .top-spacer {
-            flex: 1;
-        }
-
-        .top-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .money {
-            padding: 8px 12px;
-            border-radius: 10px;
-            background: #f1f3f5;
-
-            font-size: 14px;
-            font-weight: 700;
-        }
-
-        /* ================================
-           메뉴
-        ================================= */
-
-        .menu-panel {
-            position: fixed;
-            top: 58px;
-            left: 12px;
-
-            width: 230px;
-            padding: 10px;
-
-            background: rgba(255, 255, 255, 0.97);
-            border: 1px solid #e5e7eb;
-            border-radius: 14px;
-
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
-
-            transform: translateY(-10px) scale(0.98);
-            opacity: 0;
-            visibility: hidden;
-
-            transition:
-                opacity 0.2s,
-                transform 0.2s,
-                visibility 0.2s;
-
-            z-index: 999;
-        }
-
-        .menu-panel.open {
-            transform: translateY(0) scale(1);
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .menu-title {
-            padding: 10px 12px;
-
-            font-size: 12px;
-            font-weight: 700;
-            color: #7a8088;
-        }
-
-        .menu-item {
-            width: 100%;
-
-            display: flex;
-            align-items: center;
-            gap: 10px;
-
-            padding: 11px 12px;
-
-            border: none;
-            border-radius: 10px;
-
-            background: transparent;
-
-            font-size: 14px;
-            text-align: left;
-
-            cursor: pointer;
-            color: inherit;
-
-            transition: background 0.2s;
-        }
-
-        .menu-item:hover {
-            background: #f1f3f5;
-        }
-
-        /* ================================
-           메인
-        ================================= */
-
-        .main {
-            padding-top: 58px;
-            min-height: 100vh;
-        }
-
-        .content {
-            width: min(1200px, calc(100% - 32px));
-            margin: 0 auto;
-            padding: 35px 0 60px;
-        }
-
-        .welcome {
-            margin-bottom: 25px;
-        }
-
-        .welcome h1 {
-            margin: 0 0 8px;
-            font-size: 30px;
-        }
-
-        .welcome p {
-            margin: 0;
-            color: #6b7280;
-            font-size: 15px;
-        }
-
-        /* ================================
-           카드
-        ================================= */
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 18px;
-        }
-
-        .card {
-            padding: 22px;
-
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
-            border-radius: 16px;
-
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
-        }
-
-        .card h2 {
-            margin: 0 0 10px;
-            font-size: 18px;
-        }
-
-        .card p {
-            margin: 0;
-            color: #6b7280;
-            line-height: 1.6;
-        }
-
-        .big-number {
-            margin-top: 15px;
-            font-size: 26px;
-            font-weight: 800;
-        }
-
-        /* ================================
-           로그인
-        ================================= */
-
-        #authOverlay,
-        #profileOverlay {
-            display: none;
-
-            position: fixed;
-            inset: 0;
-
-            align-items: center;
-            justify-content: center;
-
-            background: rgba(0, 0, 0, 0.55);
-            backdrop-filter: blur(6px);
-        }
-
-        #authOverlay {
-            z-index: 5000;
-        }
-
-        #profileOverlay {
-            z-index: 6000;
-        }
-
-        #authBox,
-        #profileBox {
-            width: min(430px, calc(100% - 30px));
-
-            background: white;
-            border-radius: 20px;
-            padding: 28px;
-
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
-        }
-
-        #authTitle {
-            margin: 0 0 20px;
-            text-align: center;
-        }
-
-        .auth-input {
-            width: 100%;
-
-            padding: 13px;
-            margin-bottom: 10px;
-
-            border: 1px solid #ddd;
-            border-radius: 10px;
-
-            font-size: 15px;
-            outline: none;
-        }
-
-        .auth-input:focus {
-            border-color: #2563eb;
-        }
-
-        .auth-submit {
-            width: 100%;
-
-            padding: 13px;
-
-            border: 0;
-            border-radius: 10px;
-
-            background: #202124;
-            color: white;
-
-            font-size: 15px;
-            font-weight: bold;
-
-            cursor: pointer;
-        }
-
-        .auth-switch {
-            text-align: center;
-            margin: 16px 0 0;
-            font-size: 14px;
-        }
-
-        .auth-link {
-            border: 0;
-            background: none;
-
-            color: #2563eb;
-
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        #closeAuth {
-            width: 100%;
-
-            margin-top: 12px;
-            padding: 11px;
-
-            border: 0;
-            border-radius: 10px;
-
-            background: #f1f3f5;
-
-            cursor: pointer;
-        }
-
-        #authMessage {
-            margin-top: 14px;
-            text-align: center;
-            font-size: 14px;
-        }
-
-        /* ================================
-           프로필
-        ================================= */
-
-        .profile-header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-
-            margin-bottom: 24px;
-        }
-
-        .profile-avatar {
-            width: 58px;
-            height: 58px;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            border-radius: 50%;
-            background: #f1f3f5;
-
-            font-size: 28px;
-        }
-
-        .profile-name {
-            font-size: 21px;
-            font-weight: 800;
-        }
-
-        .profile-username {
-            margin-top: 4px;
-            color: #8a9098;
-            font-size: 13px;
-        }
-
-        .profile-info {
-            display: grid;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .profile-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-
-            padding: 14px;
-
-            background: #f7f8fa;
-            border-radius: 12px;
-        }
-
-        .profile-label {
-            color: #6b7280;
-            font-size: 13px;
-        }
-
-        .profile-value {
-            font-size: 14px;
-            font-weight: 800;
-        }
-
-        .profile-cash {
-            font-size: 20px;
-        }
-
-        .profile-close,
-        .profile-logout {
-            width: 100%;
-            padding: 12px;
-
-            border: none;
-            border-radius: 10px;
-
-            cursor: pointer;
-
-            font-size: 14px;
-            font-weight: 700;
-        }
-
-        .profile-close {
-            background: #f1f3f5;
-        }
-
-        .profile-logout {
-            margin-top: 10px;
-            background: #fee2e2;
-            color: #dc2626;
-        }
-
-        /* ================================
-           다크모드
-        ================================= */
-
-        body.dark {
-            background: #101214;
-            color: #f1f3f5;
-        }
-
-        body.dark .topbar {
-            background: rgba(24, 27, 31, 0.92);
-            border-color: #2d3238;
-        }
-
-        body.dark .menu-button:hover,
-        body.dark .icon-button:hover {
-            background: #292e34;
-        }
-
-        body.dark .money {
-            background: #292e34;
-        }
-
-        body.dark .menu-panel {
-            background: rgba(24, 27, 31, 0.98);
-            border-color: #2d3238;
-        }
-
-        body.dark .menu-item:hover {
-            background: #292e34;
-        }
-
-        body.dark .menu-title {
-            color: #9ca3af;
-        }
-
-        body.dark .welcome p,
-        body.dark .card p {
-            color: #9ca3af;
-        }
-
-        body.dark .card {
-            background: #181b1f;
-            border-color: #2d3238;
-        }
-
-        body.dark #authBox,
-        body.dark #profileBox {
-            background: #181b1f;
-        }
-
-        body.dark .auth-input {
-            background: #20242a;
-            border-color: #3a4048;
-            color: white;
-        }
-
-        body.dark .profile-avatar {
-            background: #292e34;
-        }
-
-        body.dark .profile-row {
-            background: #20242a;
-        }
-
-        body.dark .profile-close {
-            background: #292e34;
-            color: #f1f3f5;
-        }
-
-        body.dark .profile-username,
-        body.dark .profile-label {
-            color: #9ca3af;
-        }
-
-        body.dark #closeAuth {
-            background: #292e34;
-            color: white;
-        }
-
-        /* ================================
-           모바일
-        ================================= */
-
-        @media (max-width: 700px) {
-            .money {
-                display: none;
-            }
-
-            .content {
-                width: calc(100% - 24px);
-                padding-top: 25px;
-            }
-
-            .grid {
-                grid-template-columns: 1fr;
-            }
-
-            .welcome h1 {
-                font-size: 25px;
-            }
-
-            .menu-panel {
-                left: 8px;
-                width: calc(100% - 16px);
-            }
-        }
-    </style>
-</head>
-
-<body>
-
-<header class="topbar">
-
-    <div class="logo">
-        VSM
-    </div>
-
-    <button
-        class="menu-button"
-        id="menuButton"
-        aria-label="메뉴"
-    >
-        ☰
-    </button>
-
-    <div class="top-spacer"></div>
-
-    <div class="top-info">
-
-        <div class="money">
-            💰
-            <span id="money">10,000</span>
-            원
-        </div>
-
-        <button
-            class="icon-button"
-            id="notificationButton"
-        >
-            🔔
-        </button>
-
-        <button
-            class="icon-button"
-            id="profileButton"
-        >
-            👤
-        </button>
-
-    </div>
-
-</header>
-
-
-<!-- 메뉴 -->
-
-<nav
-    class="menu-panel"
-    id="menuPanel"
->
-
-    <div class="menu-title">
-        VSM MENU
-    </div>
-
-    <button
-        class="menu-item"
-        id="homeMenuButton"
-    >
-        🏠
-        <span>홈</span>
-    </button>
-
-    <button
-        class="menu-item"
-        id="stocksMenuButton"
-    >
-        📈
-        <span>주식</span>
-    </button>
-
-    <button
-        class="menu-item"
-        id="bankMenuButton"
-    >
-        🏦
-        <span>안드로메다뱅크</span>
-    </button>
-
-    <button
-        class="menu-item"
-        id="companyMenuButton"
-    >
-        🏢
-        <span>주식회사</span>
-    </button>
-
-    <button
-        class="menu-item"
-        id="noticeMenuButton"
-    >
-        📢
-        <span>공지사항</span>
-    </button>
-
-    <button
-        class="menu-item"
-        id="feedbackMenuButton"
-    >
-        📮
-        <span>피드백</span>
-    </button>
-
-    <button
-        class="menu-item"
-        id="themeButton"
-    >
-        🌙
-        <span>다크모드</span>
-    </button>
-
-</nav>
-
-
-<!-- 메인 -->
-
-<main class="main">
-
-    <div class="content">
-
-        <section class="welcome">
-
-            <h1>
-                VSM에 오신 것을 환영합니다.
-            </h1>
-
-            <p>
-                Virtual Stock Market
-            </p>
-
-        </section>
-
-        <section class="grid">
-
-            <div class="card">
-
-                <h2>
-                    💰 내 자산
-                </h2>
-
-                <p>
-                    현재 보유하고 있는 현금입니다.
-                </p>
-
-                <div
-                    class="big-number"
-                    id="assetMoney"
-                >
-                    10,000원
-                </div>
-
-            </div>
-
-
-            <div class="card">
-
-                <h2>
-                    📈 주식시장
-                </h2>
-
-                <p>
-                    현재 주식시장 정보를 확인할 수 있습니다.
-                </p>
-
-                <div class="big-number">
-                    VSM
-                </div>
-
-            </div>
-
-
-            <div
-                class="card"
-                id="bankCard"
-                style="cursor:pointer;"
-            >
-
-                <h2>
-                    🏦 안드로메다뱅크
-                </h2>
-
-                <p>
-                    다른 플레이어에게 돈을 보내거나
-                    거래내역을 확인할 수 있습니다.
-                </p>
-
-            </div>
-
-
-            <div class="card">
-
-                <h2>
-                    🏢 주식회사
-                </h2>
-
-                <p>
-                    플레이어가 직접 회사를 만들고
-                    운영할 수 있습니다.
-                </p>
-
-            </div>
-
-        </section>
-
-    </div>
-
-</main>
-
-
-<!-- 로그인 -->
-
-<div id="authOverlay">
-
-    <div id="authBox">
-
-        <h2 id="authTitle">
-            로그인
-        </h2>
-
-
-        <div id="loginForm">
-
-            <input
-                id="loginUsername"
-                class="auth-input"
-                type="text"
-                placeholder="아이디"
-                autocomplete="username"
-            >
-
-            <input
-                id="loginPassword"
-                class="auth-input"
-                type="password"
-                placeholder="비밀번호"
-                autocomplete="current-password"
-            >
-
-            <button
-                id="loginSubmit"
-                class="auth-submit"
-            >
-                로그인
-            </button>
-
-            <p class="auth-switch">
-
-                계정이 없나요?
-
-                <button
-                    id="showRegister"
-                    class="auth-link"
-                >
-                    회원가입
-                </button>
-
-            </p>
-
-        </div>
-
-
-        <div
-            id="registerForm"
-            style="display:none;"
-        >
-
-            <input
-                id="registerUsername"
-                class="auth-input"
-                type="text"
-                placeholder="아이디 (3자 이상)"
-                autocomplete="username"
-            >
-
-            <input
-                id="registerNickname"
-                class="auth-input"
-                type="text"
-                placeholder="닉네임 (2자 이상)"
-            >
-
-            <input
-                id="registerPassword"
-                class="auth-input"
-                type="password"
-                placeholder="비밀번호 (4자 이상)"
-                autocomplete="new-password"
-            >
-
-            <button
-                id="registerSubmit"
-                class="auth-submit"
-            >
-                회원가입
-            </button>
-
-            <p class="auth-switch">
-
-                이미 계정이 있나요?
-
-                <button
-                    id="showLogin"
-                    class="auth-link"
-                >
-                    로그인
-                </button>
-
-            </p>
-
-        </div>
-
-
-        <button id="closeAuth">
-            닫기
-        </button>
-
-        <div id="authMessage"></div>
-
-    </div>
-
-</div>
-
-
-<!-- 프로필 -->
-
-<div id="profileOverlay">
-
-    <div id="profileBox">
-
-        <div class="profile-header">
-
-            <div class="profile-avatar">
-                👤
-            </div>
-
-            <div>
-
-                <div
-                    class="profile-name"
-                    id="profileNickname"
-                >
-                    사용자
-                </div>
-
-                <div
-                    class="profile-username"
-                    id="profileUsername"
-                >
-                    @username
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <div class="profile-info">
-
-            <div class="profile-row">
-
-                <span class="profile-label">
-                    플레이어 번호
-                </span>
-
-                <span
-                    class="profile-value"
-                    id="profileId"
-                >
-                    -
-                </span>
-
-            </div>
-
-
-            <div class="profile-row">
-
-                <span class="profile-label">
-                    보유 현금
-                </span>
-
-                <span
-                    class="profile-value profile-cash"
-                    id="profileCash"
-                >
-                    0원
-                </span>
-
-            </div>
-
-        </div>
-
-
-        <button
-            class="profile-close"
-            id="closeProfile"
-        >
-            닫기
-        </button>
-
-
-        <button
-            class="profile-logout"
-            id="logoutButton"
-        >
-            🚪 로그아웃
-        </button>
-
-    </div>
-
-</div>
-
-
 <script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    // =====================================================
+    // 요소
+    // =====================================================
+
+    const menuButton = document.getElementById("menuButton");
+    const menuPanel = document.getElementById("menuPanel");
+
+    const themeButton = document.getElementById("themeButton");
+    const stocksMenuButton = document.getElementById("stocksMenuButton");
+    const bankMenuButton = document.getElementById("bankMenuButton");
+
+    const profileButton = document.getElementById("profileButton");
+    const notificationButton =
+        document.getElementById("notificationButton");
+
+    const authOverlay = document.getElementById("authOverlay");
+    const profileOverlay = document.getElementById("profileOverlay");
+
+    const authTitle = document.getElementById("authTitle");
+    const loginForm = document.getElementById("loginForm");
+    const registerForm = document.getElementById("registerForm");
+    const authMessage = document.getElementById("authMessage");
+
+    const moneyElement = document.getElementById("money");
+    const assetMoneyElement =
+        document.getElementById("assetMoney");
+
+
+    // =====================================================
+    // 안전 확인
+    // =====================================================
+
+    console.log("VSM UI JavaScript 시작");
+
+    if (!menuButton) {
+        console.error("menuButton을 찾을 수 없습니다.");
+    }
+
+    if (!profileButton) {
+        console.error("profileButton을 찾을 수 없습니다.");
+    }
+
 
     // =====================================================
     // 메뉴
     // =====================================================
 
-    const menuButton =
-        document.getElementById("menuButton");
+    if (menuButton && menuPanel) {
 
-    const menuPanel =
-        document.getElementById("menuPanel");
+        menuButton.addEventListener("click", (event) => {
+
+            event.stopPropagation();
+
+            menuPanel.classList.toggle("open");
+
+        });
+
+    }
 
 
-    menuButton.addEventListener("click", (event) => {
-
-        event.stopPropagation();
-
-        menuPanel.classList.toggle("open");
-
-    });
-
+    // =====================================================
+    // 메뉴 외부 클릭
+    // =====================================================
 
     document.addEventListener("click", (event) => {
+
+        if (!menuPanel || !menuButton) {
+            return;
+        }
 
         if (
             !menuPanel.contains(event.target) &&
             !menuButton.contains(event.target)
         ) {
+
             menuPanel.classList.remove("open");
+
         }
 
     });
-
-
-    function closeMenu() {
-        menuPanel.classList.remove("open");
-    }
-
-
-    // =====================================================
-    // 페이지 이동
-    // =====================================================
-
-    document
-        .getElementById("homeMenuButton")
-        .addEventListener("click", () => {
-
-            closeMenu();
-
-            window.location.href = "/";
-
-        });
-
-
-    document
-        .getElementById("stocksMenuButton")
-        .addEventListener("click", () => {
-
-            closeMenu();
-
-            window.location.href =
-                "/stocks.html";
-
-        });
-
-
-    document
-        .getElementById("bankMenuButton")
-        .addEventListener("click", () => {
-
-            closeMenu();
-
-            window.location.href =
-                "/bank.html";
-
-        });
-
-
-    document
-        .getElementById("bankCard")
-        .addEventListener("click", () => {
-
-            window.location.href =
-                "/bank.html";
-
-        });
-
-
-    // 주식회사
-    document
-        .getElementById("companyMenuButton")
-        .addEventListener("click", () => {
-
-            closeMenu();
-
-            alert(
-                "주식회사 시스템은 현재 개발 보류 중입니다."
-            );
-
-        });
-
-
-    // 공지사항
-    document
-        .getElementById("noticeMenuButton")
-        .addEventListener("click", () => {
-
-            closeMenu();
-
-            window.location.href =
-                "/notices.html";
-
-        });
-
-
-    // 피드백
-    document
-        .getElementById("feedbackMenuButton")
-        .addEventListener("click", () => {
-
-            closeMenu();
-
-            window.location.href =
-                "/feedback.html";
-
-        });
 
 
     // =====================================================
     // 다크모드
     // =====================================================
 
-    const themeButton =
-        document.getElementById("themeButton");
+    if (themeButton) {
 
+        themeButton.addEventListener("click", () => {
 
-    function updateThemeButton() {
+            document.body.classList.toggle("dark");
 
-        const dark =
-            document.body.classList.contains("dark");
+            const isDark =
+                document.body.classList.contains("dark");
 
-        themeButton.innerHTML =
-            dark
-                ? "☀️ <span>화이트모드</span>"
-                : "🌙 <span>다크모드</span>";
+            localStorage.setItem(
+                "vsm-theme",
+                isDark ? "dark" : "light"
+            );
+
+            themeButton.innerHTML =
+                isDark
+                    ? "☀️ <span>화이트모드</span>"
+                    : "🌙 <span>다크모드</span>";
+
+        });
 
     }
-
-
-    themeButton.addEventListener("click", () => {
-
-        document.body.classList.toggle("dark");
-
-        const dark =
-            document.body.classList.contains("dark");
-
-        localStorage.setItem(
-            "vsm-theme",
-            dark ? "dark" : "light"
-        );
-
-        updateThemeButton();
-
-    });
 
 
     const savedTheme =
         localStorage.getItem("vsm-theme");
 
-
     if (savedTheme === "dark") {
 
         document.body.classList.add("dark");
 
+        if (themeButton) {
+
+            themeButton.innerHTML =
+                "☀️ <span>화이트모드</span>";
+
+        }
+
     }
 
 
-    updateThemeButton();
+    // =====================================================
+    // 주식
+    // =====================================================
+
+    if (stocksMenuButton) {
+
+        stocksMenuButton.addEventListener("click", () => {
+
+            window.location.href = "/stocks.html";
+
+        });
+
+    }
+
+
+    // =====================================================
+    // 안드로메다뱅크
+    // =====================================================
+
+    if (bankMenuButton) {
+
+        bankMenuButton.addEventListener("click", () => {
+
+            window.location.href = "/bank.html";
+
+        });
+
+    }
 
 
     // =====================================================
     // 알림
     // =====================================================
 
-    document
-        .getElementById("notificationButton")
-        .addEventListener("click", async () => {
+    if (notificationButton) {
 
-            const token =
-                localStorage.getItem("vsm_token");
+        notificationButton.addEventListener("click", () => {
 
-            if (!token) {
-
-                showLoginForm();
-
-                return;
-
-            }
-
-            alert(
-                "현재 알림 시스템을 준비 중입니다."
-            );
+            alert("현재 새로운 알림이 없습니다.");
 
         });
 
+    }
+
 
     // =====================================================
-    // 인증
+    // 로그인 / 회원가입
     // =====================================================
-
-    const authOverlay =
-        document.getElementById("authOverlay");
-
-    const authTitle =
-        document.getElementById("authTitle");
-
-    const loginForm =
-        document.getElementById("loginForm");
-
-    const registerForm =
-        document.getElementById("registerForm");
-
-    const authMessage =
-        document.getElementById("authMessage");
-
 
     function showLoginForm() {
 
-        authTitle.textContent =
-            "로그인";
+        if (!authOverlay) {
+            return;
+        }
 
-        loginForm.style.display =
-            "block";
+        if (authTitle) {
+            authTitle.textContent = "로그인";
+        }
 
-        registerForm.style.display =
-            "none";
+        if (loginForm) {
+            loginForm.style.display = "block";
+        }
 
-        authMessage.textContent =
-            "";
+        if (registerForm) {
+            registerForm.style.display = "none";
+        }
 
-        authOverlay.style.display =
-            "flex";
+        if (authMessage) {
+            authMessage.textContent = "";
+        }
+
+        authOverlay.style.display = "flex";
 
     }
 
 
     function showRegisterForm() {
 
-        authTitle.textContent =
-            "회원가입";
+        if (!authOverlay) {
+            return;
+        }
 
-        loginForm.style.display =
-            "none";
+        if (authTitle) {
+            authTitle.textContent = "회원가입";
+        }
 
-        registerForm.style.display =
-            "block";
+        if (loginForm) {
+            loginForm.style.display = "none";
+        }
 
-        authMessage.textContent =
-            "";
+        if (registerForm) {
+            registerForm.style.display = "block";
+        }
 
-        authOverlay.style.display =
-            "flex";
+        if (authMessage) {
+            authMessage.textContent = "";
+        }
+
+        authOverlay.style.display = "flex";
 
     }
 
 
-    document
-        .getElementById("showRegister")
-        .addEventListener(
+    // =====================================================
+    // 인증창 버튼
+    // =====================================================
+
+    const showRegister =
+        document.getElementById("showRegister");
+
+    const showLogin =
+        document.getElementById("showLogin");
+
+    const closeAuth =
+        document.getElementById("closeAuth");
+
+
+    if (showRegister) {
+
+        showRegister.addEventListener(
             "click",
             showRegisterForm
         );
 
+    }
 
-    document
-        .getElementById("showLogin")
-        .addEventListener(
+
+    if (showLogin) {
+
+        showLogin.addEventListener(
             "click",
             showLoginForm
         );
 
+    }
 
-    document
-        .getElementById("closeAuth")
-        .addEventListener("click", () => {
 
-            authOverlay.style.display =
-                "none";
+    if (closeAuth) {
+
+        closeAuth.addEventListener("click", () => {
+
+            authOverlay.style.display = "none";
 
         });
+
+    }
 
 
     // =====================================================
@@ -1270,53 +283,29 @@
 
     function updateUserUI(user) {
 
-    if (!user) {
-        return;
-    }
-
-    const money =
-        Number(
-            user.cash || 0
-        ).toLocaleString("ko-KR");
-
-
-    document
-        .getElementById("money")
-        .textContent =
-            money;
-
-
-    document
-        .getElementById("assetMoney")
-        .textContent =
-            money + "원";
-
-
-    console.log(
-        "현재 로그인 사용자:",
-        {
-            playerNumber: user.playerNumber,
-            username: user.username,
-            nickname: user.nickname
+        if (!user) {
+            return;
         }
-    );
-}
 
-        const money =
-            Number(user.cash || 0)
-                .toLocaleString("ko-KR");
+        const cash =
+            Number(user.cash || 0);
 
+        const formattedCash =
+            cash.toLocaleString("ko-KR");
 
-        document
-            .getElementById("money")
-            .textContent =
-                money;
+        if (moneyElement) {
 
+            moneyElement.textContent =
+                formattedCash;
 
-        document
-            .getElementById("assetMoney")
-            .textContent =
-                money + "원";
+        }
+
+        if (assetMoneyElement) {
+
+            assetMoneyElement.textContent =
+                formattedCash + "원";
+
+        }
 
     }
 
@@ -1325,162 +314,139 @@
     // 프로필
     // =====================================================
 
-    const profileOverlay =
-        document.getElementById("profileOverlay");
+    function formatPlayerNumber(number) {
+
+        if (
+            number === null ||
+            number === undefined ||
+            number === ""
+        ) {
+
+            return "-----";
+
+        }
+
+        const n =
+            Number(number);
+
+        if (!Number.isFinite(n)) {
+
+            return "-----";
+
+        }
+
+        return String(
+            Math.trunc(n)
+        ).padStart(5, "0");
+
+    }
 
 
     function showProfile(user) {
 
-    if (!user) {
+        if (!user) {
 
-        showLoginForm();
+            showLoginForm();
 
-        return;
+            return;
 
-    }
+        }
 
-    // 닉네임
-    document
-        .getElementById("profileNickname")
-        .textContent =
-            user.nickname || "사용자";
+        const nickname =
+            document.getElementById(
+                "profileNickname"
+            );
 
+        const username =
+            document.getElementById(
+                "profileUsername"
+            );
 
-    // 아이디
-    document
-        .getElementById("profileUsername")
-        .textContent =
-            "@" +
-            (
-                user.username ||
-                "unknown"
+        const playerId =
+            document.getElementById(
+                "profileId"
+            );
+
+        const profileCash =
+            document.getElementById(
+                "profileCash"
             );
 
 
-    // =================================================
-    // 플레이어 번호
-    // =================================================
+        if (nickname) {
 
-    const playerNumber =
-        Number(user.playerNumber);
-
-
-    document
-        .getElementById("profileId")
-        .textContent =
-            Number.isInteger(playerNumber) &&
-            playerNumber > 0
-                ? String(playerNumber)
-                    .padStart(5, "0")
-                : "-----";
-
-
-    // =================================================
-    // 보유 현금
-    // =================================================
-
-    document
-        .getElementById("profileCash")
-        .textContent =
-            Number(
-                user.cash || 0
-            ).toLocaleString("ko-KR") +
-            "원";
-
-
-    // 프로필 열기
-    profileOverlay.style.display =
-        "flex";
-}
-
-        document
-            .getElementById("profileNickname")
-            .textContent =
+            nickname.textContent =
                 user.nickname || "사용자";
 
+        }
 
-        document
-            .getElementById("profileUsername")
-            .textContent =
+
+        if (username) {
+
+            username.textContent =
                 "@" +
                 (user.username || "unknown");
 
-
-        /*
-         * 중요:
-         *
-         * 서버에서 playerNumber를 내려주면
-         * 그 값을 표시한다.
-         *
-         * 없으면 UUID를 대신 표시하지 않는다.
-         */
-
-        document
-            .getElementById("profileId")
-            .textContent =
-                user.playerNumber ??
-                user.player_number ??
-                "-";
+        }
 
 
-        document
-            .getElementById("profileCash")
-            .textContent =
-                Number(user.cash || 0)
-                    .toLocaleString("ko-KR") +
+        // =================================================
+        // 중요
+        // UUID가 아니라 playerNumber 표시
+        // 5 → 00005
+        // 23 → 00023
+        // =================================================
+
+        if (playerId) {
+
+            playerId.textContent =
+                formatPlayerNumber(
+                    user.playerNumber
+                );
+
+        }
+
+
+        if (profileCash) {
+
+            profileCash.textContent =
+                Number(
+                    user.cash || 0
+                ).toLocaleString("ko-KR") +
                 "원";
 
+        }
 
-        profileOverlay.style.display =
-            "flex";
+
+        if (profileOverlay) {
+
+            profileOverlay.style.display =
+                "flex";
+
+        }
 
     }
 
 
-    document
-        .getElementById("profileButton")
-        .addEventListener("click", async () => {
+    // =====================================================
+    // 프로필 버튼
+    // =====================================================
 
-            const token =
-                localStorage.getItem("vsm_token");
+    if (profileButton) {
 
+        profileButton.addEventListener(
+            "click",
+            async (event) => {
 
-            if (!token) {
+                event.stopPropagation();
 
-                showLoginForm();
-
-                return;
-
-            }
-
-
-            try {
-
-                const response =
-                    await fetch(
-                        "/api/auth/me",
-                        {
-                            headers: {
-                                "Authorization":
-                                    "Bearer " + token
-                            }
-                        }
-                    );
-
-
-                const data =
-                    await response.json();
-
-
-                if (
-                    !response.ok ||
-                    !data.ok ||
-                    !data.user
-                ) {
-
-                    localStorage.removeItem(
+                const token =
+                    localStorage.getItem(
                         "vsm_token"
                     );
+
+
+                if (!token) {
 
                     showLoginForm();
 
@@ -1489,296 +455,445 @@
                 }
 
 
-                updateUserUI(data.user);
+                try {
 
-                showProfile(data.user);
+                    const response =
+                        await fetch(
+                            "/api/auth/me",
+                            {
+                                method: "GET",
 
-            } catch (error) {
+                                headers: {
+                                    "Authorization":
+                                        "Bearer " +
+                                        token
+                                }
+                            }
+                        );
 
-                console.error(
-                    "PROFILE ERROR:",
-                    error
-                );
 
-                alert(
-                    "프로필 정보를 불러오지 못했습니다."
-                );
+                    const data =
+                        await response.json();
+
+
+                    if (
+                        !response.ok ||
+                        !data.ok ||
+                        !data.user
+                    ) {
+
+                        localStorage.removeItem(
+                            "vsm_token"
+                        );
+
+                        showLoginForm();
+
+                        return;
+
+                    }
+
+
+                    showProfile(
+                        data.user
+                    );
+
+
+                } catch (error) {
+
+                    console.error(
+                        "PROFILE ERROR:",
+                        error
+                    );
+
+                    alert(
+                        "프로필 정보를 불러오지 못했습니다."
+                    );
+
+                }
 
             }
+        );
 
-        });
+    }
 
 
-    document
-        .getElementById("closeProfile")
-        .addEventListener("click", () => {
+    // =====================================================
+    // 프로필 닫기
+    // =====================================================
 
-            profileOverlay.style.display =
-                "none";
+    const closeProfile =
+        document.getElementById(
+            "closeProfile"
+        );
 
-        });
+
+    if (closeProfile) {
+
+        closeProfile.addEventListener(
+            "click",
+            () => {
+
+                profileOverlay.style.display =
+                    "none";
+
+            }
+        );
+
+    }
 
 
     // =====================================================
     // 회원가입
     // =====================================================
 
-    document
-        .getElementById("registerSubmit")
-        .addEventListener("click", async () => {
-
-            const username =
-                document
-                    .getElementById("registerUsername")
-                    .value
-                    .trim();
+    const registerSubmit =
+        document.getElementById(
+            "registerSubmit"
+        );
 
 
-            const nickname =
-                document
-                    .getElementById("registerNickname")
-                    .value
-                    .trim();
+    if (registerSubmit) {
+
+        registerSubmit.addEventListener(
+            "click",
+            async () => {
+
+                const username =
+                    document
+                        .getElementById(
+                            "registerUsername"
+                        )
+                        .value
+                        .trim();
 
 
-            const password =
-                document
-                    .getElementById("registerPassword")
-                    .value;
+                const nickname =
+                    document
+                        .getElementById(
+                            "registerNickname"
+                        )
+                        .value
+                        .trim();
 
 
-            authMessage.textContent =
-                "회원가입 중...";
+                const password =
+                    document
+                        .getElementById(
+                            "registerPassword"
+                        )
+                        .value;
 
 
-            try {
+                if (authMessage) {
 
-                const response =
-                    await fetch(
-                        "/api/auth/register",
-                        {
-                            method: "POST",
-
-                            headers: {
-                                "Content-Type":
-                                    "application/json"
-                            },
-
-                            body:
-                                JSON.stringify({
-                                    username,
-                                    nickname,
-                                    password
-                                })
-                        }
-                    );
-
-
-                const data =
-                    await response.json();
-
-
-                if (!response.ok) {
-
-                    throw new Error(
-                        data.error ||
-                        "회원가입에 실패했습니다."
-                    );
+                    authMessage.textContent =
+                        "회원가입 중...";
 
                 }
 
 
-                localStorage.setItem(
-                    "vsm_token",
-                    data.token
-                );
+                try {
+
+                    const response =
+                        await fetch(
+                            "/api/auth/register",
+                            {
+                                method: "POST",
+
+                                headers: {
+                                    "Content-Type":
+                                        "application/json"
+                                },
+
+                                body:
+                                    JSON.stringify({
+                                        username,
+                                        nickname,
+                                        password
+                                    })
+                            }
+                        );
 
 
-                updateUserUI(data.user);
+                    const data =
+                        await response.json();
 
 
-                authMessage.textContent =
-                    "회원가입 성공! 🎉";
+                    if (!response.ok) {
+
+                        throw new Error(
+                            data.error ||
+                            "회원가입에 실패했습니다."
+                        );
+
+                    }
 
 
-                setTimeout(() => {
-
-                    authOverlay.style.display =
-                        "none";
-
-                }, 700);
+                    localStorage.setItem(
+                        "vsm_token",
+                        data.token
+                    );
 
 
-            } catch (error) {
+                    updateUserUI(
+                        data.user
+                    );
 
-                authMessage.textContent =
-                    "❌ " +
-                    error.message;
+
+                    if (authMessage) {
+
+                        authMessage.textContent =
+                            "회원가입 성공! 🎉";
+
+                    }
+
+
+                    setTimeout(() => {
+
+                        authOverlay.style.display =
+                            "none";
+
+                    }, 700);
+
+
+                } catch (error) {
+
+                    console.error(
+                        "REGISTER ERROR:",
+                        error
+                    );
+
+                    if (authMessage) {
+
+                        authMessage.textContent =
+                            "❌ " +
+                            error.message;
+
+                    }
+
+                }
 
             }
+        );
 
-        });
+    }
 
 
     // =====================================================
     // 로그인
     // =====================================================
 
-    document
-        .getElementById("loginSubmit")
-        .addEventListener("click", async () => {
-
-            const username =
-                document
-                    .getElementById("loginUsername")
-                    .value
-                    .trim();
+    const loginSubmit =
+        document.getElementById(
+            "loginSubmit"
+        );
 
 
-            const password =
-                document
-                    .getElementById("loginPassword")
-                    .value;
+    if (loginSubmit) {
+
+        loginSubmit.addEventListener(
+            "click",
+            async () => {
+
+                const username =
+                    document
+                        .getElementById(
+                            "loginUsername"
+                        )
+                        .value
+                        .trim();
 
 
-            authMessage.textContent =
-                "로그인 중...";
+                const password =
+                    document
+                        .getElementById(
+                            "loginPassword"
+                        )
+                        .value;
 
 
-            try {
+                if (authMessage) {
 
-                const response =
-                    await fetch(
-                        "/api/auth/login",
-                        {
-                            method: "POST",
-
-                            headers: {
-                                "Content-Type":
-                                    "application/json"
-                            },
-
-                            body:
-                                JSON.stringify({
-                                    username,
-                                    password
-                                })
-                        }
-                    );
-
-
-                const data =
-                    await response.json();
-
-
-                if (!response.ok) {
-
-                    throw new Error(
-                        data.error ||
-                        "로그인에 실패했습니다."
-                    );
+                    authMessage.textContent =
+                        "로그인 중...";
 
                 }
 
 
-                localStorage.setItem(
-                    "vsm_token",
-                    data.token
-                );
+                try {
+
+                    const response =
+                        await fetch(
+                            "/api/auth/login",
+                            {
+                                method: "POST",
+
+                                headers: {
+                                    "Content-Type":
+                                        "application/json"
+                                },
+
+                                body:
+                                    JSON.stringify({
+                                        username,
+                                        password
+                                    })
+                            }
+                        );
 
 
-                updateUserUI(data.user);
+                    const data =
+                        await response.json();
 
 
-                authMessage.textContent =
-                    "로그인 성공! 🎉";
+                    if (!response.ok) {
+
+                        throw new Error(
+                            data.error ||
+                            "로그인에 실패했습니다."
+                        );
+
+                    }
 
 
-                setTimeout(() => {
-
-                    authOverlay.style.display =
-                        "none";
-
-                }, 700);
+                    localStorage.setItem(
+                        "vsm_token",
+                        data.token
+                    );
 
 
-            } catch (error) {
+                    updateUserUI(
+                        data.user
+                    );
 
-                authMessage.textContent =
-                    "❌ " +
-                    error.message;
+
+                    if (authMessage) {
+
+                        authMessage.textContent =
+                            "로그인 성공! 🎉";
+
+                    }
+
+
+                    setTimeout(() => {
+
+                        authOverlay.style.display =
+                            "none";
+
+                    }, 700);
+
+
+                } catch (error) {
+
+                    console.error(
+                        "LOGIN ERROR:",
+                        error
+                    );
+
+                    if (authMessage) {
+
+                        authMessage.textContent =
+                            "❌ " +
+                            error.message;
+
+                    }
+
+                }
 
             }
+        );
 
-        });
+    }
 
 
     // =====================================================
     // 로그아웃
     // =====================================================
 
-    document
-        .getElementById("logoutButton")
-        .addEventListener("click", async () => {
-
-            const token =
-                localStorage.getItem("vsm_token");
+    const logoutButton =
+        document.getElementById(
+            "logoutButton"
+        );
 
 
-            try {
+    if (logoutButton) {
 
-                if (token) {
+        logoutButton.addEventListener(
+            "click",
+            async () => {
 
-                    await fetch(
-                        "/api/auth/logout",
-                        {
-                            method: "POST",
+                const token =
+                    localStorage.getItem(
+                        "vsm_token"
+                    );
 
-                            headers: {
-                                "Authorization":
-                                    "Bearer " + token
+
+                try {
+
+                    if (token) {
+
+                        await fetch(
+                            "/api/auth/logout",
+                            {
+                                method: "POST",
+
+                                headers: {
+                                    "Authorization":
+                                        "Bearer " +
+                                        token
+                                }
                             }
-                        }
+                        );
+
+                    }
+
+                } catch (error) {
+
+                    console.error(
+                        "LOGOUT ERROR:",
+                        error
                     );
 
                 }
 
-            } catch (error) {
 
-                console.error(
-                    "LOGOUT ERROR:",
-                    error
+                localStorage.removeItem(
+                    "vsm_token"
+                );
+
+
+                if (profileOverlay) {
+
+                    profileOverlay.style.display =
+                        "none";
+
+                }
+
+
+                if (moneyElement) {
+
+                    moneyElement.textContent =
+                        "10,000";
+
+                }
+
+
+                if (assetMoneyElement) {
+
+                    assetMoneyElement.textContent =
+                        "10,000원";
+
+                }
+
+
+                alert(
+                    "로그아웃되었습니다."
                 );
 
             }
+        );
 
-
-            localStorage.removeItem(
-                "vsm_token"
-            );
-
-
-            profileOverlay.style.display =
-                "none";
-
-
-            document
-                .getElementById("money")
-                .textContent =
-                "10,000";
-
-
-            document
-                .getElementById("assetMoney")
-                .textContent =
-                "10,000원";
-
-
-            alert(
-                "로그아웃되었습니다."
-            );
-
-        });
+    }
 
 
     // =====================================================
@@ -1788,13 +903,13 @@
     async function checkLogin() {
 
         const token =
-            localStorage.getItem("vsm_token");
+            localStorage.getItem(
+                "vsm_token"
+            );
 
 
         if (!token) {
-
             return;
-
         }
 
 
@@ -1804,9 +919,12 @@
                 await fetch(
                     "/api/auth/me",
                     {
+                        method: "GET",
+
                         headers: {
                             "Authorization":
-                                "Bearer " + token
+                                "Bearer " +
+                                token
                         }
                     }
                 );
@@ -1841,7 +959,7 @@
         } catch (error) {
 
             console.error(
-                "로그인 상태 확인 실패:",
+                "LOGIN CHECK ERROR:",
                 error
             );
 
@@ -1850,11 +968,12 @@
     }
 
 
+    // =====================================================
     // 시작
+    // =====================================================
+
     checkLogin();
 
+});
 </script>
-
-</body>
-</html>
 ```
