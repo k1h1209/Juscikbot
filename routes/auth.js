@@ -208,7 +208,7 @@ router.post("/register", async (req, res) => {
 
         }
 
-        // UUID
+        // 내부 사용자 식별용 UUID
         const id =
             crypto.randomUUID();
 
@@ -232,7 +232,7 @@ router.post("/register", async (req, res) => {
             Date.now();
 
         // 사용자 생성
-        // player_number는 SERIAL이므로 자동 생성
+        // player_number는 SERIAL이므로 PostgreSQL이 자동 발급
         const result =
             await pool.query(`
                 INSERT INTO users
