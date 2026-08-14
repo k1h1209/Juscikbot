@@ -44,6 +44,9 @@ const noticeRoutes =
 const adminRoutes =
     require("./routes/admin");
 
+const notificationsRouter = require("./routes/notifications");
+app.use("/api/notifications", notificationsRouter);
+
 // ========================================
 // API 연결
 // ========================================
