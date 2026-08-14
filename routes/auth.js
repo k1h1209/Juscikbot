@@ -1,4 +1,3 @@
-
 const express = require("express");
 const crypto = require("crypto");
 const { pool } = require("../services/market");
@@ -8,7 +7,7 @@ const router = express.Router();
 const STARTING_CASH = 10000;
 
 // =====================================================
-// 비밀번호 암호화
+// 비밀번호
 // =====================================================
 
 function hashPassword(password, salt) {
@@ -18,7 +17,7 @@ function hashPassword(password, salt) {
 }
 
 // =====================================================
-// 로그인 토큰
+// 토큰
 // =====================================================
 
 function createToken() {
@@ -28,19 +27,19 @@ function createToken() {
 }
 
 // =====================================================
-// 사용자 정보 정리
+// 사용자 정보 안전하게 반환
 // =====================================================
 
 function safeUser(user) {
+
     return {
         id: user.id,
 
         playerNumber:
-            user.player_number
-                ? Number(user.player_number)
-                : null,
+            Number(user.player_number),
 
         username: user.username,
+
         nickname: user.nickname,
 
         cash: Number(user.cash),
@@ -51,7 +50,7 @@ function safeUser(user) {
 }
 
 // =====================================================
-// 인증 미들웨어
+// 인증
 // =====================================================
 
 async function auth(req, res, next) {
@@ -75,7 +74,8 @@ async function auth(req, res, next) {
         }
 
         const result =
-            await pool.query(`
+            await pool.query(
+                `
                 SELECT
                     u.id,
                     u.player_number,
@@ -84,13 +84,16 @@ async function auth(req, res, next) {
                     u.cash,
                     u.holdings,
                     u.transactions
+
                 FROM sessions s
 
                 JOIN users u
                     ON u.id = s.user_id
 
                 WHERE s.token = $1
-            `, [token]);
+                `,
+                [token]
+            );
 
         if (!result.rows.length) {
 
@@ -119,7 +122,6 @@ async function auth(req, res, next) {
             error:
                 "인증 처리 중 오류가 발생했습니다."
         });
-
     }
 }
 
@@ -127,321 +129,401 @@ async function auth(req, res, next) {
 // 회원가입
 // =====================================================
 
-router.post("/register", async (req, res) => {
+router.post(
+    "/register",
+    async (req, res) => {
 
-    try {
+        try {
 
-        const {
-            username,
-            password,
-            nickname
-        } = req.body;
+            const {
+                username,
+                password,
+                nickname
+            } = req.body;
 
-        if (
-            !username ||
-            !password ||
-            !nickname
-        ) {
+            if (
+                !username ||
+                !password ||
+                !nickname
+            ) {
 
-            return res.status(400).json({
-                error:
-                    "아이디, 비밀번호, 닉네임을 모두 입력하세요."
-            });
+                return res.status(400).json({
+                    error:
+                        "아이디, 비밀번호, 닉네임을 모두 입력하세요."
+                });
 
-        }
+            }
 
-        const cleanUsername =
-            String(username).trim();
+            const cleanUsername =
+                String(username).trim();
 
-        const cleanNickname =
-            String(nickname).trim();
+            const cleanNickname =
+                String(nickname).trim();
 
-        const cleanPassword =
-            String(password);
+            const cleanPassword =
+                String(password);
 
-        if (cleanUsername.length < 3) {
+            if (
+                cleanUsername.length < 3
+            ) {
 
-            return res.status(400).json({
-                error:
-                    "아이디는 3자 이상이어야 합니다."
-            });
+                return res.status(400).json({
+                    error:
+                        "아이디는 3자 이상이어야 합니다."
+                });
 
-        }
+            }
 
-        if (cleanPassword.length < 4) {
+            if (
+                cleanPassword.length < 4
+            ) {
 
-            return res.status(400).json({
-                error:
-                    "비밀번호는 4자 이상이어야 합니다."
-            });
+                return res.status(400).json({
+                    error:
+                        "비밀번호는 4자 이상이어야 합니다."
+                });
 
-        }
+            }
 
-        if (cleanNickname.length < 2) {
+            if (
+                cleanNickname.length < 2
+            ) {
 
-            return res.status(400).json({
-                error:
-                    "닉네임은 2자 이상이어야 합니다."
-            });
+                return res.status(400).json({
+                    error:
+                        "닉네임은 2자 이상이어야 합니다."
+                });
 
-        }
+            }
 
-        // 아이디 / 닉네임 중복 확인
-        const duplicate =
-            await pool.query(`
-                SELECT id
-                FROM users
-                WHERE LOWER(username) = LOWER($1)
-                   OR nickname = $2
-                LIMIT 1
-            `, [
-                cleanUsername,
-                cleanNickname
-            ]);
+            // 중복 확인
+            const duplicate =
+                await pool.query(
+                    `
+                    SELECT id
 
-        if (duplicate.rows.length) {
+                    FROM users
 
-            return res.status(409).json({
-                error:
-                    "이미 사용 중인 아이디 또는 닉네임입니다."
-            });
+                    WHERE
+                        LOWER(username)
+                        =
+                        LOWER($1)
 
-        }
+                        OR nickname = $2
 
-        // 내부 사용자 식별용 UUID
-        const id =
-            crypto.randomUUID();
+                    LIMIT 1
+                    `,
+                    [
+                        cleanUsername,
+                        cleanNickname
+                    ]
+                );
 
-        // 비밀번호 암호화
-        const salt =
-            crypto
-                .randomBytes(16)
-                .toString("hex");
+            if (duplicate.rows.length) {
 
-        const passwordHash =
-            hashPassword(
-                cleanPassword,
-                salt
-            );
+                return res.status(409).json({
+                    error:
+                        "이미 사용 중인 아이디 또는 닉네임입니다."
+                });
 
-        // 로그인 토큰
-        const token =
-            createToken();
+            }
 
-        const createdAt =
-            Date.now();
+            // 내부 UUID
+            const id =
+                crypto.randomUUID();
 
-        // 사용자 생성
-        // player_number는 SERIAL이므로 PostgreSQL이 자동 발급
-        const result =
-            await pool.query(`
-                INSERT INTO users
+            // 비밀번호 암호화
+            const salt =
+                crypto
+                    .randomBytes(16)
+                    .toString("hex");
+
+            const passwordHash =
+                hashPassword(
+                    cleanPassword,
+                    salt
+                );
+
+            // 세션 토큰
+            const token =
+                createToken();
+
+            const createdAt =
+                Date.now();
+
+            // =================================================
+            // 사용자 생성
+            //
+            // player_number는 SERIAL이 자동 생성
+            // =================================================
+
+            const userResult =
+                await pool.query(
+                    `
+                    INSERT INTO users
+                    (
+                        id,
+                        username,
+                        nickname,
+                        salt,
+                        password_hash,
+                        cash,
+                        holdings,
+                        transactions,
+                        created_at
+                    )
+
+                    VALUES
+                    (
+                        $1,
+                        $2,
+                        $3,
+                        $4,
+                        $5,
+                        $6,
+                        '{}'::jsonb,
+                        '[]'::jsonb,
+                        $7
+                    )
+
+                    RETURNING
+                        id,
+                        player_number,
+                        username,
+                        nickname,
+                        cash,
+                        holdings
+                    `,
+                    [
+                        id,
+                        cleanUsername,
+                        cleanNickname,
+                        salt,
+                        passwordHash,
+                        STARTING_CASH,
+                        createdAt
+                    ]
+                );
+
+            const user =
+                userResult.rows[0];
+
+            // =================================================
+            // 세션
+            // =================================================
+
+            await pool.query(
+                `
+                INSERT INTO sessions
                 (
-                    id,
-                    username,
-                    nickname,
-                    salt,
-                    password_hash,
-                    cash,
-                    holdings,
-                    transactions,
+                    token,
+                    user_id,
                     created_at
                 )
+
+                VALUES
+                (
+                    $1,
+                    $2,
+                    $3
+                )
+                `,
+                [
+                    token,
+                    id,
+                    createdAt
+                ]
+            );
+
+            // =================================================
+            // 가입 환영 알림
+            // =================================================
+
+            await pool.query(
+                `
+                INSERT INTO notifications
+                (
+                    user_id,
+                    message,
+                    type,
+                    created_at
+                )
+
                 VALUES
                 (
                     $1,
                     $2,
                     $3,
-                    $4,
-                    $5,
-                    $6,
-                    '{}'::jsonb,
-                    '[]'::jsonb,
-                    $7
+                    $4
                 )
-                RETURNING
+                `,
+                [
                     id,
-                    player_number,
-                    username,
-                    nickname,
-                    cash,
-                    holdings
-            `, [
-                id,
-                cleanUsername,
-                cleanNickname,
-                salt,
-                passwordHash,
-                STARTING_CASH,
-                createdAt
-            ]);
+                    "VSM 가입을 환영합니다!",
+                    "welcome",
+                    createdAt
+                ]
+            );
 
-        // 세션 생성
-        await pool.query(`
-            INSERT INTO sessions
-            (
+            // =================================================
+            // 응답
+            // =================================================
+
+            res.status(201).json({
+
+                ok: true,
+
                 token,
-                user_id,
-                created_at
-            )
-            VALUES
-            ($1,$2,$3)
-        `, [
-            token,
-            id,
-            createdAt
-        ]);
 
-        // 가입 환영 알림
-        await pool.query(`
-            INSERT INTO notifications
-            (
-                user_id,
-                message,
-                type,
-                created_at
-            )
-            VALUES
-            ($1,$2,$3,$4)
-        `, [
-            id,
-            "VSM 가입을 환영합니다!",
-            "welcome",
-            createdAt
-        ]);
+                user:
+                    safeUser(user)
 
-        res.status(201).json({
-            ok: true,
+            });
 
-            token,
+        } catch (error) {
 
-            user:
-                safeUser(
-                    result.rows[0]
-                )
-        });
+            console.error(
+                "REGISTER ERROR:",
+                error
+            );
 
-    } catch (error) {
+            res.status(500).json({
+                error:
+                    "회원가입 중 오류가 발생했습니다."
+            });
 
-        console.error(
-            "REGISTER ERROR:",
-            error
-        );
-
-        res.status(500).json({
-            error:
-                "회원가입 중 오류가 발생했습니다."
-        });
-
+        }
     }
-});
+);
 
 // =====================================================
 // 로그인
 // =====================================================
 
-router.post("/login", async (req, res) => {
+router.post(
+    "/login",
+    async (req, res) => {
 
-    try {
+        try {
 
-        const {
-            username,
-            password
-        } = req.body;
+            const {
+                username,
+                password
+            } = req.body;
 
-        if (
-            !username ||
-            !password
-        ) {
+            if (
+                !username ||
+                !password
+            ) {
 
-            return res.status(400).json({
-                error:
-                    "아이디와 비밀번호를 입력하세요."
-            });
+                return res.status(400).json({
+                    error:
+                        "아이디와 비밀번호를 입력하세요."
+                });
 
-        }
+            }
 
-        const result =
-            await pool.query(`
-                SELECT *
-                FROM users
-                WHERE LOWER(username) = LOWER($1)
-                LIMIT 1
-            `, [
-                String(username).trim()
-            ]);
+            const result =
+                await pool.query(
+                    `
+                    SELECT *
 
-        if (!result.rows.length) {
+                    FROM users
 
-            return res.status(401).json({
-                error:
-                    "아이디 또는 비밀번호가 올바르지 않습니다."
-            });
+                    WHERE
+                        LOWER(username)
+                        =
+                        LOWER($1)
 
-        }
+                    LIMIT 1
+                    `,
+                    [
+                        String(username).trim()
+                    ]
+                );
 
-        const user =
-            result.rows[0];
+            if (!result.rows.length) {
 
-        const passwordHash =
-            hashPassword(
-                String(password),
-                user.salt
+                return res.status(401).json({
+                    error:
+                        "아이디 또는 비밀번호가 올바르지 않습니다."
+                });
+
+            }
+
+            const user =
+                result.rows[0];
+
+            const passwordHash =
+                hashPassword(
+                    String(password),
+                    user.salt
+                );
+
+            if (
+                passwordHash !==
+                user.password_hash
+            ) {
+
+                return res.status(401).json({
+                    error:
+                        "아이디 또는 비밀번호가 올바르지 않습니다."
+                });
+
+            }
+
+            const token =
+                createToken();
+
+            await pool.query(
+                `
+                INSERT INTO sessions
+                (
+                    token,
+                    user_id,
+                    created_at
+                )
+
+                VALUES
+                (
+                    $1,
+                    $2,
+                    $3
+                )
+                `,
+                [
+                    token,
+                    user.id,
+                    Date.now()
+                ]
             );
 
-        if (
-            passwordHash !==
-            user.password_hash
-        ) {
+            res.json({
 
-            return res.status(401).json({
+                ok: true,
+
+                token,
+
+                user:
+                    safeUser(user)
+
+            });
+
+        } catch (error) {
+
+            console.error(
+                "LOGIN ERROR:",
+                error
+            );
+
+            res.status(500).json({
                 error:
-                    "아이디 또는 비밀번호가 올바르지 않습니다."
+                    "로그인 중 오류가 발생했습니다."
             });
 
         }
-
-        const token =
-            createToken();
-
-        await pool.query(`
-            INSERT INTO sessions
-            (
-                token,
-                user_id,
-                created_at
-            )
-            VALUES
-            ($1,$2,$3)
-        `, [
-            token,
-            user.id,
-            Date.now()
-        ]);
-
-        res.json({
-            ok: true,
-
-            token,
-
-            user:
-                safeUser(user)
-        });
-
-    } catch (error) {
-
-        console.error(
-            "LOGIN ERROR:",
-            error
-        );
-
-        res.status(500).json({
-            error:
-                "로그인 중 오류가 발생했습니다."
-        });
-
     }
-});
+);
 
 // =====================================================
 // 내 정보
@@ -453,12 +535,12 @@ router.get(
     async (req, res) => {
 
         res.json({
+
             ok: true,
 
             user:
-                safeUser(
-                    req.user
-                )
+                safeUser(req.user)
+
         });
 
     }
@@ -475,12 +557,16 @@ router.post(
 
         try {
 
-            await pool.query(`
+            await pool.query(
+                `
                 DELETE FROM sessions
+
                 WHERE token = $1
-            `, [
-                req.token
-            ]);
+                `,
+                [
+                    req.token
+                ]
+            );
 
             res.json({
                 ok: true
@@ -495,7 +581,7 @@ router.post(
 
             res.status(500).json({
                 error:
-                    "로그아웃 중 오류가 발생했습니다."
+                    "로그아웃 처리 중 오류가 발생했습니다."
             });
 
         }
@@ -504,11 +590,9 @@ router.post(
 );
 
 // =====================================================
-// 인증 미들웨어 export
+// export
 // =====================================================
 
 module.exports = router;
 
-module.exports.auth =
-    auth;
-
+module.exports.auth = auth;
