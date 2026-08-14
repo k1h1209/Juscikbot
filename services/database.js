@@ -1,4 +1,3 @@
-
 const { pool, companies } = require("./market");
 
 async function initializeDatabase() {
@@ -38,10 +37,6 @@ async function initializeDatabase() {
             )
         `);
 
-
-        // ========================================
-        // 기존 users 테이블 보정
-        // ========================================
 
         await client.query(`
             ALTER TABLE users
@@ -93,43 +88,58 @@ async function initializeDatabase() {
 
                 name TEXT NOT NULL,
 
-                volatility NUMERIC NOT NULL,
-
                 price NUMERIC NOT NULL,
-
                 previous NUMERIC NOT NULL,
 
                 open_price NUMERIC NOT NULL,
-
                 high NUMERIC NOT NULL,
-
                 low NUMERIC NOT NULL,
 
                 volume BIGINT NOT NULL DEFAULT 0,
 
-                volume_limit_enabled BOOLEAN
-                    NOT NULL DEFAULT FALSE,
+                min_change NUMERIC NOT NULL DEFAULT 1,
+                max_change NUMERIC NOT NULL DEFAULT 10,
 
-                volume_limit BIGINT
-                    NOT NULL DEFAULT 0
+                change_interval INTEGER NOT NULL DEFAULT 5,
+
+                change_mode TEXT NOT NULL DEFAULT 'random',
+
+                volume_limit_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+                volume_limit BIGINT NOT NULL DEFAULT 0
             )
         `);
 
 
-        // ========================================
         // 기존 stocks 테이블 보정
-        // ========================================
 
         await client.query(`
             ALTER TABLE stocks
-            ADD COLUMN IF NOT EXISTS volume_limit_enabled
-            BOOLEAN NOT NULL DEFAULT FALSE
+            ADD COLUMN IF NOT EXISTS min_change NUMERIC NOT NULL DEFAULT 1
         `);
 
         await client.query(`
             ALTER TABLE stocks
-            ADD COLUMN IF NOT EXISTS volume_limit
-            BIGINT NOT NULL DEFAULT 0
+            ADD COLUMN IF NOT EXISTS max_change NUMERIC NOT NULL DEFAULT 10
+        `);
+
+        await client.query(`
+            ALTER TABLE stocks
+            ADD COLUMN IF NOT EXISTS change_interval INTEGER NOT NULL DEFAULT 5
+        `);
+
+        await client.query(`
+            ALTER TABLE stocks
+            ADD COLUMN IF NOT EXISTS change_mode TEXT NOT NULL DEFAULT 'random'
+        `);
+
+        await client.query(`
+            ALTER TABLE stocks
+            ADD COLUMN IF NOT EXISTS volume_limit_enabled BOOLEAN NOT NULL DEFAULT FALSE
+        `);
+
+        await client.query(`
+            ALTER TABLE stocks
+            ADD COLUMN IF NOT EXISTS volume_limit BIGINT NOT NULL DEFAULT 0
         `);
 
 
@@ -285,7 +295,7 @@ async function initializeDatabase() {
 
 
         // ========================================
-        // 서버 점검 상태
+        // 서버 점검
         // ========================================
 
         await client.query(`
@@ -304,10 +314,20 @@ async function initializeDatabase() {
 
 
         // ========================================
-        // 주식 기본 데이터 생성
+        // 기본 주식 생성
         // ========================================
 
-        for (const [id, name, price, volatility] of companies) {
+        for (const company of companies) {
+
+            const [
+                id,
+                name,
+                price,
+                minChange,
+                maxChange,
+                interval
+            ] = company;
+
 
             const result =
                 await client.query(
@@ -320,7 +340,7 @@ async function initializeDatabase() {
                 );
 
 
-            if (result.rows.length === 0) {
+            if (!result.rows.length) {
 
                 await client.query(
                     `
@@ -328,13 +348,16 @@ async function initializeDatabase() {
                     (
                         id,
                         name,
-                        volatility,
                         price,
                         previous,
                         open_price,
                         high,
                         low,
                         volume,
+                        min_change,
+                        max_change,
+                        change_interval,
+                        change_mode,
                         volume_limit_enabled,
                         volume_limit
                     )
@@ -344,12 +367,15 @@ async function initializeDatabase() {
                         $1,
                         $2,
                         $3,
-                        $4,
-                        $4,
-                        $4,
-                        $4,
-                        $4,
+                        $3,
+                        $3,
+                        $3,
+                        $3,
                         0,
+                        $4,
+                        $5,
+                        $6,
+                        'random',
                         FALSE,
                         0
                     )
@@ -357,8 +383,10 @@ async function initializeDatabase() {
                     [
                         id,
                         name,
-                        volatility,
-                        price
+                        price,
+                        minChange,
+                        maxChange,
+                        interval
                     ]
                 );
 
@@ -404,7 +432,6 @@ async function initializeDatabase() {
                         0,
                         1
                     )
-
                     ON CONFLICT (stock_id)
                     DO NOTHING
                     `,
@@ -412,47 +439,14 @@ async function initializeDatabase() {
                 );
 
             }
-
         }
 
 
         // ========================================
-        // 기존 주식의 관리자 제어 데이터 보정
+        // 점검 기본값
         // ========================================
 
         await client.query(`
-            INSERT INTO market_controls
-            (
-                stock_id,
-                direction,
-                until_time,
-                strength
-            )
-
-            SELECT
-                id,
-                'normal',
-                0,
-                1
-
-            FROM stocks
-
-            WHERE id NOT IN (
-                SELECT stock_id
-                FROM market_controls
-            )
-
-            ON CONFLICT (stock_id)
-            DO NOTHING
-        `);
-
-
-        // ========================================
-        // 점검 상태 기본값
-        // ========================================
-
-        await client.query(
-            `
             INSERT INTO maintenance
             (
                 id,
@@ -473,14 +467,10 @@ async function initializeDatabase() {
 
             ON CONFLICT (id)
             DO NOTHING
-            `,
-            [Date.now()]
-        );
+        `, [
+            Date.now()
+        ]);
 
-
-        // ========================================
-        // 완료
-        // ========================================
 
         await client.query("COMMIT");
 
@@ -489,31 +479,25 @@ async function initializeDatabase() {
             "✅ PostgreSQL 데이터베이스 초기화 완료."
         );
 
-
     } catch (error) {
 
         await client.query("ROLLBACK");
-
 
         console.error(
             "❌ 데이터베이스 초기화 실패:",
             error
         );
 
-
         throw error;
-
 
     } finally {
 
         client.release();
 
     }
-
 }
 
 
 module.exports = {
     initializeDatabase
 };
-
