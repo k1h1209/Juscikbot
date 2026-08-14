@@ -7,18 +7,24 @@ async function initializeDatabase() {
         await client.query("BEGIN");
 
         // 사용자
-        await client.query(`
-            CREATE TABLE IF NOT EXISTS users (
-                id TEXT PRIMARY KEY,
-                username TEXT UNIQUE NOT NULL,
-                nickname TEXT UNIQUE NOT NULL,
-                salt TEXT NOT NULL,
-                password_hash TEXT NOT NULL,
-                cash NUMERIC NOT NULL DEFAULT 10000,
-                holdings JSONB NOT NULL DEFAULT '{}'::jsonb,
-                transactions JSONB NOT NULL DEFAULT '[]'::jsonb,
-                created_at BIGINT NOT NULL
-            )
+        CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+
+    player_number SERIAL UNIQUE,
+
+    username TEXT UNIQUE NOT NULL,
+    nickname TEXT UNIQUE NOT NULL,
+
+    salt TEXT NOT NULL,
+    password_hash TEXT NOT NULL,
+
+    cash NUMERIC NOT NULL DEFAULT 10000,
+
+    holdings JSONB NOT NULL DEFAULT '{}'::jsonb,
+    transactions JSONB NOT NULL DEFAULT '[]'::jsonb,
+
+    created_at BIGINT NOT NULL
+)
         `);
 
         // 로그인 세션
