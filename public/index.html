@@ -1270,10 +1270,37 @@
 
     function updateUserUI(user) {
 
-        if (!user) {
-            return;
-        }
+    if (!user) {
+        return;
+    }
 
+    const money =
+        Number(
+            user.cash || 0
+        ).toLocaleString("ko-KR");
+
+
+    document
+        .getElementById("money")
+        .textContent =
+            money;
+
+
+    document
+        .getElementById("assetMoney")
+        .textContent =
+            money + "원";
+
+
+    console.log(
+        "현재 로그인 사용자:",
+        {
+            playerNumber: user.playerNumber,
+            username: user.username,
+            nickname: user.nickname
+        }
+    );
+}
 
         const money =
             Number(user.cash || 0)
@@ -1304,14 +1331,67 @@
 
     function showProfile(user) {
 
-        if (!user) {
+    if (!user) {
 
-            showLoginForm();
+        showLoginForm();
 
-            return;
+        return;
 
-        }
+    }
 
+    // 닉네임
+    document
+        .getElementById("profileNickname")
+        .textContent =
+            user.nickname || "사용자";
+
+
+    // 아이디
+    document
+        .getElementById("profileUsername")
+        .textContent =
+            "@" +
+            (
+                user.username ||
+                "unknown"
+            );
+
+
+    // =================================================
+    // 플레이어 번호
+    // =================================================
+
+    const playerNumber =
+        Number(user.playerNumber);
+
+
+    document
+        .getElementById("profileId")
+        .textContent =
+            Number.isInteger(playerNumber) &&
+            playerNumber > 0
+                ? String(playerNumber)
+                    .padStart(5, "0")
+                : "-----";
+
+
+    // =================================================
+    // 보유 현금
+    // =================================================
+
+    document
+        .getElementById("profileCash")
+        .textContent =
+            Number(
+                user.cash || 0
+            ).toLocaleString("ko-KR") +
+            "원";
+
+
+    // 프로필 열기
+    profileOverlay.style.display =
+        "flex";
+}
 
         document
             .getElementById("profileNickname")
