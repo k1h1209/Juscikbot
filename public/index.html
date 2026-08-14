@@ -1,20 +1,16 @@
+# VSM `public/index.html` 최종본
 
+```html
 <!DOCTYPE html>
 <html lang="ko">
 
 <head>
-
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>VSM - Virtual Stock Market</title>
 
     <style>
-
         * {
             box-sizing: border-box;
         }
@@ -25,19 +21,13 @@
             padding: 0;
             width: 100%;
             min-height: 100%;
-            font-family:
-                Arial,
-                "Noto Sans KR",
-                sans-serif;
+            font-family: Arial, "Noto Sans KR", sans-serif;
         }
 
         body {
             background: #f4f6f8;
             color: #202124;
-
-            transition:
-                background 0.25s,
-                color 0.25s;
+            transition: background 0.25s, color 0.25s;
         }
 
         /* ================================
@@ -49,7 +39,6 @@
             top: 0;
             left: 0;
             right: 0;
-
             height: 58px;
 
             display: flex;
@@ -57,14 +46,10 @@
 
             padding: 0 16px;
 
-            background:
-                rgba(255, 255, 255, 0.92);
+            background: rgba(255, 255, 255, 0.92);
+            border-bottom: 1px solid #e5e7eb;
 
-            border-bottom:
-                1px solid #e5e7eb;
-
-            backdrop-filter:
-                blur(12px);
+            backdrop-filter: blur(12px);
 
             z-index: 1000;
         }
@@ -72,30 +57,34 @@
         .logo {
             font-size: 20px;
             font-weight: 800;
-
             margin-right: 18px;
-
             white-space: nowrap;
+        }
+
+        .menu-button,
+        .icon-button {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            transition: background 0.2s;
         }
 
         .menu-button {
             width: 40px;
             height: 40px;
-
-            border: none;
             border-radius: 10px;
-
-            background: transparent;
-
             font-size: 22px;
-
-            cursor: pointer;
-
-            transition:
-                background 0.2s;
         }
 
-        .menu-button:hover {
+        .icon-button {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            font-size: 19px;
+        }
+
+        .menu-button:hover,
+        .icon-button:hover {
             background: #eef1f4;
         }
 
@@ -111,31 +100,11 @@
 
         .money {
             padding: 8px 12px;
-
             border-radius: 10px;
-
             background: #f1f3f5;
 
             font-size: 14px;
             font-weight: 700;
-        }
-
-        .icon-button {
-            width: 38px;
-            height: 38px;
-
-            border: none;
-            border-radius: 10px;
-
-            background: transparent;
-
-            font-size: 19px;
-
-            cursor: pointer;
-        }
-
-        .icon-button:hover {
-            background: #eef1f4;
         }
 
         /* ================================
@@ -144,30 +113,19 @@
 
         .menu-panel {
             position: fixed;
-
             top: 58px;
             left: 12px;
 
             width: 230px;
-
             padding: 10px;
 
-            background:
-                rgba(255, 255, 255, 0.97);
-
-            border:
-                1px solid #e5e7eb;
-
+            background: rgba(255, 255, 255, 0.97);
+            border: 1px solid #e5e7eb;
             border-radius: 14px;
 
-            box-shadow:
-                0 15px 40px
-                rgba(0, 0, 0, 0.12);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
 
-            transform:
-                translateY(-10px)
-                scale(0.98);
-
+            transform: translateY(-10px) scale(0.98);
             opacity: 0;
             visibility: hidden;
 
@@ -180,21 +138,16 @@
         }
 
         .menu-panel.open {
-            transform:
-                translateY(0)
-                scale(1);
-
+            transform: translateY(0) scale(1);
             opacity: 1;
             visibility: visible;
         }
 
         .menu-title {
-            padding:
-                10px 12px;
+            padding: 10px 12px;
 
             font-size: 12px;
             font-weight: 700;
-
             color: #7a8088;
         }
 
@@ -203,11 +156,9 @@
 
             display: flex;
             align-items: center;
-
             gap: 10px;
 
-            padding:
-                11px 12px;
+            padding: 11px 12px;
 
             border: none;
             border-radius: 10px;
@@ -215,15 +166,12 @@
             background: transparent;
 
             font-size: 14px;
-
             text-align: left;
 
             cursor: pointer;
-
             color: inherit;
 
-            transition:
-                background 0.2s;
+            transition: background 0.2s;
         }
 
         .menu-item:hover {
@@ -236,21 +184,13 @@
 
         .main {
             padding-top: 58px;
-
             min-height: 100vh;
         }
 
         .content {
-            width:
-                min(
-                    1200px,
-                    calc(100% - 32px)
-                );
-
+            width: min(1200px, calc(100% - 32px));
             margin: 0 auto;
-
-            padding:
-                35px 0 60px;
+            padding: 35px 0 60px;
         }
 
         .welcome {
@@ -258,17 +198,13 @@
         }
 
         .welcome h1 {
-            margin:
-                0 0 8px;
-
+            margin: 0 0 8px;
             font-size: 30px;
         }
 
         .welcome p {
             margin: 0;
-
             color: #6b7280;
-
             font-size: 15px;
         }
 
@@ -278,13 +214,7 @@
 
         .grid {
             display: grid;
-
-            grid-template-columns:
-                repeat(
-                    2,
-                    minmax(0, 1fr)
-                );
-
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 18px;
         }
 
@@ -292,35 +222,25 @@
             padding: 22px;
 
             background: #ffffff;
-
-            border:
-                1px solid #e5e7eb;
-
+            border: 1px solid #e5e7eb;
             border-radius: 16px;
 
-            box-shadow:
-                0 4px 15px
-                rgba(0, 0, 0, 0.04);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
         }
 
         .card h2 {
-            margin:
-                0 0 10px;
-
+            margin: 0 0 10px;
             font-size: 18px;
         }
 
         .card p {
             margin: 0;
-
             color: #6b7280;
-
             line-height: 1.6;
         }
 
         .big-number {
             margin-top: 15px;
-
             font-size: 26px;
             font-weight: 800;
         }
@@ -329,47 +249,41 @@
            로그인
         ================================= */
 
-        #authOverlay {
+        #authOverlay,
+        #profileOverlay {
             display: none;
 
             position: fixed;
-
             inset: 0;
-
-            z-index: 5000;
-
-            background:
-                rgba(0, 0, 0, 0.55);
-
-            backdrop-filter:
-                blur(6px);
 
             align-items: center;
             justify-content: center;
+
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(6px);
         }
 
-        #authBox {
-            width:
-                min(
-                    420px,
-                    calc(100% - 30px)
-                );
+        #authOverlay {
+            z-index: 5000;
+        }
+
+        #profileOverlay {
+            z-index: 6000;
+        }
+
+        #authBox,
+        #profileBox {
+            width: min(430px, calc(100% - 30px));
 
             background: white;
-
             border-radius: 20px;
-
             padding: 28px;
 
-            box-shadow:
-                0 20px 60px
-                rgba(0, 0, 0, 0.25);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
         }
 
         #authTitle {
-            margin:
-                0 0 20px;
-
+            margin: 0 0 20px;
             text-align: center;
         }
 
@@ -377,15 +291,17 @@
             width: 100%;
 
             padding: 13px;
-
             margin-bottom: 10px;
 
-            border:
-                1px solid #ddd;
-
+            border: 1px solid #ddd;
             border-radius: 10px;
 
             font-size: 15px;
+            outline: none;
+        }
+
+        .auth-input:focus {
+            border-color: #2563eb;
         }
 
         .auth-submit {
@@ -394,15 +310,12 @@
             padding: 13px;
 
             border: 0;
-
             border-radius: 10px;
 
             background: #202124;
-
             color: white;
 
             font-size: 15px;
-
             font-weight: bold;
 
             cursor: pointer;
@@ -410,22 +323,17 @@
 
         .auth-switch {
             text-align: center;
-
-            margin:
-                16px 0 0;
-
+            margin: 16px 0 0;
             font-size: 14px;
         }
 
         .auth-link {
             border: 0;
-
             background: none;
 
             color: #2563eb;
 
             cursor: pointer;
-
             font-weight: bold;
         }
 
@@ -433,11 +341,9 @@
             width: 100%;
 
             margin-top: 12px;
-
             padding: 11px;
 
             border: 0;
-
             border-radius: 10px;
 
             background: #f1f3f5;
@@ -447,9 +353,7 @@
 
         #authMessage {
             margin-top: 14px;
-
             text-align: center;
-
             font-size: 14px;
         }
 
@@ -457,47 +361,9 @@
            프로필
         ================================= */
 
-        #profileOverlay {
-            display: none;
-
-            position: fixed;
-
-            inset: 0;
-
-            z-index: 6000;
-
-            background:
-                rgba(0, 0, 0, 0.55);
-
-            backdrop-filter:
-                blur(6px);
-
-            align-items: center;
-            justify-content: center;
-        }
-
-        #profileBox {
-            width:
-                min(
-                    430px,
-                    calc(100% - 30px)
-                );
-
-            background: white;
-
-            border-radius: 20px;
-
-            padding: 28px;
-
-            box-shadow:
-                0 20px 60px
-                rgba(0, 0, 0, 0.25);
-        }
-
         .profile-header {
             display: flex;
             align-items: center;
-
             gap: 15px;
 
             margin-bottom: 24px;
@@ -512,7 +378,6 @@
             justify-content: center;
 
             border-radius: 50%;
-
             background: #f1f3f5;
 
             font-size: 28px;
@@ -525,91 +390,63 @@
 
         .profile-username {
             margin-top: 4px;
-
             color: #8a9098;
-
             font-size: 13px;
         }
 
         .profile-info {
             display: grid;
-
             gap: 10px;
-
             margin-bottom: 20px;
         }
 
         .profile-row {
             display: flex;
-
-            justify-content:
-                space-between;
-
+            justify-content: space-between;
             align-items: center;
 
             padding: 14px;
 
             background: #f7f8fa;
-
             border-radius: 12px;
         }
 
         .profile-label {
             color: #6b7280;
-
             font-size: 13px;
         }
 
         .profile-value {
             font-size: 14px;
-
             font-weight: 800;
         }
 
         .profile-cash {
             font-size: 20px;
+        }
 
-            font-weight: 800;
+        .profile-close,
+        .profile-logout {
+            width: 100%;
+            padding: 12px;
+
+            border: none;
+            border-radius: 10px;
+
+            cursor: pointer;
+
+            font-size: 14px;
+            font-weight: 700;
         }
 
         .profile-close {
-            width: 100%;
-
-            padding: 12px;
-
-            border: none;
-
-            border-radius: 10px;
-
             background: #f1f3f5;
-
-            cursor: pointer;
-
-            font-size: 14px;
-
-            font-weight: 700;
         }
 
         .profile-logout {
-            width: 100%;
-
             margin-top: 10px;
-
-            padding: 12px;
-
-            border: none;
-
-            border-radius: 10px;
-
             background: #fee2e2;
-
             color: #dc2626;
-
-            cursor: pointer;
-
-            font-size: 14px;
-
-            font-weight: 700;
         }
 
         /* ================================
@@ -618,21 +455,16 @@
 
         body.dark {
             background: #101214;
-
             color: #f1f3f5;
         }
 
         body.dark .topbar {
-            background:
-                rgba(24, 27, 31, 0.92);
-
+            background: rgba(24, 27, 31, 0.92);
             border-color: #2d3238;
         }
 
-        body.dark
-        .menu-button:hover,
-        body.dark
-        .icon-button:hover {
+        body.dark .menu-button:hover,
+        body.dark .icon-button:hover {
             background: #292e34;
         }
 
@@ -641,9 +473,7 @@
         }
 
         body.dark .menu-panel {
-            background:
-                rgba(24, 27, 31, 0.98);
-
+            background: rgba(24, 27, 31, 0.98);
             border-color: #2d3238;
         }
 
@@ -662,12 +492,18 @@
 
         body.dark .card {
             background: #181b1f;
-
             border-color: #2d3238;
         }
 
+        body.dark #authBox,
         body.dark #profileBox {
             background: #181b1f;
+        }
+
+        body.dark .auth-input {
+            background: #20242a;
+            border-color: #3a4048;
+            color: white;
         }
 
         body.dark .profile-avatar {
@@ -688,20 +524,22 @@
             color: #9ca3af;
         }
 
+        body.dark #closeAuth {
+            background: #292e34;
+            color: white;
+        }
+
         /* ================================
            모바일
         ================================= */
 
         @media (max-width: 700px) {
-
             .money {
                 display: none;
             }
 
             .content {
-                width:
-                    calc(100% - 24px);
-
+                width: calc(100% - 24px);
                 padding-top: 25px;
             }
 
@@ -715,684 +553,617 @@
 
             .menu-panel {
                 left: 8px;
-
-                width:
-                    calc(100% - 16px);
+                width: calc(100% - 16px);
             }
         }
-
     </style>
-
 </head>
 
 <body>
 
-    <!-- ================================
-         상단바
-    ================================= -->
+<header class="topbar">
 
-    <header class="topbar">
+    <div class="logo">
+        VSM
+    </div>
 
-        <div class="logo">
-            VSM
-        </div>
-
-        <button
-            class="menu-button"
-            id="menuButton"
-            aria-label="메뉴"
-        >
-            ☰
-        </button>
-
-        <div class="top-spacer"></div>
-
-        <div class="top-info">
-
-            <div class="money">
-                💰
-                <span id="money">
-                    10,000
-                </span>
-                원
-            </div>
-
-            <button
-                class="icon-button"
-                id="notificationButton"
-                aria-label="알림"
-            >
-                🔔
-            </button>
-
-            <button
-                class="icon-button"
-                id="profileButton"
-                aria-label="프로필"
-            >
-                👤
-            </button>
-
-        </div>
-
-    </header>
-
-
-    <!-- ================================
-         메뉴
-    ================================= -->
-
-    <nav
-        class="menu-panel"
-        id="menuPanel"
+    <button
+        class="menu-button"
+        id="menuButton"
+        aria-label="메뉴"
     >
+        ☰
+    </button>
 
-        <div class="menu-title">
-            VSM MENU
+    <div class="top-spacer"></div>
+
+    <div class="top-info">
+
+        <div class="money">
+            💰
+            <span id="money">10,000</span>
+            원
         </div>
 
-        <button class="menu-item">
-            🏠
-            <span>홈</span>
+        <button
+            class="icon-button"
+            id="notificationButton"
+        >
+            🔔
         </button>
 
         <button
-            class="menu-item"
-            id="stocksMenuButton"
+            class="icon-button"
+            id="profileButton"
         >
-            📈
-            <span>주식</span>
+            👤
         </button>
 
-        <button class="menu-item" id="bankMenuButton">
-    🏦
-    <span>안드로메다뱅크</span>
-</button>
+    </div>
 
-        <button class="menu-item">
-            🏢
-            <span>주식회사</span>
-        </button>
-
-        <button class="menu-item">
-            📢
-            <span>공지사항</span>
-        </button>
-
-        <button class="menu-item">
-            📮
-            <span>피드백</span>
-        </button>
-
-        <button
-            class="menu-item"
-            id="themeButton"
-        >
-            🌙
-            <span>다크모드</span>
-        </button>
-
-    </nav>
+</header>
 
 
-    <!-- ================================
-         메인
-    ================================= -->
+<!-- 메뉴 -->
 
-    <main class="main">
+<nav
+    class="menu-panel"
+    id="menuPanel"
+>
 
-        <div class="content">
+    <div class="menu-title">
+        VSM MENU
+    </div>
 
-            <section class="welcome">
+    <button
+        class="menu-item"
+        id="homeMenuButton"
+    >
+        🏠
+        <span>홈</span>
+    </button>
 
-                <h1>
-                    VSM에 오신 것을 환영합니다.
-                </h1>
+    <button
+        class="menu-item"
+        id="stocksMenuButton"
+    >
+        📈
+        <span>주식</span>
+    </button>
+
+    <button
+        class="menu-item"
+        id="bankMenuButton"
+    >
+        🏦
+        <span>안드로메다뱅크</span>
+    </button>
+
+    <button
+        class="menu-item"
+        id="companyMenuButton"
+    >
+        🏢
+        <span>주식회사</span>
+    </button>
+
+    <button
+        class="menu-item"
+        id="noticeMenuButton"
+    >
+        📢
+        <span>공지사항</span>
+    </button>
+
+    <button
+        class="menu-item"
+        id="feedbackMenuButton"
+    >
+        📮
+        <span>피드백</span>
+    </button>
+
+    <button
+        class="menu-item"
+        id="themeButton"
+    >
+        🌙
+        <span>다크모드</span>
+    </button>
+
+</nav>
+
+
+<!-- 메인 -->
+
+<main class="main">
+
+    <div class="content">
+
+        <section class="welcome">
+
+            <h1>
+                VSM에 오신 것을 환영합니다.
+            </h1>
+
+            <p>
+                Virtual Stock Market
+            </p>
+
+        </section>
+
+        <section class="grid">
+
+            <div class="card">
+
+                <h2>
+                    💰 내 자산
+                </h2>
 
                 <p>
-                    Virtual Stock Market
+                    현재 보유하고 있는 현금입니다.
                 </p>
 
-            </section>
-
-            <section class="grid">
-
-                <div class="card">
-
-                    <h2>
-                        💰 내 자산
-                    </h2>
-
-                    <p>
-                        현재 보유하고 있는 현금입니다.
-                    </p>
-
-                    <div
-                        class="big-number"
-                        id="assetMoney"
-                    >
-                        10,000원
-                    </div>
-
-                </div>
-
-                <div class="card">
-
-                    <h2>
-                        📈 주식시장
-                    </h2>
-
-                    <p>
-                        현재 주식시장 정보를 확인할 수 있습니다.
-                    </p>
-
-                    <div class="big-number">
-                        VSM
-                    </div>
-
-                </div>
-
-                <div class="card">
-
-                    <h2>
-                        🏦 안드로메다뱅크
-                    </h2>
-
-                    <p>
-                        다른 플레이어에게 돈을 보내거나
-                        거래내역을 확인할 수 있습니다.
-                    </p>
-
-                </div>
-
-                <div class="card">
-
-                    <h2>
-                        🏢 주식회사
-                    </h2>
-
-                    <p>
-                        플레이어가 직접 회사를 만들고
-                        운영할 수 있습니다.
-                    </p>
-
-                </div>
-
-            </section>
-
-        </div>
-
-    </main>
-
-
-    <!-- ================================
-         로그인 / 회원가입
-    ================================= -->
-
-    <div id="authOverlay">
-
-        <div id="authBox">
-
-            <h2 id="authTitle">
-                로그인
-            </h2>
-
-            <!-- 로그인 -->
-
-            <div id="loginForm">
-
-                <input
-                    id="loginUsername"
-                    class="auth-input"
-                    type="text"
-                    placeholder="아이디"
-                    autocomplete="username"
+                <div
+                    class="big-number"
+                    id="assetMoney"
                 >
+                    10,000원
+                </div>
 
-                <input
-                    id="loginPassword"
-                    class="auth-input"
-                    type="password"
-                    placeholder="비밀번호"
-                    autocomplete="current-password"
-                >
+            </div>
 
-                <button
-                    id="loginSubmit"
-                    class="auth-submit"
-                >
-                    로그인
-                </button>
 
-                <p class="auth-switch">
+            <div class="card">
 
-                    계정이 없나요?
+                <h2>
+                    📈 주식시장
+                </h2>
 
-                    <button
-                        id="showRegister"
-                        class="auth-link"
-                    >
-                        회원가입
-                    </button>
+                <p>
+                    현재 주식시장 정보를 확인할 수 있습니다.
+                </p>
 
+                <div class="big-number">
+                    VSM
+                </div>
+
+            </div>
+
+
+            <div
+                class="card"
+                id="bankCard"
+                style="cursor:pointer;"
+            >
+
+                <h2>
+                    🏦 안드로메다뱅크
+                </h2>
+
+                <p>
+                    다른 플레이어에게 돈을 보내거나
+                    거래내역을 확인할 수 있습니다.
                 </p>
 
             </div>
 
 
-            <!-- 회원가입 -->
+            <div class="card">
 
-            <div
-                id="registerForm"
-                style="display:none;"
+                <h2>
+                    🏢 주식회사
+                </h2>
+
+                <p>
+                    플레이어가 직접 회사를 만들고
+                    운영할 수 있습니다.
+                </p>
+
+            </div>
+
+        </section>
+
+    </div>
+
+</main>
+
+
+<!-- 로그인 -->
+
+<div id="authOverlay">
+
+    <div id="authBox">
+
+        <h2 id="authTitle">
+            로그인
+        </h2>
+
+
+        <div id="loginForm">
+
+            <input
+                id="loginUsername"
+                class="auth-input"
+                type="text"
+                placeholder="아이디"
+                autocomplete="username"
             >
 
-                <input
-                    id="registerUsername"
-                    class="auth-input"
-                    type="text"
-                    placeholder="아이디 (3자 이상)"
-                    autocomplete="username"
-                >
+            <input
+                id="loginPassword"
+                class="auth-input"
+                type="password"
+                placeholder="비밀번호"
+                autocomplete="current-password"
+            >
 
-                <input
-                    id="registerNickname"
-                    class="auth-input"
-                    type="text"
-                    placeholder="닉네임 (2자 이상)"
-                >
+            <button
+                id="loginSubmit"
+                class="auth-submit"
+            >
+                로그인
+            </button>
 
-                <input
-                    id="registerPassword"
-                    class="auth-input"
-                    type="password"
-                    placeholder="비밀번호 (4자 이상)"
-                    autocomplete="new-password"
-                >
+            <p class="auth-switch">
+
+                계정이 없나요?
 
                 <button
-                    id="registerSubmit"
-                    class="auth-submit"
+                    id="showRegister"
+                    class="auth-link"
                 >
                     회원가입
                 </button>
 
-                <p class="auth-switch">
-
-                    이미 계정이 있나요?
-
-                    <button
-                        id="showLogin"
-                        class="auth-link"
-                    >
-                        로그인
-                    </button>
-
-                </p>
-
-            </div>
-
-            <button id="closeAuth">
-                닫기
-            </button>
-
-            <div id="authMessage"></div>
+            </p>
 
         </div>
 
-    </div>
 
+        <div
+            id="registerForm"
+            style="display:none;"
+        >
 
-    <!-- ================================
-         프로필
-    ================================= -->
+            <input
+                id="registerUsername"
+                class="auth-input"
+                type="text"
+                placeholder="아이디 (3자 이상)"
+                autocomplete="username"
+            >
 
-    <div id="profileOverlay">
+            <input
+                id="registerNickname"
+                class="auth-input"
+                type="text"
+                placeholder="닉네임 (2자 이상)"
+            >
 
-        <div id="profileBox">
-
-            <div class="profile-header">
-
-                <div class="profile-avatar">
-                    👤
-                </div>
-
-                <div>
-
-                    <div
-                        class="profile-name"
-                        id="profileNickname"
-                    >
-                        사용자
-                    </div>
-
-                    <div
-                        class="profile-username"
-                        id="profileUsername"
-                    >
-                        @username
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <div class="profile-info">
-
-                <div class="profile-row">
-
-                    <span class="profile-label">
-                        플레이어 번호
-                    </span>
-
-                    <span
-                        class="profile-value"
-                        id="profileId"
-                    >
-                        -
-                    </span>
-
-                </div>
-
-
-                <div class="profile-row">
-
-                    <span class="profile-label">
-                        보유 현금
-                    </span>
-
-                    <span
-                        class="profile-value profile-cash"
-                        id="profileCash"
-                    >
-                        0원
-                    </span>
-
-                </div>
-
-            </div>
-
+            <input
+                id="registerPassword"
+                class="auth-input"
+                type="password"
+                placeholder="비밀번호 (4자 이상)"
+                autocomplete="new-password"
+            >
 
             <button
-                class="profile-close"
-                id="closeProfile"
+                id="registerSubmit"
+                class="auth-submit"
             >
-                닫기
+                회원가입
             </button>
 
+            <p class="auth-switch">
 
-            <button
-                class="profile-logout"
-                id="logoutButton"
-            >
-                🚪 로그아웃
-            </button>
+                이미 계정이 있나요?
+
+                <button
+                    id="showLogin"
+                    class="auth-link"
+                >
+                    로그인
+                </button>
+
+            </p>
 
         </div>
 
+
+        <button id="closeAuth">
+            닫기
+        </button>
+
+        <div id="authMessage"></div>
+
     </div>
 
-
-    <!-- ================================
-         기본 JavaScript
-    ================================= -->
-
-    <script>
-
-        // ========================================
-        // 메뉴
-        // ========================================
-
-        const menuButton =
-            document.getElementById(
-                "menuButton"
-            );
-
-        const menuPanel =
-            document.getElementById(
-                "menuPanel"
-            );
-
-        menuButton.addEventListener(
-            "click",
-            () => {
-
-                menuPanel.classList.toggle(
-                    "open"
-                );
-
-            }
-        );
+</div>
 
 
-        // ========================================
-        // 메뉴 밖 클릭
-        // ========================================
+<!-- 프로필 -->
 
-        document.addEventListener(
-            "click",
-            (event) => {
+<div id="profileOverlay">
 
-                if (
-                    !menuPanel.contains(
-                        event.target
-                    ) &&
-                    !menuButton.contains(
-                        event.target
-                    )
-                ) {
+    <div id="profileBox">
 
-                    menuPanel.classList.remove(
-                        "open"
-                    );
+        <div class="profile-header">
 
-                }
+            <div class="profile-avatar">
+                👤
+            </div>
 
-            }
-        );
+            <div>
 
+                <div
+                    class="profile-name"
+                    id="profileNickname"
+                >
+                    사용자
+                </div>
 
-        // ========================================
-        // 다크모드
-        // ========================================
+                <div
+                    class="profile-username"
+                    id="profileUsername"
+                >
+                    @username
+                </div>
 
-        const themeButton =
-            document.getElementById(
-                "themeButton"
-            );
+            </div>
 
-        themeButton.addEventListener(
-            "click",
-            () => {
-
-                document.body.classList.toggle(
-                    "dark"
-                );
-
-                const dark =
-                    document.body.classList.contains(
-                        "dark"
-                    );
-
-                localStorage.setItem(
-                    "vsm-theme",
-                    dark
-                        ? "dark"
-                        : "light"
-                );
-
-                themeButton.innerHTML =
-                    dark
-                        ? "☀️ <span>화이트모드</span>"
-                        : "🌙 <span>다크모드</span>";
-
-            }
-        );
+        </div>
 
 
-        // ========================================
-        // 저장된 테마
-        // ========================================
+        <div class="profile-info">
 
-        const savedTheme =
-            localStorage.getItem(
-                "vsm-theme"
-            );
+            <div class="profile-row">
+
+                <span class="profile-label">
+                    플레이어 번호
+                </span>
+
+                <span
+                    class="profile-value"
+                    id="profileId"
+                >
+                    -
+                </span>
+
+            </div>
+
+
+            <div class="profile-row">
+
+                <span class="profile-label">
+                    보유 현금
+                </span>
+
+                <span
+                    class="profile-value profile-cash"
+                    id="profileCash"
+                >
+                    0원
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <button
+            class="profile-close"
+            id="closeProfile"
+        >
+            닫기
+        </button>
+
+
+        <button
+            class="profile-logout"
+            id="logoutButton"
+        >
+            🚪 로그아웃
+        </button>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    // =====================================================
+    // 메뉴
+    // =====================================================
+
+    const menuButton =
+        document.getElementById("menuButton");
+
+    const menuPanel =
+        document.getElementById("menuPanel");
+
+
+    menuButton.addEventListener("click", (event) => {
+
+        event.stopPropagation();
+
+        menuPanel.classList.toggle("open");
+
+    });
+
+
+    document.addEventListener("click", (event) => {
 
         if (
-            savedTheme === "dark"
+            !menuPanel.contains(event.target) &&
+            !menuButton.contains(event.target)
         ) {
-
-            document.body.classList.add(
-                "dark"
-            );
-
-            themeButton.innerHTML =
-                "☀️ <span>화이트모드</span>";
-
+            menuPanel.classList.remove("open");
         }
 
+    });
 
-        // ========================================
-        // 알림
-        // ========================================
 
-        document
-            .getElementById(
-                "notificationButton"
-            )
-            .addEventListener(
-                "click",
-                () => {
+    function closeMenu() {
+        menuPanel.classList.remove("open");
+    }
 
-                    alert(
-                        "현재 새로운 알림이 없습니다."
-                    );
 
-                }
+    // =====================================================
+    // 페이지 이동
+    // =====================================================
+
+    document
+        .getElementById("homeMenuButton")
+        .addEventListener("click", () => {
+
+            closeMenu();
+
+            window.location.href = "/";
+
+        });
+
+
+    document
+        .getElementById("stocksMenuButton")
+        .addEventListener("click", () => {
+
+            closeMenu();
+
+            window.location.href =
+                "/stocks.html";
+
+        });
+
+
+    document
+        .getElementById("bankMenuButton")
+        .addEventListener("click", () => {
+
+            closeMenu();
+
+            window.location.href =
+                "/bank.html";
+
+        });
+
+
+    document
+        .getElementById("bankCard")
+        .addEventListener("click", () => {
+
+            window.location.href =
+                "/bank.html";
+
+        });
+
+
+    // 주식회사
+    document
+        .getElementById("companyMenuButton")
+        .addEventListener("click", () => {
+
+            closeMenu();
+
+            alert(
+                "주식회사 시스템은 현재 개발 보류 중입니다."
             );
 
+        });
 
-        // ========================================
-        // 주식 메뉴
-        // ========================================
 
-        const stocksMenuButton =
-            document.getElementById(
-                "stocksMenuButton"
-            );
+    // 공지사항
+    document
+        .getElementById("noticeMenuButton")
+        .addEventListener("click", () => {
 
-        stocksMenuButton.addEventListener(
-            "click",
-            () => {
+            closeMenu();
 
-                window.location.href =
-                    "/stocks.html";
+            window.location.href =
+                "/notices.html";
 
-            }
+        });
+
+
+    // 피드백
+    document
+        .getElementById("feedbackMenuButton")
+        .addEventListener("click", () => {
+
+            closeMenu();
+
+            window.location.href =
+                "/feedback.html";
+
+        });
+
+
+    // =====================================================
+    // 다크모드
+    // =====================================================
+
+    const themeButton =
+        document.getElementById("themeButton");
+
+
+    function updateThemeButton() {
+
+        const dark =
+            document.body.classList.contains("dark");
+
+        themeButton.innerHTML =
+            dark
+                ? "☀️ <span>화이트모드</span>"
+                : "🌙 <span>다크모드</span>";
+
+    }
+
+
+    themeButton.addEventListener("click", () => {
+
+        document.body.classList.toggle("dark");
+
+        const dark =
+            document.body.classList.contains("dark");
+
+        localStorage.setItem(
+            "vsm-theme",
+            dark ? "dark" : "light"
         );
 
-    </script>
+        updateThemeButton();
+
+    });
 
 
-    <!-- ================================
-         인증 JavaScript
-    ================================= -->
-
-    <script>
-
-        // ========================================
-        // 인증 요소
-        // ========================================
-
-        const authOverlay =
-            document.getElementById(
-                "authOverlay"
-            );
-
-        const authTitle =
-            document.getElementById(
-                "authTitle"
-            );
-
-        const loginForm =
-            document.getElementById(
-                "loginForm"
-            );
-
-        const registerForm =
-            document.getElementById(
-                "registerForm"
-            );
-
-        const authMessage =
-            document.getElementById(
-                "authMessage"
-            );
+    const savedTheme =
+        localStorage.getItem("vsm-theme");
 
 
-        // ========================================
-        // 로그인 화면
-        // ========================================
+    if (savedTheme === "dark") {
 
-        function showLoginForm() {
+        document.body.classList.add("dark");
 
-            authTitle.textContent =
-                "로그인";
-
-            loginForm.style.display =
-                "block";
-
-            registerForm.style.display =
-                "none";
-
-            authMessage.textContent =
-                "";
-
-            authOverlay.style.display =
-                "flex";
-
-        }
+    }
 
 
-        // ========================================
-        // 회원가입 화면
-        // ========================================
-
-        function showRegisterForm() {
-
-            authTitle.textContent =
-                "회원가입";
-
-            loginForm.style.display =
-                "none";
-
-            registerForm.style.display =
-                "block";
-
-            authMessage.textContent =
-                "";
-
-            authOverlay.style.display =
-                "flex";
-
-        }
+    updateThemeButton();
 
 
-        // ========================================
-        // 프로필
-        // ========================================
+    // =====================================================
+    // 알림
+    // =====================================================
 
-        const profileOverlay =
-            document.getElementById(
-                "profileOverlay"
-            );
+    document
+        .getElementById("notificationButton")
+        .addEventListener("click", async () => {
 
+            const token =
+                localStorage.getItem("vsm_token");
 
-        function showProfile(user) {
-
-            if (!user) {
+            if (!token) {
 
                 showLoginForm();
 
@@ -1400,561 +1171,203 @@
 
             }
 
+            alert(
+                "현재 알림 시스템을 준비 중입니다."
+            );
 
-            document
-                .getElementById(
-                    "profileNickname"
-                )
-                .textContent =
-                    user.nickname ||
-                    "사용자";
+        });
 
 
-            document
-                .getElementById(
-                    "profileUsername"
-                )
-                .textContent =
-                    "@" +
-                    (
-                        user.username ||
-                        "unknown"
-                    );
+    // =====================================================
+    // 인증
+    // =====================================================
+
+    const authOverlay =
+        document.getElementById("authOverlay");
+
+    const authTitle =
+        document.getElementById("authTitle");
+
+    const loginForm =
+        document.getElementById("loginForm");
+
+    const registerForm =
+        document.getElementById("registerForm");
+
+    const authMessage =
+        document.getElementById("authMessage");
 
 
-            // ★ UUID가 아니라 플레이어 번호 표시
-            document
-                .getElementById(
-                    "profileId"
-                )
-                .textContent =
-                    user.playerNumber ||
-                    "-";
+    function showLoginForm() {
+
+        authTitle.textContent =
+            "로그인";
+
+        loginForm.style.display =
+            "block";
+
+        registerForm.style.display =
+            "none";
+
+        authMessage.textContent =
+            "";
+
+        authOverlay.style.display =
+            "flex";
+
+    }
 
 
-            document
-                .getElementById(
-                    "profileCash"
-                )
-                .textContent =
-                    Number(
-                        user.cash || 0
-                    ).toLocaleString(
-                        "ko-KR"
-                    ) +
-                    "원";
+    function showRegisterForm() {
+
+        authTitle.textContent =
+            "회원가입";
+
+        loginForm.style.display =
+            "none";
+
+        registerForm.style.display =
+            "block";
+
+        authMessage.textContent =
+            "";
+
+        authOverlay.style.display =
+            "flex";
+
+    }
 
 
-            profileOverlay.style.display =
-                "flex";
+    document
+        .getElementById("showRegister")
+        .addEventListener(
+            "click",
+            showRegisterForm
+        );
+
+
+    document
+        .getElementById("showLogin")
+        .addEventListener(
+            "click",
+            showLoginForm
+        );
+
+
+    document
+        .getElementById("closeAuth")
+        .addEventListener("click", () => {
+
+            authOverlay.style.display =
+                "none";
+
+        });
+
+
+    // =====================================================
+    // 사용자 UI
+    // =====================================================
+
+    function updateUserUI(user) {
+
+        if (!user) {
+            return;
+        }
+
+
+        const money =
+            Number(user.cash || 0)
+                .toLocaleString("ko-KR");
+
+
+        document
+            .getElementById("money")
+            .textContent =
+                money;
+
+
+        document
+            .getElementById("assetMoney")
+            .textContent =
+                money + "원";
+
+    }
+
+
+    // =====================================================
+    // 프로필
+    // =====================================================
+
+    const profileOverlay =
+        document.getElementById("profileOverlay");
+
+
+    function showProfile(user) {
+
+        if (!user) {
+
+            showLoginForm();
+
+            return;
 
         }
 
 
-        // ========================================
-        // 프로필 열기
-        // ========================================
-
         document
-            .getElementById(
-                "profileButton"
-            )
-            .addEventListener(
-                "click",
-                async () => {
-
-                    const token =
-                        localStorage.getItem(
-                            "vsm_token"
-                        );
-
-
-                    if (!token) {
-
-                        showLoginForm();
-
-                        return;
-
-                    }
-
-
-                    try {
-
-                        const response =
-                            await fetch(
-                                "/api/auth/me",
-                                {
-                                    headers: {
-                                        "Authorization":
-                                            "Bearer " +
-                                            token
-                                    }
-                                }
-                            );
-
-
-                        const data =
-                            await response.json();
-
-
-                        if (
-                            !response.ok ||
-                            !data.ok ||
-                            !data.user
-                        ) {
-
-                            localStorage.removeItem(
-                                "vsm_token"
-                            );
-
-                            showLoginForm();
-
-                            return;
-
-                        }
-
-
-                        showProfile(
-                            data.user
-                        );
-
-
-                    } catch (error) {
-
-                        console.error(
-                            "PROFILE ERROR:",
-                            error
-                        );
-
-                        showLoginForm();
-
-                    }
-
-                }
-            );
-
-
-        // ========================================
-        // 인증창 닫기
-        // ========================================
-
-        document
-            .getElementById(
-                "closeAuth"
-            )
-            .addEventListener(
-                "click",
-                () => {
-
-                    authOverlay.style.display =
-                        "none";
-
-                }
-            );
-
-
-        // ========================================
-        // 프로필 닫기
-        // ========================================
-
-        document
-            .getElementById(
-                "closeProfile"
-            )
-            .addEventListener(
-                "click",
-                () => {
-
-                    profileOverlay.style.display =
-                        "none";
-
-                }
-            );
-
-
-        // ========================================
-        // 로그인 ↔ 회원가입
-        // ========================================
-
-        document
-            .getElementById(
-                "showRegister"
-            )
-            .addEventListener(
-                "click",
-                showRegisterForm
-            );
+            .getElementById("profileNickname")
+            .textContent =
+                user.nickname || "사용자";
 
 
         document
-            .getElementById(
-                "showLogin"
-            )
-            .addEventListener(
-                "click",
-                showLoginForm
-            );
+            .getElementById("profileUsername")
+            .textContent =
+                "@" +
+                (user.username || "unknown");
 
 
-        // ========================================
-        // 회원가입
-        // ========================================
-
-        document
-            .getElementById(
-                "registerSubmit"
-            )
-            .addEventListener(
-                "click",
-                async () => {
-
-                    const username =
-                        document
-                            .getElementById(
-                                "registerUsername"
-                            )
-                            .value
-                            .trim();
-
-
-                    const nickname =
-                        document
-                            .getElementById(
-                                "registerNickname"
-                            )
-                            .value
-                            .trim();
-
-
-                    const password =
-                        document
-                            .getElementById(
-                                "registerPassword"
-                            )
-                            .value;
-
-
-                    authMessage.textContent =
-                        "회원가입 중...";
-
-
-                    try {
-
-                        const response =
-                            await fetch(
-                                "/api/auth/register",
-                                {
-                                    method:
-                                        "POST",
-
-                                    headers: {
-                                        "Content-Type":
-                                            "application/json"
-                                    },
-
-                                    body:
-                                        JSON.stringify({
-                                            username,
-                                            nickname,
-                                            password
-                                        })
-                                }
-                            );
-
-
-                        const data =
-                            await response.json();
-
-
-                        if (!response.ok) {
-
-                            throw new Error(
-                                data.error ||
-                                "회원가입에 실패했습니다."
-                            );
-
-                        }
-
-
-                        localStorage.setItem(
-                            "vsm_token",
-                            data.token
-                        );
-
-
-                        authMessage.textContent =
-                            "회원가입 성공! 🎉";
-
-
-                        updateUserUI(
-                            data.user
-                        );
-
-
-                        setTimeout(
-                            () => {
-
-                                authOverlay.style.display =
-                                    "none";
-
-                            },
-                            700
-                        );
-
-
-                    } catch (error) {
-
-                        authMessage.textContent =
-                            "❌ " +
-                            error.message;
-
-                    }
-
-                }
-            );
-
-
-        // ========================================
-        // 로그인
-        // ========================================
+        /*
+         * 중요:
+         *
+         * 서버에서 playerNumber를 내려주면
+         * 그 값을 표시한다.
+         *
+         * 없으면 UUID를 대신 표시하지 않는다.
+         */
 
         document
-            .getElementById(
-                "loginSubmit"
-            )
-            .addEventListener(
-                "click",
-                async () => {
+            .getElementById("profileId")
+            .textContent =
+                user.playerNumber ??
+                user.player_number ??
+                "-";
 
-                    const username =
-                        document
-                            .getElementById(
-                                "loginUsername"
-                            )
-                            .value
-                            .trim();
-
-
-                    const password =
-                        document
-                            .getElementById(
-                                "loginPassword"
-                            )
-                            .value;
-
-
-                    authMessage.textContent =
-                        "로그인 중...";
-
-
-                    try {
-
-                        const response =
-                            await fetch(
-                                "/api/auth/login",
-                                {
-                                    method:
-                                        "POST",
-
-                                    headers: {
-                                        "Content-Type":
-                                            "application/json"
-                                    },
-
-                                    body:
-                                        JSON.stringify({
-                                            username,
-                                            password
-                                        })
-                                }
-                            );
-
-
-                        const data =
-                            await response.json();
-
-
-                        if (!response.ok) {
-
-                            throw new Error(
-                                data.error ||
-                                "로그인에 실패했습니다."
-                            );
-
-                        }
-
-
-                        localStorage.setItem(
-                            "vsm_token",
-                            data.token
-                        );
-
-
-                        authMessage.textContent =
-                            "로그인 성공! 🎉";
-
-
-                        updateUserUI(
-                            data.user
-                        );
-
-
-                        setTimeout(
-                            () => {
-
-                                authOverlay.style.display =
-                                    "none";
-
-                            },
-                            700
-                        );
-
-
-                    } catch (error) {
-
-                        authMessage.textContent =
-                            "❌ " +
-                            error.message;
-
-                    }
-
-                }
-            );
-
-
-        // ========================================
-        // 사용자 정보 표시
-        // ========================================
-
-        function updateUserUI(user) {
-
-            const money =
-                Number(
-                    user.cash || 0
-                ).toLocaleString(
-                    "ko-KR"
-                );
-
-
-            document
-                .getElementById(
-                    "money"
-                )
-                .textContent =
-                    money;
-
-
-            document
-                .getElementById(
-                    "assetMoney"
-                )
-                .textContent =
-                    money +
-                    "원";
-
-
-            console.log(
-                "현재 로그인 사용자:",
-                user
-            );
-
-        }
-
-
-        // ========================================
-        // 로그아웃
-        // ========================================
 
         document
-            .getElementById(
-                "logoutButton"
-            )
-            .addEventListener(
-                "click",
-                async () => {
-
-                    const token =
-                        localStorage.getItem(
-                            "vsm_token"
-                        );
+            .getElementById("profileCash")
+            .textContent =
+                Number(user.cash || 0)
+                    .toLocaleString("ko-KR") +
+                "원";
 
 
-                    try {
+        profileOverlay.style.display =
+            "flex";
 
-                        if (token) {
-
-                            await fetch(
-                                "/api/auth/logout",
-                                {
-                                    method:
-                                        "POST",
-
-                                    headers: {
-                                        "Authorization":
-                                            "Bearer " +
-                                            token
-                                    }
-                                }
-                            );
-
-                        }
-
-                    } catch (error) {
-
-                        console.error(
-                            "LOGOUT ERROR:",
-                            error
-                        );
-
-                    }
+    }
 
 
-                    localStorage.removeItem(
-                        "vsm_token"
-                    );
-
-
-                    profileOverlay.style.display =
-                        "none";
-
-
-                    document
-                        .getElementById(
-                            "money"
-                        )
-                        .textContent =
-                            "10,000";
-
-
-                    document
-                        .getElementById(
-                            "assetMoney"
-                        )
-                        .textContent =
-                            "10,000원";
-
-
-                    alert(
-                        "로그아웃되었습니다."
-                    );
-
-                }
-            );
-
-
-        // ========================================
-        // 기존 로그인 상태 확인
-        // ========================================
-
-        async function checkLogin() {
+    document
+        .getElementById("profileButton")
+        .addEventListener("click", async () => {
 
             const token =
-                localStorage.getItem(
-                    "vsm_token"
-                );
+                localStorage.getItem("vsm_token");
 
 
             if (!token) {
+
+                showLoginForm();
 
                 return;
 
@@ -1969,32 +1382,283 @@
                         {
                             headers: {
                                 "Authorization":
-                                    "Bearer " +
-                                    token
+                                    "Bearer " + token
                             }
                         }
                     );
-
-
-                if (!response.ok) {
-
-                    localStorage.removeItem(
-                        "vsm_token"
-                    );
-
-                    return;
-
-                }
 
 
                 const data =
                     await response.json();
 
 
-                if (data.ok) {
+                if (
+                    !response.ok ||
+                    !data.ok ||
+                    !data.user
+                ) {
 
-                    updateUserUI(
-                        data.user
+                    localStorage.removeItem(
+                        "vsm_token"
+                    );
+
+                    showLoginForm();
+
+                    return;
+
+                }
+
+
+                updateUserUI(data.user);
+
+                showProfile(data.user);
+
+            } catch (error) {
+
+                console.error(
+                    "PROFILE ERROR:",
+                    error
+                );
+
+                alert(
+                    "프로필 정보를 불러오지 못했습니다."
+                );
+
+            }
+
+        });
+
+
+    document
+        .getElementById("closeProfile")
+        .addEventListener("click", () => {
+
+            profileOverlay.style.display =
+                "none";
+
+        });
+
+
+    // =====================================================
+    // 회원가입
+    // =====================================================
+
+    document
+        .getElementById("registerSubmit")
+        .addEventListener("click", async () => {
+
+            const username =
+                document
+                    .getElementById("registerUsername")
+                    .value
+                    .trim();
+
+
+            const nickname =
+                document
+                    .getElementById("registerNickname")
+                    .value
+                    .trim();
+
+
+            const password =
+                document
+                    .getElementById("registerPassword")
+                    .value;
+
+
+            authMessage.textContent =
+                "회원가입 중...";
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/api/auth/register",
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body:
+                                JSON.stringify({
+                                    username,
+                                    nickname,
+                                    password
+                                })
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.error ||
+                        "회원가입에 실패했습니다."
+                    );
+
+                }
+
+
+                localStorage.setItem(
+                    "vsm_token",
+                    data.token
+                );
+
+
+                updateUserUI(data.user);
+
+
+                authMessage.textContent =
+                    "회원가입 성공! 🎉";
+
+
+                setTimeout(() => {
+
+                    authOverlay.style.display =
+                        "none";
+
+                }, 700);
+
+
+            } catch (error) {
+
+                authMessage.textContent =
+                    "❌ " +
+                    error.message;
+
+            }
+
+        });
+
+
+    // =====================================================
+    // 로그인
+    // =====================================================
+
+    document
+        .getElementById("loginSubmit")
+        .addEventListener("click", async () => {
+
+            const username =
+                document
+                    .getElementById("loginUsername")
+                    .value
+                    .trim();
+
+
+            const password =
+                document
+                    .getElementById("loginPassword")
+                    .value;
+
+
+            authMessage.textContent =
+                "로그인 중...";
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/api/auth/login",
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body:
+                                JSON.stringify({
+                                    username,
+                                    password
+                                })
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.error ||
+                        "로그인에 실패했습니다."
+                    );
+
+                }
+
+
+                localStorage.setItem(
+                    "vsm_token",
+                    data.token
+                );
+
+
+                updateUserUI(data.user);
+
+
+                authMessage.textContent =
+                    "로그인 성공! 🎉";
+
+
+                setTimeout(() => {
+
+                    authOverlay.style.display =
+                        "none";
+
+                }, 700);
+
+
+            } catch (error) {
+
+                authMessage.textContent =
+                    "❌ " +
+                    error.message;
+
+            }
+
+        });
+
+
+    // =====================================================
+    // 로그아웃
+    // =====================================================
+
+    document
+        .getElementById("logoutButton")
+        .addEventListener("click", async () => {
+
+            const token =
+                localStorage.getItem("vsm_token");
+
+
+            try {
+
+                if (token) {
+
+                    await fetch(
+                        "/api/auth/logout",
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Authorization":
+                                    "Bearer " + token
+                            }
+                        }
                     );
 
                 }
@@ -2002,24 +1666,115 @@
             } catch (error) {
 
                 console.error(
-                    "로그인 상태 확인 실패:",
+                    "LOGOUT ERROR:",
                     error
                 );
 
             }
 
+
+            localStorage.removeItem(
+                "vsm_token"
+            );
+
+
+            profileOverlay.style.display =
+                "none";
+
+
+            document
+                .getElementById("money")
+                .textContent =
+                "10,000";
+
+
+            document
+                .getElementById("assetMoney")
+                .textContent =
+                "10,000원";
+
+
+            alert(
+                "로그아웃되었습니다."
+            );
+
+        });
+
+
+    // =====================================================
+    // 기존 로그인 상태 확인
+    // =====================================================
+
+    async function checkLogin() {
+
+        const token =
+            localStorage.getItem("vsm_token");
+
+
+        if (!token) {
+
+            return;
+
         }
 
 
-        // ========================================
-        // 시작
-        // ========================================
+        try {
 
-        checkLogin();
+            const response =
+                await fetch(
+                    "/api/auth/me",
+                    {
+                        headers: {
+                            "Authorization":
+                                "Bearer " + token
+                        }
+                    }
+                );
 
-    </script>
+
+            if (!response.ok) {
+
+                localStorage.removeItem(
+                    "vsm_token"
+                );
+
+                return;
+
+            }
+
+
+            const data =
+                await response.json();
+
+
+            if (
+                data.ok &&
+                data.user
+            ) {
+
+                updateUserUI(
+                    data.user
+                );
+
+            }
+
+        } catch (error) {
+
+            console.error(
+                "로그인 상태 확인 실패:",
+                error
+            );
+
+        }
+
+    }
+
+
+    // 시작
+    checkLogin();
+
+</script>
 
 </body>
-
 </html>
-
+```
