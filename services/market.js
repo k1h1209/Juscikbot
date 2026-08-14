@@ -98,11 +98,114 @@ async function setPrice(id, price) {
     return getStock(id);
 }
 
+
+/* ========================================
+   자동 주가 변동
+======================================== */
+
+function calculateNextPrice(stock) {
+
+    const currentPrice =
+        Number(stock.price);
+
+    const volatility =
+        Number(stock.volatility);
+
+    /*
+     * volatility는 현재 DB에서
+     * 0.05 ~ 0.12 같은 값으로 저장되어 있음.
+     *
+     * 실제 한 번의 변동은 너무 크지 않도록
+     * volatility의 일부만 사용한다.
+     */
+
+    const maxChange =
+        currentPrice * volatility * 0.10;
+
+    const randomChange =
+        (Math.random() * 2 - 1) * maxChange;
+
+    let nextPrice =
+        currentPrice + randomChange;
+
+    /*
+     * 최소 가격
+     */
+
+    nextPrice =
+        Math.max(100, nextPrice);
+
+    return Math.round(nextPrice);
+}
+
+
+/* ========================================
+   전체 종목 자동 변동
+======================================== */
+
+async function updateMarket() {
+
+    try {
+
+        const stocks =
+            await getStocks();
+
+        for (const stock of stocks) {
+
+            const nextPrice =
+                calculateNextPrice(stock);
+
+            await setPrice(
+                stock.id,
+                nextPrice
+            );
+        }
+
+        console.log(
+            `📈 주가 자동 변동 완료 · ${stocks.length}개 종목`
+        );
+
+    } catch (error) {
+
+        console.error(
+            "❌ 주가 자동 변동 오류:",
+            error
+        );
+    }
+}
+
+
+/* ========================================
+   주가 엔진 시작
+======================================== */
+
+function startMarketEngine() {
+
+    /*
+     * 5초마다 주가 변동
+     */
+
+    const interval =
+        5000;
+
+    console.log(
+        `📈 주가 엔진 시작 · ${interval / 1000}초 간격`
+    );
+
+    setInterval(
+        updateMarket,
+        interval
+    );
+}
+
+
 module.exports = {
     pool,
     companies,
     getStocks,
     getStock,
     getHistory,
-    setPrice
+    setPrice,
+    updateMarket,
+    startMarketEngine
 };
