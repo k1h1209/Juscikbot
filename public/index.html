@@ -14,6 +14,94 @@
 
     <style>
 
+        /* =====================================================
+           서버 점검 화면
+        ===================================================== */
+
+        #maintenanceOverlay {
+            display: none;
+
+            position: fixed;
+
+            inset: 0;
+
+            z-index: 99999;
+
+            align-items: center;
+            justify-content: center;
+
+            background: #f4f6f8;
+
+            color: #202124;
+
+            text-align: center;
+
+            padding: 25px;
+        }
+
+        .maintenanceBox {
+            width: min(500px, 100%);
+
+            padding: 40px 30px;
+
+            background: white;
+
+            border: 1px solid #e5e7eb;
+
+            border-radius: 20px;
+
+            box-shadow:
+                0 20px 60px
+                rgba(0, 0, 0, 0.12);
+        }
+
+        .maintenanceIcon {
+            font-size: 55px;
+
+            margin-bottom: 15px;
+        }
+
+        .maintenanceBox h1 {
+            margin: 0 0 15px;
+
+            font-size: 27px;
+        }
+
+        .maintenanceBox p {
+            margin: 0;
+
+            color: #6b7280;
+
+            line-height: 1.7;
+
+            font-size: 15px;
+        }
+
+        #maintenanceTime {
+            margin-top: 18px;
+
+            color: #9ca3af;
+
+            font-size: 13px;
+        }
+
+        body.dark #maintenanceOverlay {
+            background: #101214;
+
+            color: #f1f3f5;
+        }
+
+        body.dark .maintenanceBox {
+            background: #181b1f;
+
+            border-color: #2d3238;
+        }
+
+        body.dark .maintenanceBox p {
+            color: #9ca3af;
+        }
+
+
         * {
             box-sizing: border-box;
         }
@@ -988,7 +1076,6 @@
             VSM
         </div>
 
-
         <button
             class="menu-button"
             id="menuButton"
@@ -998,9 +1085,7 @@
             ☰
         </button>
 
-
         <div class="top-spacer"></div>
-
 
         <div class="top-info">
 
@@ -1015,7 +1100,6 @@
                 원
 
             </div>
-
 
             <button
                 class="icon-button"
@@ -1034,7 +1118,6 @@
                 </span>
 
             </button>
-
 
             <button
                 class="icon-button"
@@ -1074,7 +1157,6 @@
 
         </div>
 
-
         <div id="notificationList">
 
             <div class="notification-empty">
@@ -1099,7 +1181,6 @@
             VSM MENU
         </div>
 
-
         <button
             class="menu-item"
             id="homeMenuButton"
@@ -1108,7 +1189,6 @@
             🏠
             <span>홈</span>
         </button>
-
 
         <button
             class="menu-item"
@@ -1119,7 +1199,6 @@
             <span>주식</span>
         </button>
 
-
         <button
             class="menu-item"
             id="bankMenuButton"
@@ -1128,7 +1207,6 @@
             🏦
             <span>안드로메다뱅크</span>
         </button>
-
 
         <button
             class="menu-item"
@@ -1139,7 +1217,6 @@
             <span>주식회사</span>
         </button>
 
-
         <button
             class="menu-item"
             id="noticeMenuButton"
@@ -1149,7 +1226,6 @@
             <span>공지사항</span>
         </button>
 
-
         <button
             class="menu-item"
             id="feedbackMenuButton"
@@ -1158,7 +1234,6 @@
             📮
             <span>피드백</span>
         </button>
-
 
         <button
             class="menu-item"
@@ -1192,9 +1267,7 @@
 
             </section>
 
-
             <section class="grid">
-
 
                 <div class="card">
 
@@ -1260,7 +1333,6 @@
 
                 </div>
 
-
             </section>
 
         </div>
@@ -1280,7 +1352,6 @@
                 로그인
             </h2>
 
-
             <div id="loginForm">
 
                 <input
@@ -1291,7 +1362,6 @@
                     autocomplete="username"
                 >
 
-
                 <input
                     id="loginPassword"
                     class="auth-input"
@@ -1300,7 +1370,6 @@
                     autocomplete="current-password"
                 >
 
-
                 <button
                     id="loginSubmit"
                     class="auth-submit"
@@ -1308,7 +1377,6 @@
                 >
                     로그인
                 </button>
-
 
                 <p class="auth-switch">
 
@@ -1340,14 +1408,12 @@
                     autocomplete="username"
                 >
 
-
                 <input
                     id="registerNickname"
                     class="auth-input"
                     type="text"
                     placeholder="닉네임 (2자 이상)"
                 >
-
 
                 <input
                     id="registerPassword"
@@ -1357,7 +1423,6 @@
                     autocomplete="new-password"
                 >
 
-
                 <button
                     id="registerSubmit"
                     class="auth-submit"
@@ -1365,7 +1430,6 @@
                 >
                     회원가입
                 </button>
-
 
                 <p class="auth-switch">
 
@@ -1391,7 +1455,6 @@
                 닫기
             </button>
 
-
             <div id="authMessage"></div>
 
         </div>
@@ -1413,7 +1476,6 @@
                     👤
                 </div>
 
-
                 <div>
 
                     <div
@@ -1422,7 +1484,6 @@
                     >
                         사용자
                     </div>
-
 
                     <div
                         class="profile-username"
@@ -1488,6 +1549,34 @@
             >
                 🚪 로그아웃
             </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         서버 점검 화면
+    ===================================================== -->
+
+    <div id="maintenanceOverlay">
+
+        <div class="maintenanceBox">
+
+            <div class="maintenanceIcon">
+                🔧
+            </div>
+
+            <h1>
+                서버 점검 중입니다.
+            </h1>
+
+            <p id="maintenanceMessage">
+                현재 VSM 서버 점검이 진행 중입니다.<br>
+                잠시 후 다시 접속해 주세요.
+            </p>
+
+            <div id="maintenanceTime"></div>
 
         </div>
 
@@ -2862,8 +2951,119 @@
 
 
         // =====================================================
+        // 서버 점검 상태
+        // =====================================================
+
+        const maintenanceOverlay =
+            document.getElementById(
+                "maintenanceOverlay"
+            );
+
+        const maintenanceTime =
+            document.getElementById(
+                "maintenanceTime"
+            );
+
+        let maintenanceActive = false;
+
+
+        async function checkMaintenance() {
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/api/admin/maintenance"
+                    );
+
+
+                if (!response.ok) {
+                    return;
+                }
+
+
+                const data =
+                    await response.json();
+
+
+                if (!data.ok) {
+                    return;
+                }
+
+
+                if (data.maintenance) {
+
+                    maintenanceActive = true;
+
+                    maintenanceOverlay.style.display =
+                        "flex";
+
+
+                    if (data.endTime) {
+
+                        const end =
+                            new Date(
+                                data.endTime
+                            );
+
+
+                        if (
+                            !Number.isNaN(
+                                end.getTime()
+                            )
+                        ) {
+
+                            maintenanceTime.textContent =
+                                "예상 종료: " +
+                                end.toLocaleString(
+                                    "ko-KR"
+                                );
+
+                        }
+
+                    } else {
+
+                        maintenanceTime.textContent =
+                            "";
+
+                    }
+
+                } else {
+
+                    maintenanceActive = false;
+
+                    maintenanceOverlay.style.display =
+                        "none";
+
+                    maintenanceTime.textContent =
+                        "";
+
+                }
+
+            } catch (error) {
+
+                console.error(
+                    "MAINTENANCE CHECK ERROR:",
+                    error
+                );
+
+            }
+
+        }
+
+
+        // =====================================================
         // 시작
         // =====================================================
+
+        checkMaintenance();
+
+
+        setInterval(
+            checkMaintenance,
+            10000
+        );
+
 
         checkLogin();
 
@@ -2872,25 +3072,4 @@
 
 </body>
 
-
-<!-- 서버 점검 화면 -->
-<div id="maintenanceOverlay">
-
-    <div class="maintenanceBox">
-
-        <div class="maintenanceIcon">🔧</div>
-
-        <h1>서버 점검 중입니다.</h1>
-
-        <p id="maintenanceMessage">
-            현재 VSM 서버 점검이 진행 중입니다.<br>
-            잠시 후 다시 접속해 주세요.
-        </p>
-
-        <div id="maintenanceTime"></div>
-
-    </div>
-
-</div>
-    
 </html>
