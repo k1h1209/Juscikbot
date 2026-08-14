@@ -498,6 +498,183 @@
 
             border-color: #2d3238;
         }
+
+        /* ================================
+   프로필
+================================ */
+
+#profileOverlay {
+    display: none;
+
+    position: fixed;
+    inset: 0;
+
+    z-index: 6000;
+
+    background:
+        rgba(0, 0, 0, 0.55);
+
+    backdrop-filter: blur(6px);
+
+    align-items: center;
+    justify-content: center;
+}
+
+#profileBox {
+    width: min(430px, calc(100% - 30px));
+
+    background: white;
+
+    border-radius: 20px;
+
+    padding: 28px;
+
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.25);
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+
+    gap: 15px;
+
+    margin-bottom: 24px;
+}
+
+.profile-avatar {
+    width: 58px;
+    height: 58px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #f1f3f5;
+
+    font-size: 28px;
+}
+
+.profile-name {
+    font-size: 21px;
+    font-weight: 800;
+}
+
+.profile-username {
+    margin-top: 4px;
+
+    color: #8a9098;
+
+    font-size: 13px;
+}
+
+.profile-info {
+    display: grid;
+
+    gap: 10px;
+
+    margin-bottom: 20px;
+}
+
+.profile-row {
+    display: flex;
+
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 14px;
+
+    background: #f7f8fa;
+
+    border-radius: 12px;
+}
+
+.profile-label {
+    color: #6b7280;
+
+    font-size: 13px;
+}
+
+.profile-value {
+    font-size: 14px;
+
+    font-weight: 800;
+}
+
+.profile-cash {
+    font-size: 20px;
+
+    font-weight: 800;
+}
+
+.profile-close {
+    width: 100%;
+
+    padding: 12px;
+
+    border: none;
+
+    border-radius: 10px;
+
+    background: #f1f3f5;
+
+    cursor: pointer;
+
+    font-size: 14px;
+
+    font-weight: 700;
+}
+
+.profile-logout {
+    width: 100%;
+
+    margin-top: 10px;
+
+    padding: 12px;
+
+    border: none;
+
+    border-radius: 10px;
+
+    background: #fee2e2;
+
+    color: #dc2626;
+
+    cursor: pointer;
+
+    font-size: 14px;
+
+    font-weight: 700;
+}
+
+/* ================================
+   다크모드 프로필
+================================ */
+
+body.dark #profileBox {
+    background: #181b1f;
+}
+
+body.dark .profile-avatar {
+    background: #292e34;
+}
+
+body.dark .profile-row {
+    background: #20242a;
+}
+
+body.dark .profile-close {
+    background: #292e34;
+    color: #f1f3f5;
+}
+
+body.dark .profile-username,
+body.dark .profile-label {
+    color: #9ca3af;
+}
+        
     </style>
 </head>
 
