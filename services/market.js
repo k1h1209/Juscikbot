@@ -20,7 +20,13 @@ const companies = [
     ["MHD", "마이크로하드", 7600, 0.07]
 ];
 
+
+/* ========================================
+   전체 주식
+======================================== */
+
 async function getStocks() {
+
     const result = await pool.query(`
         SELECT *
         FROM stocks
@@ -30,7 +36,13 @@ async function getStocks() {
     return result.rows;
 }
 
+
+/* ========================================
+   특정 주식
+======================================== */
+
 async function getStock(id) {
+
     const result = await pool.query(`
         SELECT *
         FROM stocks
@@ -40,7 +52,13 @@ async function getStock(id) {
     return result.rows[0] || null;
 }
 
+
+/* ========================================
+   주가 기록
+======================================== */
+
 async function getHistory(id, range = "1d") {
+
     const ranges = {
         "1d": 86400000,
         "1w": 604800000,
@@ -49,7 +67,8 @@ async function getHistory(id, range = "1d") {
         "all": Infinity
     };
 
-    const selectedRange = ranges[range] ?? ranges["1d"];
+    const selectedRange =
+        ranges[range] ?? ranges["1d"];
 
     const minTime =
         selectedRange === Infinity
@@ -65,7 +84,10 @@ async function getHistory(id, range = "1d") {
           AND time >= $2
         ORDER BY time ASC
         LIMIT 1000
-    `, [id, minTime]);
+    `, [
+        id,
+        minTime
+    ]);
 
     return result.rows.map(row => ({
         t: Number(row.t),
@@ -73,11 +95,23 @@ async function getHistory(id, range = "1d") {
     }));
 }
 
-async function setPrice(id, price) {
-    const value = Math.round(Number(price));
 
-    if (!Number.isFinite(value) || value < 100) {
-        throw new Error("가격이 올바르지 않습니다.");
+/* ========================================
+   주가 설정
+======================================== */
+
+async function setPrice(id, price) {
+
+    const value =
+        Math.round(Number(price));
+
+    if (
+        !Number.isFinite(value) ||
+        value < 100
+    ) {
+        throw new Error(
+            "가격이 올바르지 않습니다."
+        );
     }
 
     await pool.query(`
@@ -88,19 +122,36 @@ async function setPrice(id, price) {
             high = GREATEST(high, $1),
             low = LEAST(low, $1)
         WHERE id = $2
-    `, [value, id]);
+    `, [
+        value,
+        id
+    ]);
 
     await pool.query(`
-        INSERT INTO price_history(stock_id, time, price)
-        VALUES($1, $2, $3)
-    `, [id, Date.now(), value]);
+        INSERT INTO price_history
+        (
+            stock_id,
+            time,
+            price
+        )
+        VALUES
+        (
+            $1,
+            $2,
+            $3
+        )
+    `, [
+        id,
+        Date.now(),
+        value
+    ]);
 
     return getStock(id);
 }
 
 
 /* ========================================
-   자동 주가 변동
+   다음 주가 계산
 ======================================== */
 
 function calculateNextPrice(stock) {
@@ -112,24 +163,36 @@ function calculateNextPrice(stock) {
         Number(stock.volatility);
 
     /*
-     * volatility는 현재 DB에서
-     * 0.05 ~ 0.12 같은 값으로 저장되어 있음.
+     * volatility 예:
      *
-     * 실제 한 번의 변동은 너무 크지 않도록
-     * volatility의 일부만 사용한다.
+     * 0.05 = 5%
+     * 0.08 = 8%
+     * 0.12 = 12%
+     *
+     * 한 번의 변동에서는
+     * 전체 변동성의 10%만 사용한다.
      */
 
     const maxChange =
-        currentPrice * volatility * 0.10;
-
-    const randomChange =
-        (Math.random() * 2 - 1) * maxChange;
-
-    let nextPrice =
-        currentPrice + randomChange;
+        currentPrice *
+        volatility *
+        0.10;
 
     /*
-     * 최소 가격
+     * -1 ~ +1 사이의 랜덤값
+     */
+
+    const random =
+        Math.random() * 2 - 1;
+
+    const change =
+        random * maxChange;
+
+    let nextPrice =
+        currentPrice + change;
+
+    /*
+     * 최저 가격 100원
      */
 
     nextPrice =
@@ -140,7 +203,7 @@ function calculateNextPrice(stock) {
 
 
 /* ========================================
-   전체 종목 자동 변동
+   시장 전체 주가 변동
 ======================================== */
 
 async function updateMarket() {
@@ -182,15 +245,27 @@ async function updateMarket() {
 function startMarketEngine() {
 
     /*
-     * 5초마다 주가 변동
+     * 5초마다 주가 변경
      */
 
     const interval =
         5000;
 
+    console.log("");
     console.log(
         `📈 주가 엔진 시작 · ${interval / 1000}초 간격`
     );
+
+    /*
+     * 서버 시작 직후에도
+     * 한 번 가격을 변동시킨다.
+     */
+
+    updateMarket();
+
+    /*
+     * 이후 5초마다 반복
+     */
 
     setInterval(
         updateMarket,
@@ -199,13 +274,20 @@ function startMarketEngine() {
 }
 
 
+/* ========================================
+   내보내기
+======================================== */
+
 module.exports = {
     pool,
     companies,
+
     getStocks,
     getStock,
     getHistory,
+
     setPrice,
+
     updateMarket,
     startMarketEngine
 };
