@@ -1,0 +1,2653 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>VSM 관리자 패널</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family:
+        Arial,
+        "Noto Sans KR",
+        sans-serif;
+
+    background: #f4f6f9;
+    color: #111827;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+
+.hidden {
+    display: none !important;
+}
+
+
+/* =====================================================
+   로그인
+   ===================================================== */
+
+#loginScreen {
+
+    min-height: 100vh;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 20px;
+}
+
+.loginBox {
+
+    width: 100%;
+    max-width: 420px;
+
+    background: white;
+
+    padding: 32px;
+
+    border-radius: 18px;
+
+    box-shadow:
+        0 15px 45px
+        rgba(0,0,0,.12);
+}
+
+.loginBox h1 {
+    margin-top: 0;
+}
+
+.loginBox input {
+
+    width: 100%;
+
+    padding: 14px;
+
+    margin:
+        12px 0;
+
+    border:
+        1px solid #d1d5db;
+
+    border-radius: 10px;
+}
+
+.primary {
+
+    background: #2563eb;
+
+    color: white;
+
+    border: 0;
+
+    padding: 12px 18px;
+
+    border-radius: 10px;
+}
+
+.danger {
+
+    background: #dc2626;
+
+    color: white;
+
+    border: 0;
+
+    padding: 9px 13px;
+
+    border-radius: 8px;
+}
+
+.secondary {
+
+    background: #e5e7eb;
+
+    color: #111827;
+
+    border: 0;
+
+    padding: 9px 13px;
+
+    border-radius: 8px;
+}
+
+
+/* =====================================================
+   관리자
+   ===================================================== */
+
+#adminScreen {
+    min-height: 100vh;
+}
+
+.topbar {
+
+    height: 64px;
+
+    background: #111827;
+
+    color: white;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    padding:
+        0 24px;
+}
+
+.topbar h2 {
+    margin: 0;
+}
+
+.layout {
+
+    display: flex;
+
+    min-height:
+        calc(100vh - 64px);
+}
+
+.sidebar {
+
+    width: 230px;
+
+    background: #1f2937;
+
+    padding: 15px;
+}
+
+.sidebar button {
+
+    width: 100%;
+
+    text-align: left;
+
+    border: 0;
+
+    background: transparent;
+
+    color: #d1d5db;
+
+    padding: 13px;
+
+    border-radius: 8px;
+
+    margin-bottom: 5px;
+}
+
+.sidebar button:hover,
+.sidebar button.active {
+
+    background: #374151;
+
+    color: white;
+}
+
+.content {
+
+    flex: 1;
+
+    padding: 25px;
+
+    overflow-x: auto;
+}
+
+.section {
+    display: none;
+}
+
+.section.active {
+    display: block;
+}
+
+.card {
+
+    background: white;
+
+    border-radius: 14px;
+
+    padding: 20px;
+
+    margin-bottom: 20px;
+
+    box-shadow:
+        0 4px 16px
+        rgba(0,0,0,.06);
+}
+
+.grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(auto-fit, minmax(190px, 1fr));
+
+    gap: 12px;
+}
+
+input,
+select,
+textarea {
+
+    width: 100%;
+
+    padding: 10px;
+
+    border:
+        1px solid #d1d5db;
+
+    border-radius: 8px;
+}
+
+textarea {
+    min-height: 130px;
+    resize: vertical;
+}
+
+label {
+
+    display: block;
+
+    font-size: 13px;
+
+    font-weight: bold;
+
+    margin-bottom: 6px;
+}
+
+.formGroup {
+    margin-bottom: 12px;
+}
+
+table {
+
+    width: 100%;
+
+    border-collapse: collapse;
+
+    min-width: 850px;
+}
+
+th,
+td {
+
+    border-bottom:
+        1px solid #e5e7eb;
+
+    padding: 10px;
+
+    text-align: left;
+
+    vertical-align: middle;
+}
+
+th {
+    background: #f9fafb;
+}
+
+.badge {
+
+    display: inline-block;
+
+    padding:
+        4px 8px;
+
+    border-radius: 999px;
+
+    font-size: 12px;
+}
+
+.badge.red {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.badge.green {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.badge.yellow {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.actions {
+
+    display: flex;
+
+    gap: 6px;
+
+    flex-wrap: wrap;
+}
+
+.smallInput {
+    width: 110px;
+}
+
+#toast {
+
+    position: fixed;
+
+    right: 20px;
+
+    bottom: 20px;
+
+    background: #111827;
+
+    color: white;
+
+    padding:
+        13px 18px;
+
+    border-radius: 10px;
+
+    display: none;
+
+    z-index: 9999;
+}
+
+
+/* =====================================================
+   모바일
+   ===================================================== */
+
+@media(max-width: 800px) {
+
+    .sidebar {
+        width: 70px;
+    }
+
+    .sidebar button {
+        font-size: 0;
+        text-align: center;
+    }
+
+    .sidebar button::first-letter {
+        font-size: 20px;
+    }
+
+    .content {
+        padding: 15px;
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     로그인
+     ===================================================== -->
+
+<div id="loginScreen">
+
+    <div class="loginBox">
+
+        <h1>VSM 관리자</h1>
+
+        <p>
+            관리자 비밀번호를 입력하세요.
+        </p>
+
+        <input
+            id="adminPassword"
+            type="password"
+            placeholder="관리자 비밀번호"
+        >
+
+        <button
+            class="primary"
+            style="width:100%"
+            onclick="loginAdmin()"
+        >
+            관리자 패널 접속
+        </button>
+
+        <p
+            id="loginError"
+            style="color:#dc2626"
+        ></p>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     관리자 화면
+     ===================================================== -->
+
+<div
+    id="adminScreen"
+    class="hidden"
+>
+
+    <div class="topbar">
+
+        <h2>VSM 관리자 패널</h2>
+
+        <button
+            class="secondary"
+            onclick="logoutAdmin()"
+        >
+            로그아웃
+        </button>
+
+    </div>
+
+
+    <div class="layout">
+
+
+        <!-- 사이드바 -->
+
+        <aside class="sidebar">
+
+            <button
+                class="active"
+                onclick="showSection('dashboard', this)"
+            >
+                🏠 대시보드
+            </button>
+
+            <button
+                onclick="showSection('users', this)"
+            >
+                👤 플레이어
+            </button>
+
+            <button
+                onclick="showSection('stocks', this)"
+            >
+                📈 주식
+            </button>
+
+            <button
+                onclick="showSection('feedback', this)"
+            >
+                💬 피드백
+            </button>
+
+            <button
+                onclick="showSection('notices', this)"
+            >
+                📢 공지사항
+            </button>
+
+            <button
+                onclick="showSection('maintenance', this)"
+            >
+                🛠 점검
+            </button>
+
+        </aside>
+
+
+        <!-- 콘텐츠 -->
+
+        <main class="content">
+
+
+            <!-- =================================================
+                 대시보드
+                 ================================================= -->
+
+            <section
+                id="dashboard"
+                class="section active"
+            >
+
+                <h1>대시보드</h1>
+
+                <div class="grid">
+
+                    <div class="card">
+                        <h3>플레이어</h3>
+                        <h2 id="dashboardUsers">-</h2>
+                    </div>
+
+                    <div class="card">
+                        <h3>주식</h3>
+                        <h2 id="dashboardStocks">-</h2>
+                    </div>
+
+                    <div class="card">
+                        <h3>점검 상태</h3>
+                        <h2 id="dashboardMaintenance">-</h2>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 플레이어
+                 ================================================= -->
+
+            <section
+                id="users"
+                class="section"
+            >
+
+                <h1>플레이어 관리</h1>
+
+                <div class="card">
+
+                    <button
+                        class="primary"
+                        onclick="loadUsers()"
+                    >
+                        새로고침
+                    </button>
+
+                </div>
+
+                <div class="card">
+
+                    <div style="overflow-x:auto">
+
+                        <table>
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>번호</th>
+                                    <th>닉네임</th>
+                                    <th>아이디</th>
+                                    <th>잔액</th>
+                                    <th>밴</th>
+                                    <th>관리</th>
+
+                                </tr>
+
+                            </thead>
+
+                            <tbody id="usersTable">
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 주식
+                 ================================================= -->
+
+            <section
+                id="stocks"
+                class="section"
+            >
+
+                <h1>주식 관리</h1>
+
+
+                <div class="card">
+
+                    <h2>주식 추가</h2>
+
+                    <div class="grid">
+
+                        <div class="formGroup">
+                            <label>ID</label>
+                            <input id="newStockId">
+                        </div>
+
+                        <div class="formGroup">
+                            <label>회사 이름</label>
+                            <input id="newStockName">
+                        </div>
+
+                        <div class="formGroup">
+                            <label>시작 주가</label>
+                            <input
+                                id="newStockPrice"
+                                type="number"
+                                min="1"
+                            >
+                        </div>
+
+                        <div class="formGroup">
+                            <label>변동성</label>
+                            <input
+                                id="newStockVolatility"
+                                type="number"
+                                min="0"
+                                placeholder="예: 1000"
+                            >
+                        </div>
+
+                        <div class="formGroup">
+                            <label>거래량 제한</label>
+
+                            <select id="newVolumeLimitEnabled">
+
+                                <option value="false">
+                                    제한 없음
+                                </option>
+
+                                <option value="true">
+                                    제한 있음
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                        <div class="formGroup">
+                            <label>거래량 제한 수</label>
+
+                            <input
+                                id="newVolumeLimit"
+                                type="number"
+                                min="0"
+                                value="0"
+                            >
+
+                        </div>
+
+                    </div>
+
+                    <button
+                        class="primary"
+                        onclick="createStock()"
+                    >
+                        주식 추가
+                    </button>
+
+                </div>
+
+
+                <div class="card">
+
+                    <button
+                        class="primary"
+                        onclick="loadStocks()"
+                    >
+                        주식 새로고침
+                    </button>
+
+                </div>
+
+
+                <div class="card">
+
+                    <div style="overflow-x:auto">
+
+                        <table>
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>ID</th>
+                                    <th>회사</th>
+                                    <th>주가</th>
+                                    <th>변동성</th>
+                                    <th>거래량</th>
+                                    <th>제한</th>
+                                    <th>관리</th>
+
+                                </tr>
+
+                            </thead>
+
+                            <tbody id="stocksTable">
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 피드백
+                 ================================================= -->
+
+            <section
+                id="feedback"
+                class="section"
+            >
+
+                <h1>피드백 관리</h1>
+
+                <div class="card">
+
+                    <button
+                        class="primary"
+                        onclick="loadFeedback()"
+                    >
+                        새로고침
+                    </button>
+
+                </div>
+
+                <div
+                    id="feedbackList"
+                ></div>
+
+            </section>
+
+
+            <!-- =================================================
+                 공지사항
+                 ================================================= -->
+
+            <section
+                id="notices"
+                class="section"
+            >
+
+                <h1>공지사항</h1>
+
+                <div class="card">
+
+                    <h2>새 공지</h2>
+
+                    <div class="formGroup">
+
+                        <label>제목</label>
+
+                        <input
+                            id="noticeTitle"
+                        >
+
+                    </div>
+
+                    <div class="formGroup">
+
+                        <label>내용</label>
+
+                        <textarea
+                            id="noticeContent"
+                        ></textarea>
+
+                    </div>
+
+                    <button
+                        class="primary"
+                        onclick="createNotice()"
+                    >
+                        공지 등록
+                    </button>
+
+                </div>
+
+
+                <div
+                    id="noticeList"
+                ></div>
+
+            </section>
+
+
+            <!-- =================================================
+                 점검
+                 ================================================= -->
+
+            <section
+                id="maintenance"
+                class="section"
+            >
+
+                <h1>서버 점검</h1>
+
+                <div class="card">
+
+                    <h2 id="maintenanceStatus">
+                        확인 중...
+                    </h2>
+
+                    <div class="grid">
+
+                        <div>
+
+                            <label>
+                                점검 종료 시간
+                            </label>
+
+                            <input
+                                id="maintenanceEnd"
+                                type="datetime-local"
+                            >
+
+                        </div>
+
+                    </div>
+
+                    <br>
+
+                    <button
+                        class="danger"
+                        onclick="startMaintenance()"
+                    >
+                        점검 시작
+                    </button>
+
+                    <button
+                        class="secondary"
+                        onclick="endMaintenance()"
+                    >
+                        점검 종료
+                    </button>
+
+                </div>
+
+            </section>
+
+
+        </main>
+
+    </div>
+
+</div>
+
+
+<div id="toast"></div>
+
+
+<script>
+
+let adminPassword =
+    sessionStorage.getItem(
+        "vsm_admin_password"
+    ) || "";
+
+
+// =====================================================
+// 공통 API
+// =====================================================
+
+async function api(
+    url,
+    options = {}
+) {
+
+    options.headers =
+        options.headers || {};
+
+    options.headers[
+        "x-admin-password"
+    ] = adminPassword;
+
+    if (
+        options.body &&
+        typeof options.body !== "string"
+    ) {
+
+        options.headers[
+            "Content-Type"
+        ] = "application/json";
+
+        options.body =
+            JSON.stringify(
+                options.body
+            );
+    }
+
+
+    const response =
+        await fetch(
+            "/api/admin" + url,
+            options
+        );
+
+
+    if (
+        response.status === 401
+    ) {
+
+        logoutAdmin();
+
+        throw new Error(
+            "관리자 인증이 만료되었습니다."
+        );
+
+    }
+
+
+    const data =
+        await response.json()
+            .catch(() => ({
+                ok: false,
+                error: "서버 응답 오류"
+            }));
+
+
+    if (!response.ok) {
+
+        throw new Error(
+            data.error ||
+            "요청 처리에 실패했습니다."
+        );
+
+    }
+
+
+    return data;
+}
+
+
+// =====================================================
+// 토스트
+// =====================================================
+
+function toast(message) {
+
+    const element =
+        document.getElementById(
+            "toast"
+        );
+
+    element.textContent =
+        message;
+
+    element.style.display =
+        "block";
+
+
+    setTimeout(() => {
+
+        element.style.display =
+            "none";
+
+    }, 2500);
+
+}
+
+
+// =====================================================
+// 로그인
+// =====================================================
+
+async function loginAdmin() {
+
+    const password =
+        document.getElementById(
+            "adminPassword"
+        ).value;
+
+
+    if (!password) {
+
+        document.getElementById(
+            "loginError"
+        ).textContent =
+            "비밀번호를 입력하세요.";
+
+        return;
+
+    }
+
+
+    try {
+
+        adminPassword =
+            password;
+
+
+        await api(
+            "/check"
+        );
+
+
+        sessionStorage.setItem(
+            "vsm_admin_password",
+            adminPassword
+        );
+
+
+        document
+            .getElementById(
+                "loginScreen"
+            )
+            .classList
+            .add("hidden");
+
+
+        document
+            .getElementById(
+                "adminScreen"
+            )
+            .classList
+            .remove("hidden");
+
+
+        await loadDashboard();
+
+    } catch (error) {
+
+        adminPassword = "";
+
+        document.getElementById(
+            "loginError"
+        ).textContent =
+            error.message;
+
+    }
+
+}
+
+
+// =====================================================
+// 자동 로그인
+// =====================================================
+
+async function autoLogin() {
+
+    if (!adminPassword) {
+        return;
+    }
+
+
+    try {
+
+        await api(
+            "/check"
+        );
+
+
+        document
+            .getElementById(
+                "loginScreen"
+            )
+            .classList
+            .add("hidden");
+
+
+        document
+            .getElementById(
+                "adminScreen"
+            )
+            .classList
+            .remove("hidden");
+
+
+        await loadDashboard();
+
+    } catch (_) {
+
+        logoutAdmin();
+
+    }
+
+}
+
+
+// =====================================================
+// 로그아웃
+// =====================================================
+
+function logoutAdmin() {
+
+    sessionStorage.removeItem(
+        "vsm_admin_password"
+    );
+
+    adminPassword = "";
+
+    location.reload();
+
+}
+
+
+// =====================================================
+// 메뉴
+// =====================================================
+
+function showSection(
+    id,
+    button
+) {
+
+    document
+        .querySelectorAll(
+            ".section"
+        )
+        .forEach(
+            section =>
+                section.classList
+                    .remove("active")
+        );
+
+
+    document
+        .getElementById(id)
+        .classList
+        .add("active");
+
+
+    document
+        .querySelectorAll(
+            ".sidebar button"
+        )
+        .forEach(
+            item =>
+                item.classList
+                    .remove("active")
+        );
+
+
+    button.classList.add(
+        "active"
+    );
+
+
+    if (id === "users") {
+        loadUsers();
+    }
+
+    if (id === "stocks") {
+        loadStocks();
+    }
+
+    if (id === "feedback") {
+        loadFeedback();
+    }
+
+    if (id === "notices") {
+        loadNotices();
+    }
+
+    if (id === "maintenance") {
+        loadMaintenance();
+    }
+
+}
+
+
+// =====================================================
+// 대시보드
+// =====================================================
+
+async function loadDashboard() {
+
+    try {
+
+        const [
+            users,
+            stocks,
+            maintenance
+        ] = await Promise.all([
+
+            api("/users"),
+            api("/stocks"),
+            api("/maintenance")
+
+        ]);
+
+
+        document.getElementById(
+            "dashboardUsers"
+        ).textContent =
+            users.users.length;
+
+
+        document.getElementById(
+            "dashboardStocks"
+        ).textContent =
+            stocks.stocks.length;
+
+
+        document.getElementById(
+            "dashboardMaintenance"
+        ).textContent =
+            maintenance.maintenance &&
+            maintenance.maintenance.enabled
+                ? "점검 중"
+                : "정상";
+
+    } catch (error) {
+
+        toast(error.message);
+
+    }
+
+}
+
+
+// =====================================================
+// 플레이어
+// =====================================================
+
+async function loadUsers() {
+
+    try {
+
+        const data =
+            await api(
+                "/users"
+            );
+
+
+        const tbody =
+            document.getElementById(
+                "usersTable"
+            );
+
+
+        tbody.innerHTML =
+            "";
+
+
+        for (
+            const user
+            of data.users
+        ) {
+
+            const tr =
+                document.createElement(
+                    "tr"
+                );
+
+
+            const banned =
+                user.banned_until &&
+                (
+                    user.banned_until ===
+                    null ||
+                    Number(
+                        user.banned_until
+                    ) > Date.now()
+                );
+
+
+            tr.innerHTML = `
+
+                <td>
+                    <b>
+                        ${String(
+                            user.player_number
+                        ).padStart(5, "0")}
+                    </b>
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        user.nickname
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        user.username
+                    )}
+                </td>
+
+                <td>
+                    ${Number(
+                        user.cash
+                    ).toLocaleString("ko-KR")}원
+                </td>
+
+                <td>
+                    ${
+                        banned
+                        ? `<span class="badge red">밴</span>`
+                        : `<span class="badge green">정상</span>`
+                    }
+                </td>
+
+                <td>
+
+                    <div class="actions">
+
+                        <button
+                            class="secondary"
+                            onclick="editUser(
+                                '${user.id}',
+                                '${escapeAttr(user.nickname)}',
+                                '${user.cash}',
+                                '${user.player_number}'
+                            )"
+                        >
+                            수정
+                        </button>
+
+                        ${
+                            banned
+                            ? `
+                            <button
+                                class="secondary"
+                                onclick="unbanUser('${user.id}')"
+                            >
+                                밴 해제
+                            </button>
+                            `
+                            : `
+                            <button
+                                class="secondary"
+                                onclick="banUser('${user.id}')"
+                            >
+                                밴
+                            </button>
+                            `
+                        }
+
+                        <button
+                            class="danger"
+                            onclick="deleteUser(
+                                '${user.id}'
+                            )"
+                        >
+                            삭제
+                        </button>
+
+                    </div>
+
+                </td>
+
+            `;
+
+
+            tbody.appendChild(
+                tr
+            );
+
+        }
+
+        document.getElementById(
+            "dashboardUsers"
+        ).textContent =
+            data.users.length;
+
+    } catch (error) {
+
+        toast(error.message);
+
+    }
+
+}
+
+
+// =====================================================
+// 플레이어 수정
+// =====================================================
+
+async function editUser(
+    id,
+    nickname,
+    cash,
+    playerNumber
+) {
+
+    const newNickname =
+        prompt(
+            "닉네임",
+            nickname
+        );
+
+    if (newNickname === null) {
+        return;
+    }
+
+
+    const newCash =
+        prompt(
+            "잔액",
+            cash
+        );
+
+    if (newCash === null) {
+        return;
+    }
+
+
+    const newPlayerNumber =
+        prompt(
+            "플레이어 번호",
+            playerNumber
+        );
+
+    if (
+        newPlayerNumber === null
+    ) {
+        return;
+    }
+
+
+    try {
+
+        await api(
+            `/users/${id}`,
+            {
+                method: "PATCH",
+
+                body: {
+                    nickname:
+                        newNickname,
+
+                    cash:
+                        Number(newCash),
+
+                    playerNumber:
+                        Number(
+                            newPlayerNumber
+                        )
+                }
+            }
+        );
+
+
+        toast(
+            "플레이어 정보가 수정되었습니다."
+        );
+
+
+        loadUsers();
+
+    } catch (error) {
+
+        toast(error.message);
+
+    }
+
+}
+
+
+// =====================================================
+// 밴
+// =====================================================
+
+async function banUser(id) {
+
+    const type =
+        prompt(
+            "밴 기간을 입력하세요.\n\n" +
+            "단위: 분\n" +
+            "영구 밴: permanent\n\n" +
+            "예: 60",
+            "60"
+        );
+
+
+    if (!type) {
+        return;
+    }
+
+
+    const reason =
+        prompt(
+            "밴 사유",
+            ""
+        ) || "";
+
+
+    try {
+
+        await api(
+            `/users/${id}/ban`,
+            {
+                method: "POST",
+
+                body: {
+                    duration:
+                        type,
+
+                    reason
+                }
+            }
+        );
+
+
+        toast(
+            "밴 처리되었습니다."
+        );
+
+
+        loadUsers();
+
+    } catch (error) {
+
+        toast(error.message);
+
+    }
+
+}
+
+
+// =====================================================
+// 밴 해제
+// =====================================================
+
+async function unbanUser(id) {
+
+    if (
+        !confirm(
+            "밴을 해제하시겠습니까?"
+        )
+    ) {
+        return;
+    }
+
+
+    try {
+
+        await api(
+            `/users/${id}/unban`,
+            {
+                method: "POST"
+            }
+        );
+
+
+        toast(
+            "밴이 해제되었습니다."
+        );
+
+
+        loadUsers();
+
+    } catch (error) {
+
+        toast(error.message);
+
+    }
+
+}
+
+
+// =====================================================
+// 플레이어 삭제
+// =====================================================
+
+async function deleteUser(id) {
+
+    if (
+        !confirm(
+            "정말 이 플레이어를 삭제합니까?\n" +
+            "삭제된 계정은 복구할 수 없습니다."
+        )
+    ) {
+        return;
+    }
+
+
+    try {
+
+        await api(
+            `/users/${id}`,
+            {
+                method: "DELETE"
+            }
+        );
+
+
+        toast(
+            "플레이어가 삭제되었습니다."
+        );
+
+
+        loadUsers();
+
+    } catch (error) {
+
+        toast(error.message);
+
+    }
+
+}
+
+
+// =====================================================
+// 주식
+// =====================================================
+
+async function loadStocks() {
+
+    try {
+
+        const data =
+            await api(
+                "/stocks"
+            );
+
+
+        const tbody =
+            document.getElementById(
+                "stocksTable"
+            );
+
+
+        tbody.innerHTML =
+            "";
+
+
+        for (
+            const stock
+            of data.stocks
+        ) {
+
+            const tr =
+                document.createElement(
+                    "tr"
+                );
+
+
+            tr.innerHTML = `
+
+                <td>
+                    <b>
+                        ${escapeHtml(stock.id)}
+                    </b>
+                </td>
+
+                <td>
+                    ${escapeHtml(stock.name)}
+                </td>
+
+                <td>
+                    ${Number(
+                        stock.price
+                    ).toLocaleString("ko-KR")}원
+                </td>
+
+                <td>
+                    ${Number(
+                        stock.volatility
+                    ).toLocaleString("ko-KR")}
+                </td>
+
+                <td>
+                    ${Number(
+                        stock.volume
+                    ).toLocaleString("ko-KR")}
+                </td>
+
+                <td>
+                    ${
+                        stock.volume_limit_enabled
+                        ? `${Number(
+                            stock.volume_limit
+                          ).toLocaleString("ko-KR")}주`
+                        : "없음"
+                    }
+                </td>
+
+                <td>
+
+                    <div class="actions">
+
+                        <button
+                            class="secondary"
+                            onclick="editStock(
+                                '${escapeAttr(stock.id)}',
+                                '${escapeAttr(stock.name)}',
+                                '${stock.price}',
+                                '${stock.volatility}',
+                                '${stock.volume_limit_enabled}',
+                                '${stock.volume_limit}'
+                            )"
+                        >
+                            수정
+                        </button>
+
+                        <button
+                            class="secondary"
+                            onclick="controlStock(
+                                '${escapeAttr(stock.id)}'
+                            )"
+                        >
+                            주가 제어
+                        </button>
+
+                        <button
+                            class="danger"
+                            onclick="deleteStock(
+                                '${escapeAttr(stock.id)}'
+                            )"
+                        >
+                            삭제
+                        </button>
+
+                    </div>
+
+                </td>
+
+            `;
+
+
+            tbody.appendChild(
+                tr
+            );
+
+        }
+
+
+        document.getElementById(
+            "dashboardStocks"
+        ).textContent =
+            data.stocks.length;
+
+    } catch (error) {
+
+        toast(error.message);
+
+    }
+
+}
+
+
+// =====================================================
+// 주식 추가
+// =====================================================
+
+async function createStock() {
+
+    try {
+
+        await api(
+            "/stocks",
+            {
+                method: "POST",
+
+                body: {
+
+                    id:
+                        document.getElementById(
+                            "newStockId"
+                        ).value,
+
+                    name:
+                        document.getElementById(
+                            "newStockName"
+                        ).value,
+
+                    price:
+                        Number(
+                            document.getElementById(
+                                "newStockPrice"
+                            ).value
+                        ),
+
+                    volatility:
+                        Number(
+                            document.getElementById(
+                                "newStockVolatility"
+                            ).value
+                        ),
+
+                    volumeLimitEnabled:
+                        document.getElementById(
+                            "newVolumeLimitEnabled"
+                        ).value === "true",
+
+                    volumeLimit:
+                        Number(
+                            document.getElementById(
+                                "newVolumeLimit"
+                            ).value
+                        )
+
+                }
+
+            }
+        );
+
+
+        toast(
+            "주식이 추가되었습니다."
+        );
+
+
+        document.getElementById(
+            "newStockId"
+        ).value = "";
+
+        document.getElementById(
+            "newStockName"
+        ).value = "";
+
+        document.getElementById(
+            "newStockPrice"
+        ).value = "";
+
+        document.getElementById(
+            "newStockVolatility"
+        ).value = "";
+
+
+        loadStocks();
+
+    } catch (error) {
+
+        toast(error.message);
+
+    }
+
+}
+
+
+// =====================================================
+// 주식 수정
+// =====================================================
+
+async function editStock(
+    id,
+    name,
+    price,
+    volatility,
+    limitEnabled,
+    limit
+) {
+
+    const newName =
+        prompt(
+            "회사 이름",
+            name
+        );
+
+    if (newName === null) {
+        return;
+    }
+
+
+    const newPrice =
+        prompt(
+            "현재 주가",
+            price
+        );
+
+    if (newPrice === null) {
+        return;
+    }
+
+
+    const newVolatility =
+        prompt(
+            "변동성",
+            volatility
+        );
+
+    if (
+        newVolatility === null
+    ) {
+        return;
+    }
+
+
+    const newLimitEnabled =
+        confirm(
+            "거래량 제한을 사용하시겠습니까?"
+        );
+
+
+    let newLimit = 0;
+
+
+    if (newLimitEnabled) {
+
+        newLimit =
+            Number(
+                prompt(
+                    "거래량 제한 수",
+                    limit
+                )
+            );
+
+    }
+
+
+    try {
+
+        await api(
+            `/stocks/${id}`,
+            {
+                method: "PATCH",
+
+                body: {
+
+                    name:
+                        newName,
+
+                    price:
+                        Number(newPrice),
+
+                    volatility:
+                        Number(
+                            newVolatility
+                        ),
+
+                    volumeLimitEnabled:
+                        newLimitEnabled,
+
+                    volumeLimit:
+                        newLimit
+
+                }
+            }
+        );
+
+
+        toast(
+            "주식 정보가 수정되었습니다."
+        );
+
+
+        loadStocks();
+
+    } catch (error) {
+
+        toast(error.message);
+
+    }
+
+}
+
+
+// =====================================================
+// 주가 제어
+// =====================================================
+
+async function controlStock(id) {
+
+    const direction =
+        prompt(
+            "주가 방향을 입력하세요.\n\n" +
+            "up = 상승\n" +
+            "down = 하락\n" +
+            "normal = 정상",
+            "normal"
+        );
+
+
+    if (!direction) {
+        return;
+    }
+
+
+    let duration = 0;
+
+
+    if (
+        direction !== "normal"
+    ) {
+
+        duration =
+            Number(
+                prompt(
+                    "지속 시간(분)",
+                    "5"
+                )
+            );
+
+    }
+
+
+    const strength =
+        Number(
+            prompt(
+                "강도",
+                "1"
+            )
+        );
+
+
+    try {
+
+        await api(
+            `/stocks/${id}/control`,
+            {
+                method: "POST",
+
+                body: {
+
+                    direction,
+
+                    duration,
+
+                    strength
+
+                }
+
+            }
+        );
+
+
+        toast(
+            "주가 제어가 적용되었습니다."
+        );
+
+    } catch (error) {
+
+        toast(error.message);
+
+    }
+
+}
+
+
+// =====================================================
+// 주식 삭제
+// =====================================================
+
+async function deleteStock(id) {
+
+    if (
+        !confirm(
+            "이 주식을 삭제하시겠습니까?"
+        )
+    ) {
+        return;
+    }
+
+
+    try {
+
+        await api(
+            `/stocks/${id}`,
+            {
+                method: "DELETE"
+            }
+        );
+
+
+        toast(
+            "주식이 삭제되었습니다."
+        );
+
+
+        loadStocks();
+
+    } catch (error) {
+
+        toast(error.message);
+
+    }
+
+}
+
+
+// =====================================================
+// 피드백
+// =====================================================
+
+async function loadFeedback() {
+
+    try {
+
+        const data =
+            await api(
+                "/feedback"
+            );
+
+
+        const container =
+            document.getElementById(
+                "feedbackList"
+            );
+
+
+        container.innerHTML =
+            "";
+
+
+        data.feedback.forEach(
+            feedback => {
+
+                const card =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                card.className =
+                    "card";
+
+
+                card.innerHTML = `
+
+                    <h2>
+                        ${escapeHtml(
+                            feedback.title
+                        )}
+                    </h2>
+
+                    <p>
+                        ${escapeHtml(
+                            feedback.content
+                        )}
+                    </p>
+
+                    <p>
+                        플레이어:
+                        ${
+                            feedback.player_number
+                            ? String(
+                                feedback.player_number
+                              ).padStart(5, "0")
+                            : "-"
+                        }
+                    </p>
+
+                    <select
+                        onchange="changeFeedbackStatus(
+                            '${feedback.id}',
+                            this.value
+                        )"
+                    >
+
+                        ${[
+                            "pending",
+                            "review",
+                            "accepted",
+                            "rejected"
+                        ]
+                        .map(
+                            status =>
+                                `
+                                <option
+                                    value="${status}"
+                                    ${
+                                        feedback.status ===
+                                        status
+                                        ? "selected"
+                                        : ""
+                                    }
+                                >
+                                    ${status}
+                                </option>
+                                `
+                        )
+                        .join("")}
+
+                    </select>
+
+                `;
+
+
+                container.appendChild(
+                    card
+                );
+
+            }
+        );
+
+    } catch (error) {
+
+        toast(error.message);
+
+    }
+
+}
+
+
+async function changeFeedbackStatus(
+    id,
+    status
+) {
+
+    try {
+
+        await api(
+            `/feedback/${id}`,
+            {
+                method: "PATCH",
+
+                body: {
+                    status
+                }
+            }
+        );
+
+
+        toast(
+            "피드백 상태가 변경되었습니다."
+        );
+
+    } catch (error) {
+
+        toast(error.message);
+
+    }
+
+}
+
+
+// =====================================================
+// 공지사항
+// =====================================================
+
+async function loadNotices() {
+
+    try {
+
+        const data =
+            await api(
+                "/notices"
+            );
+
+
+        const container =
+            document.getElementById(
+                "noticeList"
+            );
+
+
+        container.innerHTML =
+            "";
+
+
+        data.notices.forEach(
+            notice => {
+
+                const card =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                card.className =
+                    "card";
+
+
+                card.innerHTML = `
+
+                    <h2>
+                        ${escapeHtml(
+                            notice.title
+                        )}
+                    </h2>
+
+                    <p style="white-space:pre-wrap">
+                        ${escapeHtml(
+                            notice.content
+                        )}
+                    </p>
+
+                    <button
+                        class="danger"
+                        onclick="deleteNotice(
+                            '${notice.id}'
+                        )"
+                    >
+                        삭제
+                    </button>
+
+                `;
+
+
+                container.appendChild(
+                    card
+                );
+
+            }
+        );
+
+    } catch (error) {
+
+        toast(error.message);
+
+    }
+
+}
+
+
+async function createNotice() {
+
+    const title =
+        document.getElementById(
+            "noticeTitle"
+        ).value.trim();
+
+
+    const content =
+        document.getElementById(
+            "noticeContent"
+        ).value.trim();
+
+
+    if (!title || !content) {
+
+        toast(
+            "제목과 내용을 입력하세요."
+        );
+
+        return;
+
+    }
+
+
+    try {
+
+        await api(
+            "/notices",
+            {
+                method: "POST",
+
+                body: {
+                    title,
+                    content
+                }
+            }
+        );
+
+
+        document.getElementById(
+            "noticeTitle"
+        ).value = "";
+
+        document.getElementById(
+            "noticeContent"
+        ).value = "";
+
+
+        toast(
+            "공지사항이 등록되었습니다."
+        );
+
+
+        loadNotices();
+
+    } catch (error) {
+
+        toast(error.message);
+
+    }
+
+}
+
+
+async function deleteNotice(id) {
+
+    if (
+        !confirm(
+            "공지사항을 삭제하시겠습니까?"
+        )
+    ) {
+        return;
+    }
+
+
+    try {
+
+        await api(
+            `/notices/${id}`,
+            {
+                method: "DELETE"
+            }
+        );
+
+
+        toast(
+            "공지사항이 삭제되었습니다."
+        );
+
+
+        loadNotices();
+
+    } catch (error) {
+
+        toast(error.message);
+
+    }
+
+}
+
+
+// =====================================================
+// 점검
+// =====================================================
+
+async function loadMaintenance() {
+
+    try {
+
+        const data =
+            await api(
+                "/maintenance"
+            );
+
+
+        const maintenance =
+            data.maintenance;
+
+
+        const element =
+            document.getElementById(
+                "maintenanceStatus"
+            );
+
+
+        if (
+            maintenance &&
+            maintenance.enabled
+        ) {
+
+            element.textContent =
+                "🔴 서버 점검 중";
+
+        } else {
+
+            element.textContent =
+                "🟢 서버 정상 운영";
+
+        }
+
+
+        document.getElementById(
+            "dashboardMaintenance"
+        ).textContent =
+            maintenance &&
+            maintenance.enabled
+                ? "점검 중"
+                : "정상";
+
+    } catch (error) {
+
+        toast(error.message);
+
+    }
+
+}
+
+
+async function startMaintenance() {
+
+    const input =
+        document.getElementById(
+            "maintenanceEnd"
+        ).value;
+
+
+    let endTime =
+        null;
+
+
+    if (input) {
+
+        endTime =
+            new Date(input)
+                .getTime();
+
+    }
+
+
+    if (
+        !confirm(
+            "서버 점검을 시작하시겠습니까?"
+        )
+    ) {
+        return;
+    }
+
+
+    try {
+
+        await api(
+            "/maintenance/start",
+            {
+                method: "POST",
+
+                body: {
+
+                    startTime:
+                        Date.now(),
+
+                    endTime
+
+                }
+            }
+        );
+
+
+        toast(
+            "서버 점검이 시작되었습니다."
+        );
+
+
+        loadMaintenance();
+
+    } catch (error) {
+
+        toast(error.message);
+
+    }
+
+}
+
+
+async function endMaintenance() {
+
+    if (
+        !confirm(
+            "서버 점검을 종료하시겠습니까?"
+        )
+    ) {
+        return;
+    }
+
+
+    try {
+
+        await api(
+            "/maintenance/end",
+            {
+                method: "POST"
+            }
+        );
+
+
+        toast(
+            "서버 점검이 종료되었습니다."
+        );
+
+
+        loadMaintenance();
+
+    } catch (error) {
+
+        toast(error.message);
+
+    }
+
+}
+
+
+// =====================================================
+// HTML 안전 처리
+// =====================================================
+
+function escapeHtml(value) {
+
+    return String(
+        value ?? ""
+    )
+    .replace(
+        /&/g,
+        "&amp;"
+    )
+    .replace(
+        /</g,
+        "&lt;"
+    )
+    .replace(
+        />/g,
+        "&gt;"
+    )
+    .replace(
+        /"/g,
+        "&quot;"
+    )
+    .replace(
+        /'/g,
+        "&#039;"
+    );
+
+}
+
+
+function escapeAttr(value) {
+
+    return String(
+        value ?? ""
+    )
+    .replace(
+        /\\/g,
+        "\\\\"
+    )
+    .replace(
+        /'/g,
+        "\\'"
+    );
+
+}
+
+
+// =====================================================
+// 시작
+// =====================================================
+
+autoLogin();
+
+</script>
+
+</body>
+
+</html>
