@@ -1,13 +1,32 @@
 const express = require("express");
-const crypto = require("crypto");
 
-const { pool } = require("../services/market");
+const { pool } =
+    require("../services/market");
 
-const router = express.Router();
+const router =
+    express.Router();
 
-// ========================================
+// =====================================================
+// 플레이어 번호 포맷
+// 5 → 00005
+// =====================================================
+
+function formatPlayerNumber(number) {
+
+    if (
+        number === null ||
+        number === undefined
+    ) {
+        return null;
+    }
+
+    return String(number)
+        .padStart(5, "0");
+}
+
+// =====================================================
 // 인증
-// ========================================
+// =====================================================
 
 async function getCurrentUser(req) {
 
@@ -26,34 +45,42 @@ async function getCurrentUser(req) {
     }
 
     const result =
-        await pool.query(
-            `
+        await pool.query(`
             SELECT
                 u.id,
+                u.player_number,
                 u.username,
                 u.nickname,
                 u.cash
+
             FROM sessions s
+
             JOIN users u
                 ON u.id = s.user_id
-            WHERE s.token = $1
-            `,
-            [token]
-        );
 
-    if (result.rows.length === 0) {
+            WHERE s.token = $1
+
+            LIMIT 1
+        `, [
+            token
+        ]);
+
+    if (!result.rows.length) {
         return null;
     }
 
     return result.rows[0];
 }
 
+// =====================================================
+// 인증 필요
+// =====================================================
 
-// ========================================
-// 인증 필요 미들웨어
-// ========================================
-
-async function requireAuth(req, res, next) {
+async function requireAuth(
+    req,
+    res,
+    next
+) {
 
     try {
 
@@ -64,12 +91,14 @@ async function requireAuth(req, res, next) {
 
             return res.status(401).json({
                 ok: false,
-                error: "로그인이 필요합니다."
+                error:
+                    "로그인이 필요합니다."
             });
 
         }
 
-        req.user = user;
+        req.user =
+            user;
 
         next();
 
@@ -80,32 +109,41 @@ async function requireAuth(req, res, next) {
             error
         );
 
-        res.status(500).json({
+        return res.status(500).json({
             ok: false,
-            error: "사용자 인증 중 오류가 발생했습니다."
+            error:
+                "사용자 인증 중 오류가 발생했습니다."
         });
+
     }
 }
 
+// =====================================================
+// 은행 기본 정보
+// =====================================================
 
-// ========================================
-// 안드로메다뱅크 기본 정보
-// ========================================
+router.get(
+    "/",
+    (req, res) => {
 
-router.get("/", (req, res) => {
+        res.json({
 
-    res.json({
-        ok: true,
-        bankName: "안드로메다뱅크",
-        message: "안드로메다뱅크 정상 운영 중"
-    });
+            ok: true,
 
-});
+            bankName:
+                "안드로메다뱅크",
 
+            message:
+                "안드로메다뱅크 정상 운영 중"
 
-// ========================================
-// 내 계좌 정보
-// ========================================
+        });
+
+    }
+);
+
+// =====================================================
+// 내 계좌
+// =====================================================
 
 router.get(
     "/account",
@@ -114,12 +152,8 @@ router.get(
 
         try {
 
-            const user =
-                await getCurrentUser(req);
-
             const transactions =
-                await pool.query(
-                    `
+                await pool.query(`
                     SELECT
                         bt.id,
                         bt.sender_id,
@@ -129,8 +163,14 @@ router.get(
                         bt.type,
                         bt.created_at,
 
+                        sender.player_number
+                            AS sender_player_number,
+
                         sender.nickname
                             AS sender_nickname,
+
+                        receiver.player_number
+                            AS receiver_player_number,
 
                         receiver.nickname
                             AS receiver_nickname
@@ -138,34 +178,62 @@ router.get(
                     FROM bank_transactions bt
 
                     LEFT JOIN users sender
-                        ON sender.id = bt.sender_id
+                        ON sender.id =
+                            bt.sender_id
 
                     LEFT JOIN users receiver
-                        ON receiver.id = bt.receiver_id
+                        ON receiver.id =
+                            bt.receiver_id
 
                     WHERE
                         bt.sender_id = $1
-                        OR bt.receiver_id = $1
+
+                        OR
+
+                        bt.receiver_id = $1
 
                     ORDER BY
                         bt.created_at DESC
 
                     LIMIT 50
-                    `,
-                    [user.id]
+                `, [
+                    req.user.id
+                ]);
+
+            const formattedTransactions =
+                transactions.rows.map(
+                    transaction => ({
+                        ...transaction,
+
+                        sender_player_number:
+                            formatPlayerNumber(
+                                transaction.sender_player_number
+                            ),
+
+                        receiver_player_number:
+                            formatPlayerNumber(
+                                transaction.receiver_player_number
+                            )
+                    })
                 );
 
-            res.json({
+            return res.json({
+
                 ok: true,
 
                 accountNumber:
-                    user.id,
+                    formatPlayerNumber(
+                        req.user.player_number
+                    ),
 
                 balance:
-                    Number(user.cash),
+                    Number(
+                        req.user.cash
+                    ),
 
                 transactions:
-                    transactions.rows
+                    formattedTransactions
+
             });
 
         } catch (error) {
@@ -175,18 +243,20 @@ router.get(
                 error
             );
 
-            res.status(500).json({
+            return res.status(500).json({
                 ok: false,
-                error: "계좌 정보를 불러오지 못했습니다."
+                error:
+                    "계좌 정보를 불러오지 못했습니다."
             });
+
         }
+
     }
 );
 
-
-// ========================================
-// 이체
-// ========================================
+// =====================================================
+// 송금
+// =====================================================
 
 router.post(
     "/transfer",
@@ -204,35 +274,54 @@ router.post(
                 memo
             } = req.body;
 
-            const money =
-                Number(amount);
+            // =================================================
+            // 플레이어 번호 처리
+            // 00005 → 5
+            // =================================================
 
-            const receiverId =
+            const receiverNumberText =
                 String(
                     accountNumber || ""
                 ).trim();
 
+            const receiverPlayerNumber =
+                Number(
+                    receiverNumberText
+                );
+
+            const money =
+                Number(amount);
+
             const transferMemo =
                 String(
                     memo || ""
-                ).trim()
+                )
+                .trim()
                 .slice(0, 100);
 
+            // =================================================
+            // 플레이어 번호 검사
+            // =================================================
 
-            // ========================================
-            // 기본 검사
-            // ========================================
-
-            if (!receiverId) {
+            if (
+                !receiverNumberText ||
+                !Number.isInteger(
+                    receiverPlayerNumber
+                ) ||
+                receiverPlayerNumber <= 0
+            ) {
 
                 return res.status(400).json({
                     ok: false,
                     error:
-                        "받는 사람 플레이어 번호를 입력하세요."
+                        "받는 사람 플레이어 번호를 올바르게 입력하세요."
                 });
 
             }
 
+            // =================================================
+            // 금액 검사
+            // =================================================
 
             if (
                 !Number.isInteger(money) ||
@@ -247,8 +336,14 @@ router.post(
 
             }
 
+            // =================================================
+            // 자기 자신 검사
+            // =================================================
 
-            if (receiverId === req.user.id) {
+            if (
+                receiverPlayerNumber ===
+                Number(req.user.player_number)
+            ) {
 
                 return res.status(400).json({
                     ok: false,
@@ -258,23 +353,23 @@ router.post(
 
             }
 
-
-            // ========================================
+            // =================================================
             // 거래 시작
-            // ========================================
+            // =================================================
 
-            await client.query("BEGIN");
+            await client.query(
+                "BEGIN"
+            );
 
-
-            // ========================================
+            // =================================================
             // 보내는 사람 잠금
-            // ========================================
+            // =================================================
 
             const senderResult =
-                await client.query(
-                    `
+                await client.query(`
                     SELECT
                         id,
+                        player_number,
                         nickname,
                         cash
 
@@ -283,14 +378,17 @@ router.post(
                     WHERE id = $1
 
                     FOR UPDATE
-                    `,
-                    [req.user.id]
+                `, [
+                    req.user.id
+                ]);
+
+            if (
+                !senderResult.rows.length
+            ) {
+
+                await client.query(
+                    "ROLLBACK"
                 );
-
-
-            if (senderResult.rows.length === 0) {
-
-                await client.query("ROLLBACK");
 
                 return res.status(404).json({
                     ok: false,
@@ -300,61 +398,67 @@ router.post(
 
             }
 
-
             const sender =
                 senderResult.rows[0];
 
-
-            // ========================================
-            // 받는 사람 잠금
-            // ========================================
+            // =================================================
+            // 받는 사람
+            // 플레이어 번호로 검색
+            // =================================================
 
             const receiverResult =
-                await client.query(
-                    `
+                await client.query(`
                     SELECT
                         id,
+                        player_number,
                         nickname,
                         cash
 
                     FROM users
 
-                    WHERE id = $1
+                    WHERE
+                        player_number = $1
 
                     FOR UPDATE
-                    `,
-                    [receiverId]
+                `, [
+                    receiverPlayerNumber
+                ]);
+
+            if (
+                !receiverResult.rows.length
+            ) {
+
+                await client.query(
+                    "ROLLBACK"
                 );
-
-
-            if (receiverResult.rows.length === 0) {
-
-                await client.query("ROLLBACK");
 
                 return res.status(404).json({
                     ok: false,
                     error:
-                        "존재하지 않는 플레이어 번호입니다."
+                        `플레이어 번호 ${formatPlayerNumber(receiverPlayerNumber)}인 사용자를 찾을 수 없습니다.`
                 });
 
             }
 
-
             const receiver =
                 receiverResult.rows[0];
 
-
-            // ========================================
-            // 잔액 확인
-            // ========================================
+            // =================================================
+            // 잔액
+            // =================================================
 
             const senderCash =
-                Number(sender.cash);
+                Number(
+                    sender.cash
+                );
 
+            if (
+                senderCash < money
+            ) {
 
-            if (senderCash < money) {
-
-                await client.query("ROLLBACK");
+                await client.query(
+                    "ROLLBACK"
+                );
 
                 return res.status(400).json({
                     ok: false,
@@ -366,55 +470,52 @@ router.post(
 
             }
 
-
-            // ========================================
-            // 송금 전 잔액
-            // ========================================
-
             const senderBalanceBefore =
                 senderCash;
 
             const receiverBalanceBefore =
-                Number(receiver.cash);
+                Number(
+                    receiver.cash
+                );
 
+            // =================================================
+            // 보내는 사람 차감
+            // =================================================
 
-            // ========================================
-            // 송금
-            // ========================================
-
-            await client.query(
-                `
+            await client.query(`
                 UPDATE users
-                SET cash = cash - $1
+
+                SET cash =
+                    cash - $1
+
                 WHERE id = $2
-                `,
-                [
-                    money,
-                    sender.id
-                ]
-            );
+            `, [
+                money,
+                sender.id
+            ]);
 
+            // =================================================
+            // 받는 사람 증가
+            // =================================================
 
-            await client.query(
-                `
+            await client.query(`
                 UPDATE users
-                SET cash = cash + $1
+
+                SET cash =
+                    cash + $1
+
                 WHERE id = $2
-                `,
-                [
-                    money,
-                    receiver.id
-                ]
-            );
+            `, [
+                money,
+                receiver.id
+            ]);
 
-
-            // ========================================
+            // =================================================
             // 거래 기록
-            // ========================================
+            // =================================================
 
             const transaction =
-                await client.query(
-                    `
+                await client.query(`
                     INSERT INTO bank_transactions
                     (
                         sender_id,
@@ -436,57 +537,19 @@ router.post(
                     )
 
                     RETURNING *
-                    `,
-                    [
-                        sender.id,
-                        receiver.id,
-                        money,
-                        transferMemo,
-                        Date.now()
-                    ]
-                );
-
-
-            // ========================================
-            // 보내는 사람 알림
-            // ========================================
-
-            await client.query(
-                `
-                INSERT INTO notifications
-                (
-                    user_id,
-                    message,
-                    type,
-                    is_read,
-                    created_at
-                )
-
-                VALUES
-                (
-                    $1,
-                    $2,
-                    'bank',
-                    FALSE,
-                    $3
-                )
-                `,
-                [
+                `, [
                     sender.id,
-
-                    `${receiver.nickname}님에게 ${money.toLocaleString("ko-KR")}원을 송금했습니다.`,
-
+                    receiver.id,
+                    money,
+                    transferMemo,
                     Date.now()
-                ]
-            );
+                ]);
 
+            // =================================================
+            // 보내는 사람 알림
+            // =================================================
 
-            // ========================================
-            // 받는 사람 알림
-            // ========================================
-
-            await client.query(
-                `
+            await client.query(`
                 INSERT INTO notifications
                 (
                     user_id,
@@ -504,32 +567,61 @@ router.post(
                     FALSE,
                     $3
                 )
-                `,
-                [
-                    receiver.id,
+            `, [
+                sender.id,
 
-                    `${sender.nickname}님에게서 ${money.toLocaleString("ko-KR")}원을 받았습니다.`,
+                `${receiver.nickname}님에게 ${money.toLocaleString("ko-KR")}원을 송금했습니다.`,
 
-                    Date.now()
-                ]
+                Date.now()
+            ]);
+
+            // =================================================
+            // 받는 사람 알림
+            // =================================================
+
+            await client.query(`
+                INSERT INTO notifications
+                (
+                    user_id,
+                    message,
+                    type,
+                    is_read,
+                    created_at
+                )
+
+                VALUES
+                (
+                    $1,
+                    $2,
+                    'bank',
+                    FALSE,
+                    $3
+                )
+            `, [
+                receiver.id,
+
+                `${sender.nickname}님에게서 ${money.toLocaleString("ko-KR")}원을 받았습니다.`,
+
+                Date.now()
+            ]);
+
+            // =================================================
+            // 완료
+            // =================================================
+
+            await client.query(
+                "COMMIT"
             );
-
-
-            // ========================================
-            // 거래 완료
-            // ========================================
-
-            await client.query("COMMIT");
-
 
             const senderBalanceAfter =
-                senderBalanceBefore - money;
+                senderBalanceBefore -
+                money;
 
             const receiverBalanceAfter =
-                receiverBalanceBefore + money;
+                receiverBalanceBefore +
+                money;
 
-
-            res.json({
+            return res.json({
 
                 ok: true,
 
@@ -540,25 +632,33 @@ router.post(
                     transaction.rows[0],
 
                 sender: {
-                    id:
-                        sender.id,
+
+                    playerNumber:
+                        formatPlayerNumber(
+                            sender.player_number
+                        ),
 
                     nickname:
                         sender.nickname,
 
                     balance:
                         senderBalanceAfter
+
                 },
 
                 receiver: {
-                    id:
-                        receiver.id,
+
+                    playerNumber:
+                        formatPlayerNumber(
+                            receiver.player_number
+                        ),
 
                     nickname:
                         receiver.nickname,
 
                     balance:
                         receiverBalanceAfter
+
                 }
 
             });
@@ -566,7 +666,9 @@ router.post(
         } catch (error) {
 
             try {
-                await client.query("ROLLBACK");
+                await client.query(
+                    "ROLLBACK"
+                );
             } catch (_) {
             }
 
@@ -575,7 +677,7 @@ router.post(
                 error
             );
 
-            res.status(500).json({
+            return res.status(500).json({
                 ok: false,
                 error:
                     "송금 처리 중 오류가 발생했습니다."
@@ -590,10 +692,9 @@ router.post(
     }
 );
 
-
-// ========================================
+// =====================================================
 // 입금 내역
-// ========================================
+// =====================================================
 
 router.get(
     "/deposits",
@@ -603,17 +704,21 @@ router.get(
         try {
 
             const result =
-                await pool.query(
-                    `
+                await pool.query(`
                     SELECT
                         bt.*,
+
+                        u.player_number
+                            AS sender_player_number,
+
                         u.nickname
                             AS sender_nickname
 
                     FROM bank_transactions bt
 
                     LEFT JOIN users u
-                        ON u.id = bt.sender_id
+                        ON u.id =
+                            bt.sender_id
 
                     WHERE
                         bt.receiver_id = $1
@@ -622,15 +727,24 @@ router.get(
                         bt.created_at DESC
 
                     LIMIT 100
-                    `,
-                    [req.user.id]
-                );
+                `, [
+                    req.user.id
+                ]);
 
-
-            res.json({
+            return res.json({
                 ok: true,
+
                 deposits:
-                    result.rows
+                    result.rows.map(
+                        row => ({
+                            ...row,
+
+                            sender_player_number:
+                                formatPlayerNumber(
+                                    row.sender_player_number
+                                )
+                        })
+                    )
             });
 
         } catch (error) {
@@ -640,7 +754,7 @@ router.get(
                 error
             );
 
-            res.status(500).json({
+            return res.status(500).json({
                 ok: false,
                 error:
                     "입금 내역을 불러오지 못했습니다."
@@ -651,10 +765,9 @@ router.get(
     }
 );
 
-
-// ========================================
+// =====================================================
 // 출금 내역
-// ========================================
+// =====================================================
 
 router.get(
     "/withdrawals",
@@ -664,17 +777,21 @@ router.get(
         try {
 
             const result =
-                await pool.query(
-                    `
+                await pool.query(`
                     SELECT
                         bt.*,
+
+                        u.player_number
+                            AS receiver_player_number,
+
                         u.nickname
                             AS receiver_nickname
 
                     FROM bank_transactions bt
 
                     LEFT JOIN users u
-                        ON u.id = bt.receiver_id
+                        ON u.id =
+                            bt.receiver_id
 
                     WHERE
                         bt.sender_id = $1
@@ -683,15 +800,24 @@ router.get(
                         bt.created_at DESC
 
                     LIMIT 100
-                    `,
-                    [req.user.id]
-                );
+                `, [
+                    req.user.id
+                ]);
 
-
-            res.json({
+            return res.json({
                 ok: true,
+
                 withdrawals:
-                    result.rows
+                    result.rows.map(
+                        row => ({
+                            ...row,
+
+                            receiver_player_number:
+                                formatPlayerNumber(
+                                    row.receiver_player_number
+                                )
+                        })
+                    )
             });
 
         } catch (error) {
@@ -701,7 +827,7 @@ router.get(
                 error
             );
 
-            res.status(500).json({
+            return res.status(500).json({
                 ok: false,
                 error:
                     "출금 내역을 불러오지 못했습니다."
@@ -712,10 +838,9 @@ router.get(
     }
 );
 
-
-// ========================================
+// =====================================================
 // 전체 거래내역
-// ========================================
+// =====================================================
 
 router.get(
     "/transactions",
@@ -725,8 +850,7 @@ router.get(
         try {
 
             const result =
-                await pool.query(
-                    `
+                await pool.query(`
                     SELECT
                         bt.id,
                         bt.sender_id,
@@ -736,8 +860,14 @@ router.get(
                         bt.type,
                         bt.created_at,
 
+                        sender.player_number
+                            AS sender_player_number,
+
                         sender.nickname
                             AS sender_nickname,
+
+                        receiver.player_number
+                            AS receiver_player_number,
 
                         receiver.nickname
                             AS receiver_nickname
@@ -745,28 +875,49 @@ router.get(
                     FROM bank_transactions bt
 
                     LEFT JOIN users sender
-                        ON sender.id = bt.sender_id
+                        ON sender.id =
+                            bt.sender_id
 
                     LEFT JOIN users receiver
-                        ON receiver.id = bt.receiver_id
+                        ON receiver.id =
+                            bt.receiver_id
 
                     WHERE
                         bt.sender_id = $1
-                        OR bt.receiver_id = $1
+
+                        OR
+
+                        bt.receiver_id = $1
 
                     ORDER BY
                         bt.created_at DESC
 
                     LIMIT 100
-                    `,
-                    [req.user.id]
-                );
+                `, [
+                    req.user.id
+                ]);
 
+            return res.json({
 
-            res.json({
                 ok: true,
+
                 transactions:
-                    result.rows
+                    result.rows.map(
+                        row => ({
+                            ...row,
+
+                            sender_player_number:
+                                formatPlayerNumber(
+                                    row.sender_player_number
+                                ),
+
+                            receiver_player_number:
+                                formatPlayerNumber(
+                                    row.receiver_player_number
+                                )
+                        })
+                    )
+
             });
 
         } catch (error) {
@@ -776,7 +927,7 @@ router.get(
                 error
             );
 
-            res.status(500).json({
+            return res.status(500).json({
                 ok: false,
                 error:
                     "거래내역을 불러오지 못했습니다."
@@ -787,5 +938,5 @@ router.get(
     }
 );
 
-
-module.exports = router;
+module.exports =
+    router;
