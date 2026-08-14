@@ -2967,90 +2967,94 @@
         let maintenanceActive = false;
 
 
-        async function checkMaintenance() {
+       async function checkMaintenance() {
 
-            try {
+    try {
 
-                const response =
-                    await fetch(
-                        "/api/admin/maintenance"
+        const response =
+            await fetch(
+                "/api/admin/maintenance"
+            );
+
+        if (!response.ok) {
+            return;
+        }
+
+        const data =
+            await response.json();
+
+        if (!data.ok) {
+            return;
+        }
+
+        const maintenance =
+            data.maintenance;
+
+        // 점검이 실제로 활성화된 경우
+        if (
+            maintenance &&
+            maintenance.enabled === true
+        ) {
+
+            maintenanceActive = true;
+
+            maintenanceOverlay.style.display =
+                "flex";
+
+            // 예상 종료 시간
+            if (maintenance.end_time) {
+
+                const end =
+                    new Date(
+                        Number(
+                            maintenance.end_time
+                        )
                     );
 
-
-                if (!response.ok) {
-                    return;
-                }
-
-
-                const data =
-                    await response.json();
-
-
-                if (!data.ok) {
-                    return;
-                }
-
-
-                if (data.maintenance) {
-
-                    maintenanceActive = true;
-
-                    maintenanceOverlay.style.display =
-                        "flex";
-
-
-                    if (data.endTime) {
-
-                        const end =
-                            new Date(
-                                data.endTime
-                            );
-
-
-                        if (
-                            !Number.isNaN(
-                                end.getTime()
-                            )
-                        ) {
-
-                            maintenanceTime.textContent =
-                                "예상 종료: " +
-                                end.toLocaleString(
-                                    "ko-KR"
-                                );
-
-                        }
-
-                    } else {
-
-                        maintenanceTime.textContent =
-                            "";
-
-                    }
-
-                } else {
-
-                    maintenanceActive = false;
-
-                    maintenanceOverlay.style.display =
-                        "none";
+                if (
+                    !Number.isNaN(
+                        end.getTime()
+                    )
+                ) {
 
                     maintenanceTime.textContent =
-                        "";
+                        "예상 종료: " +
+                        end.toLocaleString(
+                            "ko-KR"
+                        );
 
                 }
 
-            } catch (error) {
+            } else {
 
-                console.error(
-                    "MAINTENANCE CHECK ERROR:",
-                    error
-                );
+                maintenanceTime.textContent =
+                    "";
 
             }
 
+        } else {
+
+            // 점검 종료
+            maintenanceActive = false;
+
+            maintenanceOverlay.style.display =
+                "none";
+
+            maintenanceTime.textContent =
+                "";
+
         }
 
+    } catch (error) {
+
+        console.error(
+            "MAINTENANCE CHECK ERROR:",
+            error
+        );
+
+    }
+
+}
 
         // =====================================================
         // 시작
