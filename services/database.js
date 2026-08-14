@@ -1,3 +1,4 @@
+
 const { pool, companies } = require("./market");
 
 async function initializeDatabase() {
@@ -6,28 +7,49 @@ async function initializeDatabase() {
     try {
         await client.query("BEGIN");
 
+        // ========================================
         // 사용자
-        CREATE TABLE IF NOT EXISTS users (
-    id TEXT PRIMARY KEY,
+        // ========================================
 
-    player_number SERIAL UNIQUE,
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS users (
+                id TEXT PRIMARY KEY,
 
-    username TEXT UNIQUE NOT NULL,
-    nickname TEXT UNIQUE NOT NULL,
+                player_number SERIAL UNIQUE,
 
-    salt TEXT NOT NULL,
-    password_hash TEXT NOT NULL,
+                username TEXT UNIQUE NOT NULL,
+                nickname TEXT UNIQUE NOT NULL,
 
-    cash NUMERIC NOT NULL DEFAULT 10000,
+                salt TEXT NOT NULL,
+                password_hash TEXT NOT NULL,
 
-    holdings JSONB NOT NULL DEFAULT '{}'::jsonb,
-    transactions JSONB NOT NULL DEFAULT '[]'::jsonb,
+                cash NUMERIC NOT NULL DEFAULT 10000,
 
-    created_at BIGINT NOT NULL
-)
+                holdings JSONB NOT NULL DEFAULT '{}'::jsonb,
+                transactions JSONB NOT NULL DEFAULT '[]'::jsonb,
+
+                created_at BIGINT NOT NULL
+            )
         `);
 
+        // 기존 users 테이블에도 플레이어 번호 추가
+        await client.query(`
+            ALTER TABLE users
+            ADD COLUMN IF NOT EXISTS player_number SERIAL
+        `);
+
+        // 기존 사용자에게 플레이어 번호가 없을 경우 자동 발급
+        await client.query(`
+            CREATE UNIQUE INDEX IF NOT EXISTS
+            users_player_number_unique
+            ON users(player_number)
+        `);
+
+
+        // ========================================
         // 로그인 세션
+        // ========================================
+
         await client.query(`
             CREATE TABLE IF NOT EXISTS sessions (
                 token TEXT PRIMARY KEY,
@@ -38,7 +60,11 @@ async function initializeDatabase() {
             )
         `);
 
+
+        // ========================================
         // 주식
+        // ========================================
+
         await client.query(`
             CREATE TABLE IF NOT EXISTS stocks (
                 id TEXT PRIMARY KEY,
@@ -53,7 +79,11 @@ async function initializeDatabase() {
             )
         `);
 
+
+        // ========================================
         // 주가 기록
+        // ========================================
+
         await client.query(`
             CREATE TABLE IF NOT EXISTS price_history (
                 id BIGSERIAL PRIMARY KEY,
@@ -65,7 +95,11 @@ async function initializeDatabase() {
             )
         `);
 
+
+        // ========================================
         // 관리자 주가 제어
+        // ========================================
+
         await client.query(`
             CREATE TABLE IF NOT EXISTS market_controls (
                 stock_id TEXT PRIMARY KEY
@@ -77,7 +111,11 @@ async function initializeDatabase() {
             )
         `);
 
+
+        // ========================================
         // 알림
+        // ========================================
+
         await client.query(`
             CREATE TABLE IF NOT EXISTS notifications (
                 id BIGSERIAL PRIMARY KEY,
@@ -91,7 +129,11 @@ async function initializeDatabase() {
             )
         `);
 
-        // 이체 기록
+
+        // ========================================
+        // 은행 이체 기록
+        // ========================================
+
         await client.query(`
             CREATE TABLE IF NOT EXISTS bank_transactions (
                 id BIGSERIAL PRIMARY KEY,
@@ -108,7 +150,11 @@ async function initializeDatabase() {
             )
         `);
 
+
+        // ========================================
         // 피드백
+        // ========================================
+
         await client.query(`
             CREATE TABLE IF NOT EXISTS feedback (
                 id BIGSERIAL PRIMARY KEY,
@@ -123,7 +169,11 @@ async function initializeDatabase() {
             )
         `);
 
+
+        // ========================================
         // 변경사항
+        // ========================================
+
         await client.query(`
             CREATE TABLE IF NOT EXISTS changes (
                 id BIGSERIAL PRIMARY KEY,
@@ -134,7 +184,11 @@ async function initializeDatabase() {
             )
         `);
 
+
+        // ========================================
         // 공지사항
+        // ========================================
+
         await client.query(`
             CREATE TABLE IF NOT EXISTS notices (
                 id BIGSERIAL PRIMARY KEY,
@@ -145,7 +199,11 @@ async function initializeDatabase() {
             )
         `);
 
+
+        // ========================================
         // 서버 점검 상태
+        // ========================================
+
         await client.query(`
             CREATE TABLE IF NOT EXISTS maintenance (
                 id INTEGER PRIMARY KEY,
@@ -156,14 +214,20 @@ async function initializeDatabase() {
             )
         `);
 
+
+        // ========================================
         // 주식 기본 데이터 생성
+        // ========================================
+
         for (const [id, name, price, volatility] of companies) {
+
             const result = await client.query(
                 `SELECT id FROM stocks WHERE id = $1`,
                 [id]
             );
 
             if (result.rows.length === 0) {
+
                 await client.query(`
                     INSERT INTO stocks
                     (
@@ -187,7 +251,11 @@ async function initializeDatabase() {
 
                 await client.query(`
                     INSERT INTO price_history
-                    (stock_id,time,price)
+                    (
+                        stock_id,
+                        time,
+                        price
+                    )
                     VALUES ($1,$2,$3)
                 `, [
                     id,
@@ -197,7 +265,11 @@ async function initializeDatabase() {
             }
         }
 
+
+        // ========================================
         // 점검 상태 기본값
+        // ========================================
+
         await client.query(`
             INSERT INTO maintenance
             (
@@ -207,24 +279,48 @@ async function initializeDatabase() {
                 end_time,
                 updated_at
             )
-            VALUES (1,FALSE,NULL,NULL,$1)
+            VALUES (
+                1,
+                FALSE,
+                NULL,
+                NULL,
+                $1
+            )
             ON CONFLICT (id) DO NOTHING
-        `, [Date.now()]);
+        `, [
+            Date.now()
+        ]);
+
+
+        // ========================================
+        // 완료
+        // ========================================
 
         await client.query("COMMIT");
 
-        console.log("✅ PostgreSQL 데이터베이스 초기화 완료.");
+        console.log(
+            "✅ PostgreSQL 데이터베이스 초기화 완료."
+        );
 
     } catch (error) {
+
         await client.query("ROLLBACK");
-        console.error("❌ 데이터베이스 초기화 실패:", error);
+
+        console.error(
+            "❌ 데이터베이스 초기화 실패:",
+            error
+        );
+
         throw error;
 
     } finally {
+
         client.release();
     }
 }
 
+
 module.exports = {
     initializeDatabase
 };
+
