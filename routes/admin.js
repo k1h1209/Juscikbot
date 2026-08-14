@@ -1,4 +1,3 @@
-
 const express = require("express");
 
 const { pool } =
@@ -14,13 +13,19 @@ const router =
 
 function getAdminPassword() {
 
-    return process.env.ADMIN_PASSWORD ||
-        "admin1234";
+    return (
+        process.env.ADMIN_PASSWORD ||
+        "admin1234"
+    );
 
 }
 
 
-function adminAuth(req, res, next) {
+function adminAuth(
+    req,
+    res,
+    next
+) {
 
     const password =
         req.headers["x-admin-password"];
@@ -28,7 +33,8 @@ function adminAuth(req, res, next) {
 
     if (
         !password ||
-        password !== getAdminPassword()
+        password !==
+        getAdminPassword()
     ) {
 
         return res.status(401).json({
@@ -49,7 +55,7 @@ function adminAuth(req, res, next) {
 
 
 // =====================================================
-// 관리자 인증 확인
+// 관리자 확인
 // =====================================================
 
 router.get(
@@ -82,8 +88,7 @@ router.get(
         try {
 
             const result =
-                await pool.query(
-                    `
+                await pool.query(`
                     SELECT
                         id,
                         player_number,
@@ -100,8 +105,7 @@ router.get(
 
                     ORDER BY
                         player_number ASC
-                    `
-                );
+                `);
 
 
             res.json({
@@ -113,14 +117,12 @@ router.get(
 
             });
 
-
         } catch (error) {
 
             console.error(
                 "ADMIN USERS ERROR:",
                 error
             );
-
 
             res.status(500).json({
 
@@ -149,7 +151,9 @@ router.patch(
         try {
 
             const id =
-                String(req.params.id);
+                String(
+                    req.params.id
+                );
 
 
             const {
@@ -160,49 +164,30 @@ router.patch(
 
 
             const fields = [];
+
             const values = [];
 
             let index = 1;
 
 
-            // 닉네임
             if (
-                nickname !== undefined
+                nickname !== undefined &&
+                String(nickname).trim()
             ) {
-
-                const cleanNickname =
-                    String(nickname).trim();
-
-
-                if (
-                    cleanNickname.length < 2
-                ) {
-
-                    return res.status(400).json({
-
-                        ok: false,
-
-                        error:
-                            "닉네임은 2자 이상이어야 합니다."
-
-                    });
-
-                }
-
 
                 fields.push(
                     `nickname = $${index++}`
                 );
 
-
                 values.push(
-                    cleanNickname
+                    String(
+                        nickname
+                    ).trim()
                 );
 
             }
 
 
-            // 잔액
             if (
                 cash !== undefined
             ) {
@@ -232,7 +217,6 @@ router.patch(
                     `cash = $${index++}`
                 );
 
-
                 values.push(
                     money
                 );
@@ -240,13 +224,14 @@ router.patch(
             }
 
 
-            // 플레이어 번호
             if (
                 playerNumber !== undefined
             ) {
 
                 const number =
-                    Number(playerNumber);
+                    Number(
+                        playerNumber
+                    );
 
 
                 if (
@@ -269,7 +254,6 @@ router.patch(
                 fields.push(
                     `player_number = $${index++}`
                 );
-
 
                 values.push(
                     number
@@ -344,7 +328,6 @@ router.patch(
 
             });
 
-
         } catch (error) {
 
             console.error(
@@ -354,7 +337,8 @@ router.patch(
 
 
             if (
-                error.code === "23505"
+                error.code ===
+                "23505"
             ) {
 
                 return res.status(409).json({
@@ -396,7 +380,9 @@ router.post(
         try {
 
             const id =
-                String(req.params.id);
+                String(
+                    req.params.id
+                );
 
 
             const {
@@ -405,16 +391,18 @@ router.post(
             } = req.body;
 
 
-            let bannedUntil =
-                null;
+            let bannedUntil = null;
 
 
             if (
-                duration !== "permanent"
+                duration !==
+                "permanent"
             ) {
 
                 const minutes =
-                    Number(duration);
+                    Number(
+                        duration
+                    );
 
 
                 if (
@@ -443,12 +431,6 @@ router.post(
             }
 
 
-            const banReason =
-                String(
-                    reason || ""
-                ).slice(0, 200);
-
-
             const result =
                 await pool.query(
                     `
@@ -463,14 +445,20 @@ router.post(
                     RETURNING
                         id,
                         player_number,
-                        username,
                         nickname,
                         banned_until,
                         ban_reason
                     `,
                     [
                         bannedUntil,
-                        banReason,
+
+                        String(
+                            reason || ""
+                        ).slice(
+                            0,
+                            200
+                        ),
+
                         id
                     ]
                 );
@@ -490,7 +478,6 @@ router.post(
             }
 
 
-            // 모든 로그인 세션 제거
             await pool.query(
                 `
                 DELETE FROM sessions
@@ -509,7 +496,6 @@ router.post(
                     result.rows[0]
 
             });
-
 
         } catch (error) {
 
@@ -559,12 +545,13 @@ router.post(
                     RETURNING
                         id,
                         player_number,
-                        username,
                         nickname,
                         banned_until,
                         ban_reason
                     `,
-                    [req.params.id]
+                    [
+                        req.params.id
+                    ]
                 );
 
 
@@ -590,7 +577,6 @@ router.post(
                     result.rows[0]
 
             });
-
 
         } catch (error) {
 
@@ -639,7 +625,9 @@ router.delete(
                         username,
                         nickname
                     `,
-                    [req.params.id]
+                    [
+                        req.params.id
+                    ]
                 );
 
 
@@ -665,7 +653,6 @@ router.delete(
                     result.rows[0]
 
             });
-
 
         } catch (error) {
 
@@ -702,26 +689,32 @@ router.get(
         try {
 
             const result =
-                await pool.query(
-                    `
+                await pool.query(`
                     SELECT
                         id,
                         name,
-                        volatility,
+
                         price,
                         previous,
                         open_price,
                         high,
                         low,
+
                         volume,
+
+                        min_change,
+                        max_change,
+
+                        change_interval,
+                        change_mode,
+
                         volume_limit_enabled,
                         volume_limit
 
                     FROM stocks
 
                     ORDER BY id ASC
-                    `
-                );
+                `);
 
 
             res.json({
@@ -732,7 +725,6 @@ router.get(
                     result.rows
 
             });
-
 
         } catch (error) {
 
@@ -773,12 +765,20 @@ router.post(
         try {
 
             const {
+
                 id,
                 name,
                 price,
-                volatility,
+
+                minChange,
+                maxChange,
+
+                changeInterval,
+                changeMode,
+
                 volumeLimitEnabled,
                 volumeLimit
+
             } = req.body;
 
 
@@ -797,8 +797,30 @@ router.post(
                 Number(price);
 
 
-            const stockVolatility =
-                Number(volatility);
+            const minimum =
+                Number(
+                    minChange
+                );
+
+
+            const maximum =
+                Number(
+                    maxChange
+                );
+
+
+            const interval =
+                Number(
+                    changeInterval
+                );
+
+
+            const allowedModes = [
+                "random",
+                "up",
+                "down",
+                "stop"
+            ];
 
 
             if (!stockId) {
@@ -831,7 +853,7 @@ router.post(
 
             if (
                 !Number.isFinite(stockPrice) ||
-                stockPrice <= 0
+                stockPrice < 100
             ) {
 
                 return res.status(400).json({
@@ -839,7 +861,7 @@ router.post(
                     ok: false,
 
                     error:
-                        "주가가 올바르지 않습니다."
+                        "주가는 100원 이상이어야 합니다."
 
                 });
 
@@ -847,8 +869,8 @@ router.post(
 
 
             if (
-                !Number.isFinite(stockVolatility) ||
-                stockVolatility < 0
+                !Number.isInteger(minimum) ||
+                minimum < 1
             ) {
 
                 return res.status(400).json({
@@ -856,39 +878,84 @@ router.post(
                     ok: false,
 
                     error:
-                        "변동성이 올바르지 않습니다."
+                        "최소 변동값이 올바르지 않습니다."
 
                 });
 
             }
 
 
-            let limit = 0;
+            if (
+                !Number.isInteger(maximum) ||
+                maximum < minimum
+            ) {
+
+                return res.status(400).json({
+
+                    ok: false,
+
+                    error:
+                        "최대 변동값이 올바르지 않습니다."
+
+                });
+
+            }
 
 
             if (
-                volumeLimit !== undefined
+                !Number.isInteger(interval) ||
+                interval < 1
             ) {
 
-                limit =
-                    Number(volumeLimit);
+                return res.status(400).json({
+
+                    ok: false,
+
+                    error:
+                        "변동 주기는 1초 이상이어야 합니다."
+
+                });
+
+            }
 
 
-                if (
-                    !Number.isInteger(limit) ||
-                    limit < 0
-                ) {
+            if (
+                !allowedModes.includes(
+                    changeMode || "random"
+                )
+            ) {
 
-                    return res.status(400).json({
+                return res.status(400).json({
 
-                        ok: false,
+                    ok: false,
 
-                        error:
-                            "거래량 제한이 올바르지 않습니다."
+                    error:
+                        "잘못된 변동 방식입니다."
 
-                    });
+                });
 
-                }
+            }
+
+
+            const limit =
+                Number(
+                    volumeLimit || 0
+                );
+
+
+            if (
+                !Number.isInteger(limit) ||
+                limit < 0
+            ) {
+
+                return res.status(400).json({
+
+                    ok: false,
+
+                    error:
+                        "거래량 제한이 올바르지 않습니다."
+
+                });
 
             }
 
@@ -905,13 +972,21 @@ router.post(
                     (
                         id,
                         name,
-                        volatility,
+
                         price,
                         previous,
                         open_price,
                         high,
                         low,
+
                         volume,
+
+                        min_change,
+                        max_change,
+
+                        change_interval,
+                        change_mode,
+
                         volume_limit_enabled,
                         volume_limit
                     )
@@ -920,15 +995,23 @@ router.post(
                     (
                         $1,
                         $2,
+
                         $3,
-                        $4,
-                        $4,
-                        $4,
-                        $4,
-                        $4,
+                        $3,
+                        $3,
+                        $3,
+                        $3,
+
                         0,
+
+                        $4,
                         $5,
-                        $6
+
+                        $6,
+                        $7,
+
+                        $8,
+                        $9
                     )
 
                     RETURNING *
@@ -936,11 +1019,20 @@ router.post(
                     [
                         stockId,
                         stockName,
-                        stockVolatility,
+
                         stockPrice,
+
+                        minimum,
+                        maximum,
+
+                        interval,
+
+                        changeMode || "random",
+
                         Boolean(
                             volumeLimitEnabled
                         ),
+
                         limit
                     ]
                 );
@@ -988,7 +1080,9 @@ router.post(
                     1
                 )
                 `,
-                [stockId]
+                [
+                    stockId
+                ]
             );
 
 
@@ -1005,7 +1099,6 @@ router.post(
                     result.rows[0]
 
             });
-
 
         } catch (error) {
 
@@ -1025,7 +1118,8 @@ router.post(
 
 
             if (
-                error.code === "23505"
+                error.code ===
+                "23505"
             ) {
 
                 return res.status(409).json({
@@ -1049,7 +1143,6 @@ router.post(
 
             });
 
-
         } finally {
 
             client.release();
@@ -1072,37 +1165,49 @@ router.patch(
         try {
 
             const {
+
                 name,
                 price,
-                volatility,
+
+                minChange,
+                maxChange,
+
+                changeInterval,
+                changeMode,
+
                 volumeLimitEnabled,
                 volumeLimit
+
             } = req.body;
 
 
             const fields = [];
+
             const values = [];
 
             let index = 1;
 
 
             // 이름
+
             if (
                 name !== undefined
             ) {
 
-                const stockName =
-                    String(name).trim();
+                const value =
+                    String(
+                        name
+                    ).trim();
 
 
-                if (!stockName) {
+                if (!value) {
 
                     return res.status(400).json({
 
                         ok: false,
 
                         error:
-                            "주식 이름을 입력하세요."
+                            "주식 이름이 비어 있습니다."
 
                     });
 
@@ -1113,15 +1218,15 @@ router.patch(
                     `name = $${index++}`
                 );
 
-
                 values.push(
-                    stockName
+                    value
                 );
 
             }
 
 
             // 주가
+
             if (
                 price !== undefined
             ) {
@@ -1132,7 +1237,7 @@ router.patch(
 
                 if (
                     !Number.isFinite(value) ||
-                    value <= 0
+                    value < 100
                 ) {
 
                     return res.status(400).json({
@@ -1140,7 +1245,7 @@ router.patch(
                         ok: false,
 
                         error:
-                            "잘못된 주가입니다."
+                            "주가는 100원 이상이어야 합니다."
 
                     });
 
@@ -1151,24 +1256,28 @@ router.patch(
                     `price = $${index++}`
                 );
 
-
-                values.push(value);
+                values.push(
+                    Math.round(value)
+                );
 
             }
 
 
-            // 변동성
+            // 최소 변동
+
             if (
-                volatility !== undefined
+                minChange !== undefined
             ) {
 
                 const value =
-                    Number(volatility);
+                    Number(
+                        minChange
+                    );
 
 
                 if (
-                    !Number.isFinite(value) ||
-                    value < 0
+                    !Number.isInteger(value) ||
+                    value < 1
                 ) {
 
                     return res.status(400).json({
@@ -1176,7 +1285,7 @@ router.patch(
                         ok: false,
 
                         error:
-                            "잘못된 변동성입니다."
+                            "최소 변동값이 올바르지 않습니다."
 
                     });
 
@@ -1184,16 +1293,141 @@ router.patch(
 
 
                 fields.push(
-                    `volatility = $${index++}`
+                    `min_change = $${index++}`
                 );
 
-
-                values.push(value);
+                values.push(
+                    value
+                );
 
             }
 
 
-            // 거래량 제한 활성화
+            // 최대 변동
+
+            if (
+                maxChange !== undefined
+            ) {
+
+                const value =
+                    Number(
+                        maxChange
+                    );
+
+
+                if (
+                    !Number.isInteger(value) ||
+                    value < 1
+                ) {
+
+                    return res.status(400).json({
+
+                        ok: false,
+
+                        error:
+                            "최대 변동값이 올바르지 않습니다."
+
+                    });
+
+                }
+
+
+                fields.push(
+                    `max_change = $${index++}`
+                );
+
+                values.push(
+                    value
+                );
+
+            }
+
+
+            // 변동 주기
+
+            if (
+                changeInterval !== undefined
+            ) {
+
+                const value =
+                    Number(
+                        changeInterval
+                    );
+
+
+                if (
+                    !Number.isInteger(value) ||
+                    value < 1
+                ) {
+
+                    return res.status(400).json({
+
+                        ok: false,
+
+                        error:
+                            "변동 주기는 1초 이상이어야 합니다."
+
+                    });
+
+                }
+
+
+                fields.push(
+                    `change_interval = $${index++}`
+                );
+
+                values.push(
+                    value
+                );
+
+            }
+
+
+            // 변동 방식
+
+            if (
+                changeMode !== undefined
+            ) {
+
+                const allowed = [
+                    "random",
+                    "up",
+                    "down",
+                    "stop"
+                ];
+
+
+                if (
+                    !allowed.includes(
+                        changeMode
+                    )
+                ) {
+
+                    return res.status(400).json({
+
+                        ok: false,
+
+                        error:
+                            "잘못된 변동 방식입니다."
+
+                    });
+
+                }
+
+
+                fields.push(
+                    `change_mode = $${index++}`
+                );
+
+                values.push(
+                    changeMode
+                );
+
+            }
+
+
+            // 거래량 제한 ON/OFF
+
             if (
                 volumeLimitEnabled !== undefined
             ) {
@@ -1201,7 +1435,6 @@ router.patch(
                 fields.push(
                     `volume_limit_enabled = $${index++}`
                 );
-
 
                 values.push(
                     Boolean(
@@ -1213,12 +1446,15 @@ router.patch(
 
 
             // 거래량 제한
+
             if (
                 volumeLimit !== undefined
             ) {
 
                 const value =
-                    Number(volumeLimit);
+                    Number(
+                        volumeLimit
+                    );
 
 
                 if (
@@ -1242,8 +1478,9 @@ router.patch(
                     `volume_limit = $${index++}`
                 );
 
-
-                values.push(value);
+                values.push(
+                    value
+                );
 
             }
 
@@ -1306,7 +1543,6 @@ router.patch(
 
             });
 
-
         } catch (error) {
 
             console.error(
@@ -1359,7 +1595,9 @@ router.delete(
 
                     RETURNING *
                     `,
-                    [req.params.id]
+                    [
+                        req.params.id
+                    ]
                 );
 
 
@@ -1396,7 +1634,6 @@ router.delete(
 
             });
 
-
         } catch (error) {
 
             try {
@@ -1423,7 +1660,6 @@ router.delete(
 
             });
 
-
         } finally {
 
             client.release();
@@ -1435,7 +1671,7 @@ router.delete(
 
 
 // =====================================================
-// 주가 방향 제어
+// 주가 방향 강제 제어
 // =====================================================
 
 router.post(
@@ -1460,7 +1696,9 @@ router.post(
 
 
             if (
-                !allowed.includes(direction)
+                !allowed.includes(
+                    direction
+                )
             ) {
 
                 return res.status(400).json({
@@ -1487,45 +1725,16 @@ router.post(
                 );
 
 
-            if (
-                !Number.isFinite(minutes) ||
-                minutes < 0
-            ) {
-
-                return res.status(400).json({
-
-                    ok: false,
-
-                    error:
-                        "잘못된 지속 시간입니다."
-
-                });
-
-            }
-
-
-            if (
-                !Number.isFinite(controlStrength) ||
-                controlStrength <= 0
-            ) {
-
-                return res.status(400).json({
-
-                    ok: false,
-
-                    error:
-                        "잘못된 주가 제어 강도입니다."
-
-                });
-
-            }
-
-
             const untilTime =
                 direction === "normal"
+
                     ? 0
+
                     : Date.now() +
-                      minutes *
+                      Math.max(
+                          0,
+                          minutes
+                      ) *
                       60 *
                       1000;
 
@@ -1552,7 +1761,6 @@ router.post(
                     ON CONFLICT (stock_id)
 
                     DO UPDATE SET
-
                         direction =
                             EXCLUDED.direction,
 
@@ -1581,7 +1789,6 @@ router.post(
                     result.rows[0]
 
             });
-
 
         } catch (error) {
 
@@ -1618,11 +1825,12 @@ router.get(
         try {
 
             const result =
-                await pool.query(
-                    `
+                await pool.query(`
                     SELECT
                         f.*,
+
                         u.player_number,
+
                         u.nickname
 
                     FROM feedback f
@@ -1632,8 +1840,7 @@ router.get(
 
                     ORDER BY
                         f.created_at DESC
-                    `
-                );
+                `);
 
 
             res.json({
@@ -1644,7 +1851,6 @@ router.get(
                     result.rows
 
             });
-
 
         } catch (error) {
 
@@ -1750,7 +1956,6 @@ router.patch(
 
             });
 
-
         } catch (error) {
 
             console.error(
@@ -1775,7 +1980,7 @@ router.patch(
 
 
 // =====================================================
-// 공지사항
+// 공지 목록
 // =====================================================
 
 router.get(
@@ -1786,15 +1991,11 @@ router.get(
         try {
 
             const result =
-                await pool.query(
-                    `
+                await pool.query(`
                     SELECT *
                     FROM notices
-
-                    ORDER BY
-                        created_at DESC
-                    `
-                );
+                    ORDER BY created_at DESC
+                `);
 
 
             res.json({
@@ -1805,7 +2006,6 @@ router.get(
                     result.rows
 
             });
-
 
         } catch (error) {
 
@@ -1912,7 +2112,6 @@ router.post(
 
             });
 
-
         } catch (error) {
 
             console.error(
@@ -1956,7 +2155,9 @@ router.delete(
 
                     RETURNING *
                     `,
-                    [req.params.id]
+                    [
+                        req.params.id
+                    ]
                 );
 
 
@@ -1982,7 +2183,6 @@ router.delete(
                     result.rows[0]
 
             });
-
 
         } catch (error) {
 
@@ -2018,14 +2218,11 @@ router.get(
         try {
 
             const result =
-                await pool.query(
-                    `
+                await pool.query(`
                     SELECT *
                     FROM maintenance
-
                     WHERE id = 1
-                    `
-                );
+                `);
 
 
             res.json({
@@ -2037,7 +2234,6 @@ router.get(
                     null
 
             });
-
 
         } catch (error) {
 
@@ -2063,7 +2259,7 @@ router.get(
 
 
 // =====================================================
-// 서버 점검 시작
+// 점검 시작
 // =====================================================
 
 router.post(
@@ -2088,39 +2284,6 @@ router.post(
                     : null;
 
 
-            if (
-                !Number.isFinite(startTime)
-            ) {
-
-                return res.status(400).json({
-
-                    ok: false,
-
-                    error:
-                        "잘못된 점검 시작 시간입니다."
-
-                });
-
-            }
-
-
-            if (
-                endTime !== null &&
-                !Number.isFinite(endTime)
-            ) {
-
-                return res.status(400).json({
-
-                    ok: false,
-
-                    error:
-                        "잘못된 점검 종료 시간입니다."
-
-                });
-
-            }
-
-
             const result =
                 await pool.query(
                     `
@@ -2128,8 +2291,11 @@ router.post(
 
                     SET
                         enabled = TRUE,
+
                         start_time = $1,
+
                         end_time = $2,
+
                         updated_at = $3
 
                     WHERE id = 1
@@ -2152,7 +2318,6 @@ router.post(
                     result.rows[0]
 
             });
-
 
         } catch (error) {
 
@@ -2178,7 +2343,7 @@ router.post(
 
 
 // =====================================================
-// 서버 점검 종료
+// 점검 종료
 // =====================================================
 
 router.post(
@@ -2195,15 +2360,20 @@ router.post(
 
                     SET
                         enabled = FALSE,
+
                         start_time = NULL,
+
                         end_time = NULL,
+
                         updated_at = $1
 
                     WHERE id = 1
 
                     RETURNING *
                     `,
-                    [Date.now()]
+                    [
+                        Date.now()
+                    ]
                 );
 
 
@@ -2215,7 +2385,6 @@ router.post(
                     result.rows[0]
 
             });
-
 
         } catch (error) {
 
@@ -2240,10 +2409,4 @@ router.post(
 );
 
 
-// =====================================================
-// Export
-// =====================================================
-
-module.exports =
-    router;
-
+module.exports = router;
