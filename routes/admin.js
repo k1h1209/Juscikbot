@@ -1,4 +1,4 @@
-```javascript
+
 const express = require("express");
 const { pool } = require("../services/market");
 
@@ -2101,4 +2101,3 @@ router.post(
 // =====================================================
 
 module.exports = router;
-```
