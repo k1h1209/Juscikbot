@@ -1364,18 +1364,141 @@ stocksMenuButton.addEventListener("click", () => {
         // 프로필
         // ========================================
 
-        document
-            .getElementById(
-                "profileButton"
-            )
-            .addEventListener(
-                "click",
-                () => {
+        // ========================================
+// 프로필
+// ========================================
+
+const profileOverlay =
+    document.getElementById(
+        "profileOverlay"
+    );
+
+
+function showProfile(user) {
+
+    if (!user) {
+        showLoginForm();
+        return;
+    }
+
+    document
+        .getElementById(
+            "profileNickname"
+        )
+        .textContent =
+            user.nickname || "사용자";
+
+
+    document
+        .getElementById(
+            "profileUsername"
+        )
+        .textContent =
+            "@" + (user.username || "unknown");
+
+
+    document
+        .getElementById(
+            "profileId"
+        )
+        .textContent =
+            user.id || "-";
+
+
+    document
+        .getElementById(
+            "profileCash"
+        )
+        .textContent =
+            Number(
+                user.cash || 0
+            ).toLocaleString("ko-KR") +
+            "원";
+
+
+    profileOverlay.style.display =
+        "flex";
+}
+
+
+document
+    .getElementById(
+        "profileButton"
+    )
+    .addEventListener(
+        "click",
+        async () => {
+
+            const token =
+                localStorage.getItem(
+                    "vsm_token"
+                );
+
+
+            // 로그인 안 되어 있음
+            if (!token) {
+
+                showLoginForm();
+
+                return;
+
+            }
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/api/auth/me",
+                        {
+                            headers: {
+                                "Authorization":
+                                    "Bearer " +
+                                    token
+                            }
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (
+                    !response.ok ||
+                    !data.ok ||
+                    !data.user
+                ) {
+
+                    localStorage.removeItem(
+                        "vsm_token"
+                    );
 
                     showLoginForm();
 
+                    return;
+
                 }
-            );
+
+
+                showProfile(
+                    data.user
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    "PROFILE ERROR:",
+                    error
+                );
+
+                showLoginForm();
+
+            }
+
+        }
+    );
 
 
         // ========================================
@@ -1760,3 +1883,5 @@ stocksMenuButton.addEventListener("click", () => {
 
 </body>
 </html>
+
+
