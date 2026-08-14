@@ -580,10 +580,7 @@
         </button>
 
 
-        <button class="menu-item">
-            📈
-            <span>주식</span>
-        </button>
+        <button class="menu-item" id="stocksMenuButton" > 📈 <span>주식</span> </button>
 
 
         <button class="menu-item">
@@ -985,6 +982,19 @@
                 }
             );
 
+            // ========================================
+// 주식 메뉴
+// ========================================
+
+const stocksMenuButton =
+    document.getElementById("stocksMenuButton");
+
+stocksMenuButton.addEventListener("click", () => {
+
+    window.location.href = "/stocks.html";
+
+});
+        
     </script>
 
 
