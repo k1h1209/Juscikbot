@@ -1496,7 +1496,6 @@ router.delete(
 
 router.get(
     "/maintenance",
-    adminAuth,
     async (req, res) => {
 
         try {
