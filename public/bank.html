@@ -1,1 +1,1326 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
 
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>VSM - 안드로메다뱅크</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100%;
+
+            font-family:
+                Arial,
+                "Noto Sans KR",
+                sans-serif;
+        }
+
+        body {
+            background: #f4f6f8;
+            color: #202124;
+        }
+
+        /* ========================================
+           상단바
+        ======================================== */
+
+        .topbar {
+
+            position: fixed;
+
+            top: 0;
+            left: 0;
+            right: 0;
+
+            height: 58px;
+
+            display: flex;
+            align-items: center;
+
+            padding: 0 16px;
+
+            background:
+                rgba(255,255,255,0.94);
+
+            border-bottom:
+                1px solid #e5e7eb;
+
+            backdrop-filter:
+                blur(12px);
+
+            z-index: 1000;
+        }
+
+        .back-button {
+
+            width: 40px;
+            height: 40px;
+
+            border: none;
+
+            border-radius: 10px;
+
+            background: transparent;
+
+            font-size: 20px;
+
+            cursor: pointer;
+        }
+
+        .back-button:hover {
+            background: #eef1f4;
+        }
+
+        .logo {
+
+            margin-left: 8px;
+
+            font-size: 20px;
+
+            font-weight: 800;
+        }
+
+        .top-spacer {
+            flex: 1;
+        }
+
+        .top-balance {
+
+            padding:
+                8px 12px;
+
+            border-radius: 10px;
+
+            background: #f1f3f5;
+
+            font-size: 14px;
+
+            font-weight: 700;
+        }
+
+        /* ========================================
+           메인
+        ======================================== */
+
+        main {
+
+            padding-top: 58px;
+        }
+
+        .content {
+
+            width:
+                min(1000px, calc(100% - 32px));
+
+            margin: 0 auto;
+
+            padding:
+                35px 0 60px;
+        }
+
+        /* ========================================
+           제목
+        ======================================== */
+
+        .page-header {
+
+            margin-bottom: 25px;
+        }
+
+        .page-header h1 {
+
+            margin:
+                0 0 7px;
+
+            font-size: 30px;
+        }
+
+        .page-header p {
+
+            margin: 0;
+
+            color: #6b7280;
+
+            font-size: 14px;
+        }
+
+        /* ========================================
+           계좌 카드
+        ======================================== */
+
+        .account-card {
+
+            padding: 25px;
+
+            background: white;
+
+            border:
+                1px solid #e5e7eb;
+
+            border-radius: 18px;
+
+            box-shadow:
+                0 4px 15px
+                rgba(0,0,0,0.04);
+
+            margin-bottom: 20px;
+        }
+
+        .account-label {
+
+            color: #6b7280;
+
+            font-size: 13px;
+
+            margin-bottom: 8px;
+        }
+
+        .account-number {
+
+            font-size: 18px;
+
+            font-weight: 800;
+
+            margin-bottom: 20px;
+        }
+
+        .balance-label {
+
+            color: #6b7280;
+
+            font-size: 13px;
+
+            margin-bottom: 5px;
+        }
+
+        .balance {
+
+            font-size: 32px;
+
+            font-weight: 900;
+        }
+
+        /* ========================================
+           2열
+        ======================================== */
+
+        .bank-grid {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+
+            gap: 18px;
+        }
+
+        /* ========================================
+           카드
+        ======================================== */
+
+        .card {
+
+            padding: 22px;
+
+            background: white;
+
+            border:
+                1px solid #e5e7eb;
+
+            border-radius: 16px;
+
+            box-shadow:
+                0 4px 15px
+                rgba(0,0,0,0.04);
+        }
+
+        .card h2 {
+
+            margin:
+                0 0 18px;
+
+            font-size: 18px;
+        }
+
+        /* ========================================
+           입력
+        ======================================== */
+
+        .input-group {
+
+            margin-bottom: 13px;
+        }
+
+        .input-label {
+
+            display: block;
+
+            margin-bottom: 7px;
+
+            font-size: 13px;
+
+            font-weight: 700;
+        }
+
+        .input {
+
+            width: 100%;
+
+            padding: 13px;
+
+            border:
+                1px solid #dfe3e8;
+
+            border-radius: 10px;
+
+            outline: none;
+
+            font-size: 15px;
+
+            transition:
+                border 0.15s,
+                box-shadow 0.15s;
+        }
+
+        .input:focus {
+
+            border-color:
+                #2563eb;
+
+            box-shadow:
+                0 0 0 3px
+                rgba(37,99,235,0.10);
+        }
+
+        /* ========================================
+           송금 버튼
+        ======================================== */
+
+        .transfer-button {
+
+            width: 100%;
+
+            padding: 13px;
+
+            margin-top: 5px;
+
+            border: none;
+
+            border-radius: 10px;
+
+            background:
+                #202124;
+
+            color: white;
+
+            font-size: 15px;
+
+            font-weight: 800;
+
+            cursor: pointer;
+
+            transition:
+                opacity 0.15s;
+        }
+
+        .transfer-button:hover {
+            opacity: 0.85;
+        }
+
+        .transfer-button:disabled {
+
+            opacity: 0.5;
+
+            cursor: not-allowed;
+        }
+
+        /* ========================================
+           메시지
+        ======================================== */
+
+        #message {
+
+            min-height: 20px;
+
+            margin-top: 13px;
+
+            text-align: center;
+
+            font-size: 13px;
+
+            font-weight: 700;
+        }
+
+        .success {
+            color: #16a34a;
+        }
+
+        .error {
+            color: #dc2626;
+        }
+
+        /* ========================================
+           거래내역
+        ======================================== */
+
+        .transactions {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 10px;
+        }
+
+        .transaction {
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            padding: 14px;
+
+            background: #f7f8fa;
+
+            border-radius: 12px;
+        }
+
+        .transaction-left {
+
+            min-width: 0;
+        }
+
+        .transaction-title {
+
+            font-size: 14px;
+
+            font-weight: 800;
+
+            margin-bottom: 4px;
+        }
+
+        .transaction-meta {
+
+            color: #8a9098;
+
+            font-size: 12px;
+        }
+
+        .transaction-amount {
+
+            white-space: nowrap;
+
+            font-size: 15px;
+
+            font-weight: 900;
+        }
+
+        .deposit {
+            color: #2563eb;
+        }
+
+        .withdrawal {
+            color: #dc2626;
+        }
+
+        .empty {
+
+            padding: 35px 10px;
+
+            text-align: center;
+
+            color: #8a9098;
+
+            font-size: 14px;
+        }
+
+        /* ========================================
+           새로고침
+        ======================================== */
+
+        .refresh-button {
+
+            width: 100%;
+
+            margin-top: 12px;
+
+            padding: 11px;
+
+            border: none;
+
+            border-radius: 10px;
+
+            background: #f1f3f5;
+
+            cursor: pointer;
+
+            font-size: 14px;
+
+            font-weight: 700;
+        }
+
+        .refresh-button:hover {
+            background: #e9ecef;
+        }
+
+        /* ========================================
+           모바일
+        ======================================== */
+
+        @media (max-width: 700px) {
+
+            .content {
+
+                width:
+                    calc(100% - 24px);
+
+                padding-top: 25px;
+            }
+
+            .bank-grid {
+
+                grid-template-columns: 1fr;
+            }
+
+            .page-header h1 {
+
+                font-size: 25px;
+            }
+
+            .top-balance {
+
+                display: none;
+            }
+
+            .balance {
+
+                font-size: 27px;
+            }
+
+        }
+
+    </style>
+</head>
+
+
+<body>
+
+<!-- ========================================
+     상단바
+======================================== -->
+
+<header class="topbar">
+
+    <button
+        class="back-button"
+        id="backButton"
+    >
+        ←
+    </button>
+
+    <div class="logo">
+        안드로메다뱅크
+    </div>
+
+    <div class="top-spacer"></div>
+
+    <div class="top-balance">
+
+        💰
+        <span id="topBalance">
+            0
+        </span>
+        원
+
+    </div>
+
+</header>
+
+
+<!-- ========================================
+     메인
+======================================== -->
+
+<main>
+
+    <div class="content">
+
+        <section class="page-header">
+
+            <h1>
+                🏦 안드로메다뱅크
+            </h1>
+
+            <p>
+                VSM 플레이어 간 안전한 송금과 거래내역을 관리하세요.
+            </p>
+
+        </section>
+
+
+        <!-- ========================================
+             계좌
+        ======================================== -->
+
+        <section class="account-card">
+
+            <div class="account-label">
+                내 플레이어 번호
+            </div>
+
+            <div
+                class="account-number"
+                id="accountNumber"
+            >
+                불러오는 중...
+            </div>
+
+
+            <div class="balance-label">
+                현재 보유 현금
+            </div>
+
+            <div
+                class="balance"
+                id="balance"
+            >
+                0원
+            </div>
+
+        </section>
+
+
+        <!-- ========================================
+             기능
+        ======================================== -->
+
+        <section class="bank-grid">
+
+
+            <!-- 송금 -->
+
+            <div class="card">
+
+                <h2>
+                    💸 송금
+                </h2>
+
+
+                <div class="input-group">
+
+                    <label
+                        class="input-label"
+                        for="receiver"
+                    >
+                        받는 사람 플레이어 번호
+                    </label>
+
+                    <input
+                        class="input"
+                        id="receiver"
+                        type="text"
+                        placeholder="예: VSM-0002"
+                    >
+
+                </div>
+
+
+                <div class="input-group">
+
+                    <label
+                        class="input-label"
+                        for="amount"
+                    >
+                        송금 금액
+                    </label>
+
+                    <input
+                        class="input"
+                        id="amount"
+                        type="number"
+                        min="1"
+                        step="1"
+                        placeholder="예: 1000"
+                    >
+
+                </div>
+
+
+                <div class="input-group">
+
+                    <label
+                        class="input-label"
+                        for="memo"
+                    >
+                        메모
+                    </label>
+
+                    <input
+                        class="input"
+                        id="memo"
+                        type="text"
+                        maxlength="100"
+                        placeholder="예: 간식값"
+                    >
+
+                </div>
+
+
+                <button
+                    class="transfer-button"
+                    id="transferButton"
+                >
+                    💸 송금하기
+                </button>
+
+
+                <div id="message"></div>
+
+            </div>
+
+
+            <!-- 거래내역 -->
+
+            <div class="card">
+
+                <h2>
+                    📜 최근 거래내역
+                </h2>
+
+
+                <div
+                    class="transactions"
+                    id="transactions"
+                >
+
+                    <div class="empty">
+                        거래내역을 불러오는 중...
+                    </div>
+
+                </div>
+
+
+                <button
+                    class="refresh-button"
+                    id="refreshButton"
+                >
+                    🔄 거래내역 새로고침
+                </button>
+
+            </div>
+
+        </section>
+
+    </div>
+
+</main>
+
+
+<script>
+
+/* ========================================
+   기본 함수
+======================================== */
+
+function formatMoney(value) {
+
+    return Number(value || 0)
+        .toLocaleString("ko-KR");
+
+}
+
+
+function formatDate(timestamp) {
+
+    if (!timestamp) {
+        return "";
+    }
+
+    return new Date(
+        Number(timestamp)
+    ).toLocaleString(
+        "ko-KR"
+    );
+
+}
+
+
+/* ========================================
+   인증 토큰
+======================================== */
+
+function getToken() {
+
+    return localStorage.getItem(
+        "vsm_token"
+    );
+
+}
+
+
+/* ========================================
+   로그인 확인
+======================================== */
+
+function requireLogin() {
+
+    const token =
+        getToken();
+
+    if (!token) {
+
+        alert(
+            "로그인이 필요합니다."
+        );
+
+        window.location.href = "/";
+
+        return false;
+
+    }
+
+    return true;
+
+}
+
+
+/* ========================================
+   계좌 정보
+======================================== */
+
+async function loadAccount() {
+
+    const token =
+        getToken();
+
+    if (!token) {
+        return;
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/bank/account",
+                {
+                    headers: {
+                        "Authorization":
+                            "Bearer " + token
+                    }
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            !response.ok ||
+            !data.ok
+        ) {
+
+            throw new Error(
+                data.error ||
+                "계좌 정보를 불러오지 못했습니다."
+            );
+
+        }
+
+
+        document
+            .getElementById(
+                "accountNumber"
+            )
+            .textContent =
+                data.accountNumber;
+
+
+        document
+            .getElementById(
+                "balance"
+            )
+            .textContent =
+                formatMoney(
+                    data.balance
+                ) + "원";
+
+
+        document
+            .getElementById(
+                "topBalance"
+            )
+            .textContent =
+                formatMoney(
+                    data.balance
+                );
+
+
+        renderTransactions(
+            data.transactions || []
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "ACCOUNT ERROR:",
+            error
+        );
+
+
+        document
+            .getElementById(
+                "accountNumber"
+            )
+            .textContent =
+                "불러오기 실패";
+
+
+        document
+            .getElementById(
+                "balance"
+            )
+            .textContent =
+                "-";
+
+    }
+
+}
+
+
+/* ========================================
+   거래내역 표시
+======================================== */
+
+function renderTransactions(
+    transactions
+) {
+
+    const container =
+        document.getElementById(
+            "transactions"
+        );
+
+
+    if (!transactions.length) {
+
+        container.innerHTML = `
+            <div class="empty">
+                아직 거래내역이 없습니다.
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    const myId =
+        document
+            .getElementById(
+                "accountNumber"
+            )
+            .textContent;
+
+
+    container.innerHTML = "";
+
+
+    transactions
+        .slice(0, 10)
+        .forEach(transaction => {
+
+            const isDeposit =
+                transaction.receiver_id ===
+                myId;
+
+
+            const amount =
+                Number(
+                    transaction.amount
+                );
+
+
+            const otherName =
+                isDeposit
+                    ? (
+                        transaction.sender_nickname ||
+                        transaction.sender_id
+                    )
+                    : (
+                        transaction.receiver_nickname ||
+                        transaction.receiver_id
+                    );
+
+
+            const div =
+                document.createElement(
+                    "div"
+                );
+
+
+            div.className =
+                "transaction";
+
+
+            div.innerHTML = `
+
+                <div class="transaction-left">
+
+                    <div class="transaction-title">
+
+                        ${isDeposit ? "입금" : "송금"}
+                        ·
+                        ${otherName}
+
+                    </div>
+
+                    <div class="transaction-meta">
+
+                        ${
+                            transaction.memo
+                                ? transaction.memo + " · "
+                                : ""
+                        }
+
+                        ${formatDate(
+                            transaction.created_at
+                        )}
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    class="
+                        transaction-amount
+                        ${isDeposit
+                            ? "deposit"
+                            : "withdrawal"
+                        }
+                    "
+                >
+
+                    ${
+                        isDeposit
+                            ? "+"
+                            : "-"
+                    }
+
+                    ${formatMoney(amount)}원
+
+                </div>
+
+            `;
+
+
+            container.appendChild(
+                div
+            );
+
+        });
+
+}
+
+
+/* ========================================
+   송금
+======================================== */
+
+async function transfer() {
+
+    const token =
+        getToken();
+
+    if (!token) {
+
+        alert(
+            "로그인이 필요합니다."
+        );
+
+        return;
+
+    }
+
+
+    const receiver =
+        document
+            .getElementById(
+                "receiver"
+            )
+            .value
+            .trim();
+
+
+    const amount =
+        document
+            .getElementById(
+                "amount"
+            )
+            .value;
+
+
+    const memo =
+        document
+            .getElementById(
+                "memo"
+            )
+            .value
+            .trim();
+
+
+    const message =
+        document.getElementById(
+            "message"
+        );
+
+
+    const button =
+        document.getElementById(
+            "transferButton"
+        );
+
+
+    message.textContent =
+        "";
+
+
+    message.className =
+        "";
+
+
+    if (!receiver) {
+
+        message.textContent =
+            "받는 사람 플레이어 번호를 입력하세요.";
+
+        message.className =
+            "error";
+
+        return;
+
+    }
+
+
+    if (
+        !amount ||
+        Number(amount) <= 0
+    ) {
+
+        message.textContent =
+            "송금 금액을 입력하세요.";
+
+        message.className =
+            "error";
+
+        return;
+
+    }
+
+
+    const confirmed =
+        confirm(
+            `${receiver}에게 ${formatMoney(amount)}원을 송금하시겠습니까?`
+        );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    button.disabled = true;
+
+    button.textContent =
+        "송금 처리 중...";
+
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/bank/transfer",
+                {
+                    method: "POST",
+
+                    headers: {
+
+                        "Content-Type":
+                            "application/json",
+
+                        "Authorization":
+                            "Bearer " + token
+
+                    },
+
+                    body:
+                        JSON.stringify({
+
+                            accountNumber:
+                                receiver,
+
+                            amount:
+                                Number(amount),
+
+                            memo:
+                                memo
+
+                        })
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            !response.ok ||
+            !data.ok
+        ) {
+
+            throw new Error(
+                data.error ||
+                "송금에 실패했습니다."
+            );
+
+        }
+
+
+        message.textContent =
+            "✅ 송금이 완료되었습니다.";
+
+        message.className =
+            "success";
+
+
+        document
+            .getElementById(
+                "receiver"
+            )
+            .value = "";
+
+
+        document
+            .getElementById(
+                "amount"
+            )
+            .value = "";
+
+
+        document
+            .getElementById(
+                "memo"
+            )
+            .value = "";
+
+
+        await loadAccount();
+
+
+    } catch (error) {
+
+        console.error(
+            "TRANSFER ERROR:",
+            error
+        );
+
+
+        message.textContent =
+            "❌ " + error.message;
+
+        message.className =
+            "error";
+
+
+    } finally {
+
+        button.disabled = false;
+
+        button.textContent =
+            "💸 송금하기";
+
+    }
+
+}
+
+
+/* ========================================
+   뒤로가기
+======================================== */
+
+document
+    .getElementById(
+        "backButton"
+    )
+    .addEventListener(
+        "click",
+        () => {
+
+            window.location.href =
+                "/";
+
+        }
+    );
+
+
+/* ========================================
+   송금 버튼
+======================================== */
+
+document
+    .getElementById(
+        "transferButton"
+    )
+    .addEventListener(
+        "click",
+        transfer
+    );
+
+
+/* ========================================
+   새로고침
+======================================== */
+
+document
+    .getElementById(
+        "refreshButton"
+    )
+    .addEventListener(
+        "click",
+        loadAccount
+    );
+
+
+/* ========================================
+   시작
+======================================== */
+
+if (requireLogin()) {
+
+    loadAccount();
+
+}
+
+</script>
+
+</body>
+</html>
