@@ -49,7 +49,7 @@ const {
 
 const {
     startMarketEngine
-} = require("./services/market");
+} = require("./market");
 
 
 // ========================================
