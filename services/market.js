@@ -2,12 +2,14 @@
 const { Pool } = require("pg");
 
 
-// ========================================
+// =====================================================
 // PostgreSQL
-// ========================================
+// =====================================================
 
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+
+    connectionString:
+        process.env.DATABASE_URL,
 
     ssl: {
         rejectUnauthorized: false
@@ -15,37 +17,29 @@ const pool = new Pool({
 });
 
 
-// ========================================
+// =====================================================
 // 기본 주식
-// ========================================
+// =====================================================
 
 const companies = [
 
-    ["SKNX", "스카닉스하이닉스", 4250, 0.08, 20, 180],
+    ["SKNX", "스카닉스하이닉스", 4250, 0.08],
+    ["SAMS", "샘숭전자", 7100, 0.05],
+    ["TWAI", "티Wai", 1850, 0.10],
+    ["NVR", "나이버", 3500, 0.07],
+    ["NFLX", "니플릭스", 5200, 0.09],
+    ["PASC", "파스코", 2800, 0.06],
+    ["LG", "알쥐", 6400, 0.05],
+    ["HYUN", "현재자동차", 8300, 0.06],
+    ["NVDO", "N비디오", 9700, 0.12],
+    ["MHD", "마이크로하드", 7600, 0.07]
 
-    ["SAMS", "샘숭전자", 7100, 0.05, 20, 140],
-
-    ["TWAI", "티Wai", 1850, 0.10, 15, 120],
-
-    ["NVR", "나이버", 3500, 0.07, 20, 150],
-
-    ["NFLX", "니플릭스", 5200, 0.09, 20, 170],
-
-    ["PASC", "파스코", 2800, 0.06, 15, 110],
-
-    ["LG", "알쥐", 6400, 0.05, 20, 130],
-
-    ["HYUN", "현재자동차", 8300, 0.06, 20, 150],
-
-    ["NVDO", "N비디오", 9700, 0.12, 30, 250],
-
-    ["MHD", "마이크로하드", 7600, 0.07, 20, 160]
 ];
 
 
-// ========================================
+// =====================================================
 // 전체 주식
-// ========================================
+// =====================================================
 
 async function getStocks() {
 
@@ -60,9 +54,9 @@ async function getStocks() {
 }
 
 
-// ========================================
+// =====================================================
 // 특정 주식
-// ========================================
+// =====================================================
 
 async function getStock(id) {
 
@@ -80,9 +74,9 @@ async function getStock(id) {
 }
 
 
-// ========================================
+// =====================================================
 // 주가 기록
-// ========================================
+// =====================================================
 
 async function getHistory(
     id,
@@ -100,6 +94,7 @@ async function getHistory(
         "3m": 7776000000,
 
         "all": Infinity
+
     };
 
 
@@ -118,9 +113,7 @@ async function getHistory(
         await pool.query(
             `
             SELECT
-
                 time AS t,
-
                 price AS p
 
             FROM price_history
@@ -152,9 +145,9 @@ async function getHistory(
 }
 
 
-// ========================================
+// =====================================================
 // 주가 설정
-// ========================================
+// =====================================================
 
 async function setPrice(
     id,
@@ -175,7 +168,6 @@ async function setPrice(
         throw new Error(
             "가격이 올바르지 않습니다."
         );
-
     }
 
 
@@ -184,14 +176,15 @@ async function setPrice(
         UPDATE stocks
 
         SET
-
             previous = price,
 
             price = $1,
 
-            high = GREATEST(high, $1),
+            high =
+                GREATEST(high, $1),
 
-            low = LEAST(low, $1)
+            low =
+                LEAST(low, $1)
 
         WHERE id = $2
         `,
@@ -230,66 +223,120 @@ async function setPrice(
 }
 
 
-// ========================================
+// =====================================================
 // 다음 주가 계산
-// ========================================
 //
-// 핵심:
-// volatility를 이용해 ±몇 %를 계산하는 방식이 아니라
-// 종목마다 DB에 저장된 min_change ~ max_change
-// 범위에서 실제 변동 금액을 뽑는다.
-//
-// 예:
-// min_change = 20
-// max_change = 180
-//
-// → 한 번 변동할 때
-//    20원 ~ 180원 사이에서 결정
-//
-// 방향은 랜덤으로 상승/하락
-// ========================================
+// min_change ~ max_change
+// 절대 금액 기준
+// =====================================================
 
-function calculateNextPrice(stock) {
+function calculateNextPrice(
+    stock,
+    control = null
+) {
 
     const currentPrice =
         Number(stock.price);
 
 
-    const minChange =
-        Math.max(
-            0,
-            Number(stock.min_change ?? 10)
+    let minChange =
+        Math.abs(
+            Number(stock.min_change)
         );
 
 
-    const maxChange =
-        Math.max(
+    let maxChange =
+        Math.abs(
+            Number(stock.max_change)
+        );
+
+
+    if (
+        !Number.isFinite(minChange)
+    ) {
+
+        minChange = 1;
+    }
+
+
+    if (
+        !Number.isFinite(maxChange)
+    ) {
+
+        maxChange =
+            minChange;
+    }
+
+
+    // 작은 값이 항상 최소
+    if (
+        minChange >
+        maxChange
+    ) {
+
+        [
             minChange,
-            Number(stock.max_change ?? 100)
-        );
+            maxChange
+        ] = [
+            maxChange,
+            minChange
+        ];
+    }
 
 
-    // 최소 ~ 최대 사이 랜덤 변동액
-    const changeAmount =
+    // 랜덤 변동량
+    const change =
         minChange +
         Math.random() *
-        (maxChange - minChange);
+        (
+            maxChange -
+            minChange
+        );
 
 
-    // 상승 / 하락 랜덤
-    const direction =
+    let direction =
         Math.random() < 0.5
             ? -1
             : 1;
 
 
+    // 관리자 방향 제어
+    if (control) {
+
+        const now =
+            Date.now();
+
+        if (
+            control.direction !==
+                "normal" &&
+            Number(control.until_time) >
+                now
+        ) {
+
+            if (
+                control.direction ===
+                "up"
+            ) {
+
+                direction = 1;
+
+            } else if (
+                control.direction ===
+                "down"
+            ) {
+
+                direction = -1;
+            }
+        }
+    }
+
+
     let nextPrice =
         currentPrice +
         direction *
-        changeAmount;
+        change;
 
 
-    // 최저 주가 100원
     nextPrice =
         Math.max(
             100,
@@ -297,13 +344,15 @@ function calculateNextPrice(stock) {
         );
 
 
-    return Math.round(nextPrice);
+    return Math.round(
+        nextPrice
+    );
 }
 
 
-// ========================================
-// 시장 전체 주가 변동
-// ========================================
+// =====================================================
+// 시장 업데이트
+// =====================================================
 
 async function updateMarket() {
 
@@ -318,9 +367,31 @@ async function updateMarket() {
             of stocks
         ) {
 
+            const controlResult =
+                await pool.query(
+                    `
+                    SELECT
+                        direction,
+                        until_time,
+                        strength
+
+                    FROM market_controls
+
+                    WHERE stock_id = $1
+                    `,
+                    [stock.id]
+                );
+
+
+            const control =
+                controlResult.rows[0] ||
+                null;
+
+
             const nextPrice =
                 calculateNextPrice(
-                    stock
+                    stock,
+                    control
                 );
 
 
@@ -335,21 +406,19 @@ async function updateMarket() {
             `📈 주가 자동 변동 완료 · ${stocks.length}개 종목`
         );
 
-
     } catch (error) {
 
         console.error(
             "❌ 주가 자동 변동 오류:",
             error
         );
-
     }
 }
 
 
-// ========================================
-// 주가 엔진 시작
-// ========================================
+// =====================================================
+// 주가 엔진
+// =====================================================
 
 function startMarketEngine() {
 
@@ -364,11 +433,9 @@ function startMarketEngine() {
     );
 
 
-    // 서버 시작 직후 1회
     updateMarket();
 
 
-    // 이후 반복
     setInterval(
         updateMarket,
         interval
@@ -376,9 +443,9 @@ function startMarketEngine() {
 }
 
 
-// ========================================
+// =====================================================
 // Export
-// ========================================
+// =====================================================
 
 module.exports = {
 
@@ -399,5 +466,6 @@ module.exports = {
     startMarketEngine,
 
     calculateNextPrice
+
 };
 
