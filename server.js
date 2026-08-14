@@ -1,4 +1,4 @@
-```js
+
 const express = require("express");
 const path = require("path");
 
@@ -143,4 +143,4 @@ async function startServer() {
 }
 
 startServer();
-```
+
