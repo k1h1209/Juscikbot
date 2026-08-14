@@ -1,0 +1,883 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>VSM - 주식시장</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100%;
+            font-family:
+                Arial,
+                "Noto Sans KR",
+                sans-serif;
+        }
+
+        body {
+            background: #f4f6f8;
+            color: #202124;
+        }
+
+        /* ================================
+           상단바
+        ================================= */
+
+        .topbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+
+            height: 58px;
+
+            display: flex;
+            align-items: center;
+
+            padding: 0 16px;
+
+            background: rgba(255,255,255,0.94);
+
+            border-bottom:
+                1px solid #e5e7eb;
+
+            backdrop-filter: blur(12px);
+
+            z-index: 1000;
+        }
+
+        .back-button {
+            width: 40px;
+            height: 40px;
+
+            border: none;
+            border-radius: 10px;
+
+            background: transparent;
+
+            font-size: 20px;
+
+            cursor: pointer;
+        }
+
+        .back-button:hover {
+            background: #eef1f4;
+        }
+
+        .logo {
+            margin-left: 8px;
+
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .top-spacer {
+            flex: 1;
+        }
+
+        .money {
+            padding: 8px 12px;
+
+            border-radius: 10px;
+
+            background: #f1f3f5;
+
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        /* ================================
+           메인
+        ================================= */
+
+        main {
+            padding-top: 58px;
+        }
+
+        .content {
+
+            width:
+                min(1200px, calc(100% - 32px));
+
+            margin: 0 auto;
+
+            padding:
+                35px 0 60px;
+        }
+
+        .page-header {
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            margin-bottom: 25px;
+        }
+
+        .page-title h1 {
+
+            margin: 0 0 7px;
+
+            font-size: 30px;
+        }
+
+        .page-title p {
+
+            margin: 0;
+
+            color: #6b7280;
+
+            font-size: 14px;
+        }
+
+        .refresh-button {
+
+            padding:
+                10px 15px;
+
+            border: none;
+
+            border-radius: 10px;
+
+            background: #202124;
+
+            color: white;
+
+            font-size: 14px;
+
+            font-weight: 700;
+
+            cursor: pointer;
+        }
+
+        .refresh-button:hover {
+            opacity: 0.85;
+        }
+
+        /* ================================
+           상태
+        ================================= */
+
+        .market-status {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 8px;
+
+            margin-bottom: 18px;
+
+            font-size: 14px;
+
+            color: #6b7280;
+        }
+
+        .status-dot {
+
+            width: 9px;
+            height: 9px;
+
+            border-radius: 50%;
+
+            background: #16a34a;
+        }
+
+        /* ================================
+           주식 목록
+        ================================= */
+
+        .stock-list {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(
+                    2,
+                    minmax(0, 1fr)
+                );
+
+            gap: 16px;
+        }
+
+        .stock-card {
+
+            padding: 20px;
+
+            background: white;
+
+            border:
+                1px solid #e5e7eb;
+
+            border-radius: 16px;
+
+            box-shadow:
+                0 4px 15px
+                rgba(0,0,0,0.04);
+
+            cursor: pointer;
+
+            transition:
+                transform 0.15s,
+                box-shadow 0.15s;
+        }
+
+        .stock-card:hover {
+
+            transform:
+                translateY(-2px);
+
+            box-shadow:
+                0 8px 25px
+                rgba(0,0,0,0.08);
+        }
+
+        .stock-top {
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            margin-bottom: 15px;
+        }
+
+        .stock-name {
+
+            font-size: 17px;
+
+            font-weight: 800;
+        }
+
+        .stock-id {
+
+            margin-top: 4px;
+
+            color: #8a9098;
+
+            font-size: 12px;
+        }
+
+        .stock-price {
+
+            font-size: 25px;
+
+            font-weight: 800;
+
+            text-align: right;
+        }
+
+        .stock-change {
+
+            margin-top: 5px;
+
+            font-size: 13px;
+
+            font-weight: 700;
+
+            text-align: right;
+        }
+
+        .stock-info {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, 1fr);
+
+            gap: 8px;
+
+            padding-top: 15px;
+
+            border-top:
+                1px solid #eef0f2;
+        }
+
+        .info-item {
+
+            text-align: center;
+        }
+
+        .info-label {
+
+            margin-bottom: 5px;
+
+            color: #8a9098;
+
+            font-size: 11px;
+        }
+
+        .info-value {
+
+            font-size: 13px;
+
+            font-weight: 700;
+        }
+
+        /* ================================
+           색상
+        ================================= */
+
+        .up {
+            color: #dc2626;
+        }
+
+        .down {
+            color: #2563eb;
+        }
+
+        .same {
+            color: #6b7280;
+        }
+
+        /* ================================
+           로딩
+        ================================= */
+
+        .loading {
+
+            padding: 70px 20px;
+
+            text-align: center;
+
+            color: #6b7280;
+        }
+
+        .error {
+
+            padding: 40px 20px;
+
+            text-align: center;
+
+            color: #dc2626;
+        }
+
+        /* ================================
+           모바일
+        ================================= */
+
+        @media (max-width: 700px) {
+
+            .content {
+
+                width:
+                    calc(100% - 24px);
+
+                padding-top: 25px;
+            }
+
+            .stock-list {
+
+                grid-template-columns: 1fr;
+            }
+
+            .page-header {
+
+                align-items: flex-start;
+            }
+
+            .page-title h1 {
+
+                font-size: 25px;
+            }
+
+            .money {
+
+                display: none;
+            }
+        }
+
+    </style>
+</head>
+
+
+<body>
+
+
+<!-- ================================
+     상단바
+================================ -->
+
+<header class="topbar">
+
+    <button
+        class="back-button"
+        id="backButton"
+    >
+        ←
+    </button>
+
+
+    <div class="logo">
+        VSM 주식시장
+    </div>
+
+
+    <div class="top-spacer"></div>
+
+
+    <div class="money">
+
+        💰
+        <span id="money">
+            10,000
+        </span>
+        원
+
+    </div>
+
+</header>
+
+
+<!-- ================================
+     메인
+================================ -->
+
+<main>
+
+    <div class="content">
+
+
+        <section class="page-header">
+
+            <div class="page-title">
+
+                <h1>
+                    📈 주식시장
+                </h1>
+
+                <p>
+                    VSM에 등록된 기업의 주가를 확인하세요.
+                </p>
+
+            </div>
+
+
+            <button
+                class="refresh-button"
+                id="refreshButton"
+            >
+                🔄 새로고침
+            </button>
+
+        </section>
+
+
+        <div class="market-status">
+
+            <span class="status-dot"></span>
+
+            <span id="statusText">
+                시장 정보를 불러오는 중...
+            </span>
+
+        </div>
+
+
+        <section
+            id="stockList"
+            class="stock-list"
+        >
+
+            <div class="loading">
+
+                📊
+                <br><br>
+
+                주식시장 정보를 불러오는 중...
+
+            </div>
+
+        </section>
+
+
+    </div>
+
+</main>
+
+
+<script>
+
+/* ========================================
+   뒤로가기
+======================================== */
+
+document
+    .getElementById("backButton")
+    .addEventListener(
+        "click",
+        () => {
+
+            window.location.href = "/";
+
+        }
+    );
+
+
+/* ========================================
+   숫자 포맷
+======================================== */
+
+function formatMoney(value) {
+
+    return Number(value || 0)
+        .toLocaleString("ko-KR");
+
+}
+
+
+/* ========================================
+   등락 표시
+======================================== */
+
+function getChangeClass(change) {
+
+    if (change > 0) {
+        return "up";
+    }
+
+    if (change < 0) {
+        return "down";
+    }
+
+    return "same";
+
+}
+
+
+/* ========================================
+   주식 불러오기
+======================================== */
+
+async function loadStocks() {
+
+    const stockList =
+        document.getElementById(
+            "stockList"
+        );
+
+    const statusText =
+        document.getElementById(
+            "statusText"
+        );
+
+
+    stockList.innerHTML = `
+        <div class="loading">
+            📊<br><br>
+            주식시장 정보를 불러오는 중...
+        </div>
+    `;
+
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/stocks"
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok || !data.ok) {
+
+            throw new Error(
+                data.error ||
+                "주식 정보를 불러오지 못했습니다."
+            );
+
+        }
+
+
+        const stocks =
+            data.stocks || [];
+
+
+        if (!stocks.length) {
+
+            stockList.innerHTML = `
+                <div class="loading">
+                    등록된 주식이 없습니다.
+                </div>
+            `;
+
+            return;
+
+        }
+
+
+        stockList.innerHTML = "";
+
+
+        stocks.forEach(stock => {
+
+            const change =
+                Number(
+                    stock.change || 0
+                );
+
+
+            const changeRate =
+                Number(
+                    stock.changeRate || 0
+                );
+
+
+            const changeClass =
+                getChangeClass(
+                    change
+                );
+
+
+            const sign =
+                change > 0
+                    ? "+"
+                    : "";
+
+
+            const card =
+                document.createElement(
+                    "div"
+                );
+
+
+            card.className =
+                "stock-card";
+
+
+            card.innerHTML = `
+
+                <div class="stock-top">
+
+                    <div>
+
+                        <div class="stock-name">
+                            ${stock.name}
+                        </div>
+
+                        <div class="stock-id">
+                            ${stock.id}
+                        </div>
+
+                    </div>
+
+
+                    <div>
+
+                        <div class="stock-price">
+                            ${formatMoney(stock.price)}원
+                        </div>
+
+                        <div
+                            class="stock-change ${changeClass}"
+                        >
+                            ${sign}${formatMoney(change)}원
+                            (${sign}${changeRate.toFixed(2)}%)
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="stock-info">
+
+                    <div class="info-item">
+
+                        <div class="info-label">
+                            시가
+                        </div>
+
+                        <div class="info-value">
+                            ${formatMoney(stock.open)}원
+                        </div>
+
+                    </div>
+
+
+                    <div class="info-item">
+
+                        <div class="info-label">
+                            최고가
+                        </div>
+
+                        <div class="info-value">
+                            ${formatMoney(stock.high)}원
+                        </div>
+
+                    </div>
+
+
+                    <div class="info-item">
+
+                        <div class="info-label">
+                            최저가
+                        </div>
+
+                        <div class="info-value">
+                            ${formatMoney(stock.low)}원
+                        </div>
+
+                    </div>
+
+                </div>
+
+            `;
+
+
+            stockList.appendChild(
+                card
+            );
+
+        });
+
+
+        statusText.textContent =
+            `실시간 시장 데이터 · ${stocks.length}개 종목`;
+
+
+    } catch (error) {
+
+        console.error(
+            "STOCK LOAD ERROR:",
+            error
+        );
+
+
+        stockList.innerHTML = `
+
+            <div class="error">
+
+                ❌
+                <br><br>
+
+                ${error.message}
+
+            </div>
+
+        `;
+
+
+        statusText.textContent =
+            "시장 정보를 불러오지 못했습니다.";
+
+    }
+
+}
+
+
+/* ========================================
+   새로고침
+======================================== */
+
+document
+    .getElementById(
+        "refreshButton"
+    )
+    .addEventListener(
+        "click",
+        loadStocks
+    );
+
+
+/* ========================================
+   로그인 사용자 현금 표시
+======================================== */
+
+async function loadUser() {
+
+    const token =
+        localStorage.getItem(
+            "vsm_token"
+        );
+
+
+    if (!token) {
+        return;
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/auth/me",
+                {
+                    headers: {
+                        "Authorization":
+                            "Bearer " + token
+                    }
+                }
+            );
+
+
+        if (!response.ok) {
+            return;
+        }
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            data.ok &&
+            data.user
+        ) {
+
+            document
+                .getElementById(
+                    "money"
+                )
+                .textContent =
+                    formatMoney(
+                        data.user.cash
+                    );
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            "USER LOAD ERROR:",
+            error
+        );
+
+    }
+
+}
+
+
+/* ========================================
+   시작
+======================================== */
+
+loadStocks();
+
+loadUser();
+
+</script>
+
+
+</body>
+</html>
