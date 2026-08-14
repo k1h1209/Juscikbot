@@ -1,517 +1,460 @@
-
 <!DOCTYPE html>
+
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+```
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
 
-    <title>VSM - 주식시장</title>
+<title>VSM - 주식시장</title>
 
-    <style>
+<style>
 
-        * {
-            box-sizing: border-box;
-        }
+    * {
+        box-sizing: border-box;
+    }
 
-        html,
-        body {
-            margin: 0;
-            padding: 0;
-            min-height: 100%;
-            font-family:
-                Arial,
-                "Noto Sans KR",
-                sans-serif;
-        }
+    html,
+    body {
+        margin: 0;
+        padding: 0;
+        min-height: 100%;
+        font-family:
+            Arial,
+            "Noto Sans KR",
+            sans-serif;
+    }
 
-        body {
-            background: #f4f6f8;
-            color: #202124;
-        }
+    body {
+        background: #f4f6f8;
+        color: #202124;
+    }
 
-        /* ================================
-           상단바
-        ================================= */
+    .topbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
 
-        .topbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
+        height: 58px;
 
-            height: 58px;
+        display: flex;
+        align-items: center;
 
-            display: flex;
-            align-items: center;
+        padding: 0 16px;
 
-            padding: 0 16px;
+        background: rgba(255,255,255,0.94);
 
-            background: rgba(255,255,255,0.94);
+        border-bottom:
+            1px solid #e5e7eb;
 
-            border-bottom:
-                1px solid #e5e7eb;
+        backdrop-filter: blur(12px);
 
-            backdrop-filter: blur(12px);
+        z-index: 1000;
+    }
 
-            z-index: 1000;
-        }
+    .back-button {
+        width: 40px;
+        height: 40px;
 
-        .back-button {
-            width: 40px;
-            height: 40px;
+        border: none;
+        border-radius: 10px;
 
-            border: none;
-            border-radius: 10px;
+        background: transparent;
 
-            background: transparent;
+        font-size: 20px;
 
-            font-size: 20px;
+        cursor: pointer;
+    }
 
-            cursor: pointer;
-        }
+    .back-button:hover {
+        background: #eef1f4;
+    }
 
-        .back-button:hover {
-            background: #eef1f4;
-        }
+    .logo {
+        margin-left: 8px;
 
-        .logo {
-            margin-left: 8px;
+        font-size: 20px;
+        font-weight: 800;
+    }
 
-            font-size: 20px;
-            font-weight: 800;
-        }
+    .top-spacer {
+        flex: 1;
+    }
 
-        .top-spacer {
-            flex: 1;
-        }
+    .money {
+        padding: 8px 12px;
 
-        .money {
-            padding: 8px 12px;
+        border-radius: 10px;
 
-            border-radius: 10px;
+        background: #f1f3f5;
 
-            background: #f1f3f5;
+        font-size: 14px;
+        font-weight: 700;
+    }
 
-            font-size: 14px;
-            font-weight: 700;
-        }
+    main {
+        padding-top: 58px;
+    }
 
-        /* ================================
-           메인
-        ================================= */
+    .content {
+        width:
+            min(1200px, calc(100% - 32px));
 
-        main {
-            padding-top: 58px;
-        }
+        margin: 0 auto;
+
+        padding:
+            35px 0 60px;
+    }
+
+    .page-header {
+        display: flex;
+
+        align-items: center;
+
+        justify-content: space-between;
+
+        margin-bottom: 25px;
+    }
+
+    .page-title h1 {
+        margin: 0 0 7px;
+
+        font-size: 30px;
+    }
+
+    .page-title p {
+        margin: 0;
+
+        color: #6b7280;
+
+        font-size: 14px;
+    }
+
+    .refresh-button {
+        padding:
+            10px 15px;
+
+        border: none;
+
+        border-radius: 10px;
+
+        background: #202124;
+
+        color: white;
+
+        font-size: 14px;
+
+        font-weight: 700;
+
+        cursor: pointer;
+    }
+
+    .refresh-button:hover {
+        opacity: 0.85;
+    }
+
+    .market-status {
+        display: flex;
+
+        align-items: center;
+
+        gap: 8px;
+
+        margin-bottom: 18px;
+
+        font-size: 14px;
+
+        color: #6b7280;
+    }
+
+    .status-dot {
+        width: 9px;
+        height: 9px;
+
+        border-radius: 50%;
+
+        background: #16a34a;
+    }
+
+    .stock-list {
+        display: grid;
+
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(0, 1fr)
+            );
+
+        gap: 16px;
+    }
+
+    .stock-card {
+        padding: 20px;
+
+        background: white;
+
+        border:
+            1px solid #e5e7eb;
+
+        border-radius: 16px;
+
+        box-shadow:
+            0 4px 15px
+            rgba(0,0,0,0.04);
+
+        cursor: pointer;
+
+        transition:
+            transform 0.15s,
+            box-shadow 0.15s;
+    }
+
+    .stock-card:hover {
+        transform:
+            translateY(-2px);
+
+        box-shadow:
+            0 8px 25px
+            rgba(0,0,0,0.08);
+    }
+
+    .stock-top {
+        display: flex;
+
+        align-items: center;
+
+        justify-content: space-between;
+
+        margin-bottom: 15px;
+    }
+
+    .stock-name {
+        font-size: 17px;
+
+        font-weight: 800;
+    }
+
+    .stock-id {
+        margin-top: 4px;
+
+        color: #8a9098;
+
+        font-size: 12px;
+    }
+
+    .stock-price {
+        font-size: 25px;
+
+        font-weight: 800;
+
+        text-align: right;
+    }
+
+    .stock-change {
+        margin-top: 5px;
+
+        font-size: 13px;
+
+        font-weight: 700;
+
+        text-align: right;
+    }
+
+    .stock-info {
+        display: grid;
+
+        grid-template-columns:
+            repeat(3, 1fr);
+
+        gap: 8px;
+
+        padding-top: 15px;
+
+        border-top:
+            1px solid #eef0f2;
+    }
+
+    .info-item {
+        text-align: center;
+    }
+
+    .info-label {
+        margin-bottom: 5px;
+
+        color: #8a9098;
+
+        font-size: 11px;
+    }
+
+    .info-value {
+        font-size: 13px;
+
+        font-weight: 700;
+    }
+
+    .up {
+        color: #dc2626;
+    }
+
+    .down {
+        color: #2563eb;
+    }
+
+    .same {
+        color: #6b7280;
+    }
+
+    .loading {
+        padding: 70px 20px;
+
+        text-align: center;
+
+        color: #6b7280;
+    }
+
+    .error {
+        padding: 40px 20px;
+
+        text-align: center;
+
+        color: #dc2626;
+    }
+
+    @media (max-width: 700px) {
 
         .content {
-
             width:
-                min(1200px, calc(100% - 32px));
+                calc(100% - 24px);
 
-            margin: 0 auto;
+            padding-top: 25px;
+        }
 
-            padding:
-                35px 0 60px;
+        .stock-list {
+            grid-template-columns: 1fr;
         }
 
         .page-header {
-
-            display: flex;
-
-            align-items: center;
-
-            justify-content: space-between;
-
-            margin-bottom: 25px;
+            align-items: flex-start;
         }
 
         .page-title h1 {
-
-            margin: 0 0 7px;
-
-            font-size: 30px;
-        }
-
-        .page-title p {
-
-            margin: 0;
-
-            color: #6b7280;
-
-            font-size: 14px;
-        }
-
-        .refresh-button {
-
-            padding:
-                10px 15px;
-
-            border: none;
-
-            border-radius: 10px;
-
-            background: #202124;
-
-            color: white;
-
-            font-size: 14px;
-
-            font-weight: 700;
-
-            cursor: pointer;
-        }
-
-        .refresh-button:hover {
-            opacity: 0.85;
-        }
-
-        /* ================================
-           상태
-        ================================= */
-
-        .market-status {
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 8px;
-
-            margin-bottom: 18px;
-
-            font-size: 14px;
-
-            color: #6b7280;
-        }
-
-        .status-dot {
-
-            width: 9px;
-            height: 9px;
-
-            border-radius: 50%;
-
-            background: #16a34a;
-        }
-
-        /* ================================
-           주식 목록
-        ================================= */
-
-        .stock-list {
-
-            display: grid;
-
-            grid-template-columns:
-                repeat(
-                    2,
-                    minmax(0, 1fr)
-                );
-
-            gap: 16px;
-        }
-
-        .stock-card {
-
-            padding: 20px;
-
-            background: white;
-
-            border:
-                1px solid #e5e7eb;
-
-            border-radius: 16px;
-
-            box-shadow:
-                0 4px 15px
-                rgba(0,0,0,0.04);
-
-            cursor: pointer;
-
-            transition:
-                transform 0.15s,
-                box-shadow 0.15s;
-        }
-
-        .stock-card:hover {
-
-            transform:
-                translateY(-2px);
-
-            box-shadow:
-                0 8px 25px
-                rgba(0,0,0,0.08);
-        }
-
-        .stock-top {
-
-            display: flex;
-
-            align-items: center;
-
-            justify-content: space-between;
-
-            margin-bottom: 15px;
-        }
-
-        .stock-name {
-
-            font-size: 17px;
-
-            font-weight: 800;
-        }
-
-        .stock-id {
-
-            margin-top: 4px;
-
-            color: #8a9098;
-
-            font-size: 12px;
-        }
-
-        .stock-price {
-
             font-size: 25px;
-
-            font-weight: 800;
-
-            text-align: right;
         }
 
-        .stock-change {
-
-            margin-top: 5px;
-
-            font-size: 13px;
-
-            font-weight: 700;
-
-            text-align: right;
+        .money {
+            display: none;
         }
 
-        .stock-info {
+    }
 
-            display: grid;
+</style>
+```
 
-            grid-template-columns:
-                repeat(3, 1fr);
-
-            gap: 8px;
-
-            padding-top: 15px;
-
-            border-top:
-                1px solid #eef0f2;
-        }
-
-        .info-item {
-
-            text-align: center;
-        }
-
-        .info-label {
-
-            margin-bottom: 5px;
-
-            color: #8a9098;
-
-            font-size: 11px;
-        }
-
-        .info-value {
-
-            font-size: 13px;
-
-            font-weight: 700;
-        }
-
-        /* ================================
-           색상
-        ================================= */
-
-        .up {
-            color: #dc2626;
-        }
-
-        .down {
-            color: #2563eb;
-        }
-
-        .same {
-            color: #6b7280;
-        }
-
-        /* ================================
-           로딩
-        ================================= */
-
-        .loading {
-
-            padding: 70px 20px;
-
-            text-align: center;
-
-            color: #6b7280;
-        }
-
-        .error {
-
-            padding: 40px 20px;
-
-            text-align: center;
-
-            color: #dc2626;
-        }
-
-        /* ================================
-           모바일
-        ================================= */
-
-        @media (max-width: 700px) {
-
-            .content {
-
-                width:
-                    calc(100% - 24px);
-
-                padding-top: 25px;
-            }
-
-            .stock-list {
-
-                grid-template-columns: 1fr;
-            }
-
-            .page-header {
-
-                align-items: flex-start;
-            }
-
-            .page-title h1 {
-
-                font-size: 25px;
-            }
-
-            .money {
-
-                display: none;
-            }
-        }
-
-    </style>
 </head>
-
 
 <body>
 
-
-<!-- ================================
-     상단바
-================================ -->
-
 <header class="topbar">
 
-    <button
-        class="back-button"
-        id="backButton"
-    >
-        ←
-    </button>
+```
+<button
+    class="back-button"
+    id="backButton"
+    type="button"
+>
+    ←
+</button>
 
+<div class="logo">
+    VSM 주식시장
+</div>
 
-    <div class="logo">
-        VSM 주식시장
-    </div>
+<div class="top-spacer"></div>
 
+<div class="money">
 
-    <div class="top-spacer"></div>
+    💰
 
+    <span id="money">
+        10,000
+    </span>
 
-    <div class="money">
+    원
 
-        💰
-        <span id="money">
-            10,000
-        </span>
-        원
-
-    </div>
+</div>
+```
 
 </header>
 
-
-<!-- ================================
-     메인
-================================ -->
-
 <main>
 
-    <div class="content">
+```
+<div class="content">
 
+    <section class="page-header">
 
-        <section class="page-header">
+        <div class="page-title">
 
-            <div class="page-title">
+            <h1>
+                📈 주식시장
+            </h1>
 
-                <h1>
-                    📈 주식시장
-                </h1>
-
-                <p>
-                    VSM에 등록된 기업의 주가를 확인하세요.
-                </p>
-
-            </div>
-
-
-            <button
-                class="refresh-button"
-                id="refreshButton"
-            >
-                🔄 새로고침
-            </button>
-
-        </section>
-
-
-        <div class="market-status">
-
-            <span class="status-dot"></span>
-
-            <span id="statusText">
-                시장 정보를 불러오는 중...
-            </span>
+            <p>
+                VSM에 등록된 기업의 주가를 확인하세요.
+            </p>
 
         </div>
 
-
-        <section
-            id="stockList"
-            class="stock-list"
+        <button
+            class="refresh-button"
+            id="refreshButton"
+            type="button"
         >
+            🔄 새로고침
+        </button>
 
-            <div class="loading">
+    </section>
 
-                📊
-                <br><br>
 
-                주식시장 정보를 불러오는 중...
+    <div class="market-status">
 
-            </div>
+        <span
+            class="status-dot"
+            id="statusDot"
+        ></span>
 
-        </section>
-
+        <span id="statusText">
+            시장 정보를 불러오는 중...
+        </span>
 
     </div>
 
-</main>
 
+    <section
+        id="stockList"
+        class="stock-list"
+    >
+
+        <div class="loading">
+
+            📊
+            <br><br>
+
+            주식시장 정보를 불러오는 중...
+
+        </div>
+
+    </section>
+
+</div>
+```
+
+</main>
 
 <script>
 
@@ -523,7 +466,7 @@ document
     .getElementById("backButton")
     .addEventListener(
         "click",
-        () => {
+        function () {
 
             window.location.href = "/";
 
@@ -563,73 +506,35 @@ function getChangeClass(change) {
 
 
 /* ========================================
-   주식 불러오기
+   주식 카드 생성
 ======================================== */
 
-async function loadStocks() {
+function renderStocks(stocks) {
 
     const stockList =
         document.getElementById(
             "stockList"
         );
 
-    const statusText =
-        document.getElementById(
-            "statusText"
-        );
+
+    if (!stocks.length) {
+
+        stockList.innerHTML = `
+            <div class="loading">
+                등록된 주식이 없습니다.
+            </div>
+        `;
+
+        return;
+
+    }
 
 
-    stockList.innerHTML = `
-        <div class="loading">
-            📊<br><br>
-            주식시장 정보를 불러오는 중...
-        </div>
-    `;
+    stockList.innerHTML = "";
 
 
-    try {
-
-        const response =
-            await fetch(
-                "/api/stocks"
-            );
-
-
-        const data =
-            await response.json();
-
-
-        if (!response.ok || !data.ok) {
-
-            throw new Error(
-                data.error ||
-                "주식 정보를 불러오지 못했습니다."
-            );
-
-        }
-
-
-        const stocks =
-            data.stocks || [];
-
-
-        if (!stocks.length) {
-
-            stockList.innerHTML = `
-                <div class="loading">
-                    등록된 주식이 없습니다.
-                </div>
-            `;
-
-            return;
-
-        }
-
-
-        stockList.innerHTML = "";
-
-
-        stocks.forEach(stock => {
+    stocks.forEach(
+        function (stock) {
 
             const change =
                 Number(
@@ -672,11 +577,11 @@ async function loadStocks() {
                     <div>
 
                         <div class="stock-name">
-                            ${stock.name}
+                            ${escapeHtml(stock.name)}
                         </div>
 
                         <div class="stock-id">
-                            ${stock.id}
+                            ${escapeHtml(stock.id)}
                         </div>
 
                     </div>
@@ -744,21 +649,147 @@ async function loadStocks() {
 
             `;
 
-            card.addEventListener("click", () => {
-    window.location.href =
-        "/stock.html?id=" +
-        encodeURIComponent(stock.id);
-});
-            
+
+            card.addEventListener(
+                "click",
+                function () {
+
+                    window.location.href =
+                        "/stock.html?id=" +
+                        encodeURIComponent(
+                            stock.id
+                        );
+
+                }
+            );
+
+
             stockList.appendChild(
                 card
             );
 
-        });
+        }
+    );
+
+}
+
+
+/* ========================================
+   HTML 이스케이프
+======================================== */
+
+function escapeHtml(value) {
+
+    const div =
+        document.createElement(
+            "div"
+        );
+
+
+    div.textContent =
+        String(
+            value == null
+                ? ""
+                : value
+        );
+
+
+    return div.innerHTML;
+
+}
+
+
+/* ========================================
+   주식 불러오기
+======================================== */
+
+let stockLoading = false;
+
+
+async function loadStocks(
+    showLoading = false
+) {
+
+    const stockList =
+        document.getElementById(
+            "stockList"
+        );
+
+    const statusText =
+        document.getElementById(
+            "statusText"
+        );
+
+
+    /*
+     * 이미 데이터를 보여주고 있을 때는
+     * 자동 갱신 때문에 로딩 화면으로
+     * 바꾸지 않는다.
+     */
+
+    if (
+        showLoading &&
+        stockList.children.length === 0
+    ) {
+
+        stockList.innerHTML = `
+            <div class="loading">
+                📊<br><br>
+                주식시장 정보를 불러오는 중...
+            </div>
+        `;
+
+    }
+
+
+    if (stockLoading) {
+        return;
+    }
+
+
+    stockLoading = true;
+
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/stocks?_=" +
+                Date.now(),
+                {
+                    cache: "no-store"
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            !response.ok ||
+            !data.ok
+        ) {
+
+            throw new Error(
+                data.error ||
+                "주식 정보를 불러오지 못했습니다."
+            );
+
+        }
+
+
+        const stocks =
+            data.stocks || [];
+
+
+        renderStocks(
+            stocks
+        );
 
 
         statusText.textContent =
-            `실시간 시장 데이터 · ${stocks.length}개 종목`;
+            `실시간 시장 데이터 · ${stocks.length}개 종목 · ${new Date().toLocaleTimeString("ko-KR")}`;
 
 
     } catch (error) {
@@ -769,22 +800,38 @@ async function loadStocks() {
         );
 
 
-        stockList.innerHTML = `
+        /*
+         * 이미 정상적으로 표시되고 있다면
+         * 자동 갱신 실패 때문에 화면을
+         * 통째로 에러 화면으로 바꾸지 않는다.
+         */
 
-            <div class="error">
+        if (
+            stockList.children.length === 0
+        ) {
 
-                ❌
-                <br><br>
+            stockList.innerHTML = `
+                <div class="error">
 
-                ${error.message}
+                    ❌
+                    <br><br>
 
-            </div>
+                    ${escapeHtml(
+                        error.message
+                    )}
 
-        `;
+                </div>
+            `;
+
+        }
 
 
         statusText.textContent =
-            "시장 정보를 불러오지 못했습니다.";
+            "시장 정보를 갱신하지 못했습니다.";
+
+    } finally {
+
+        stockLoading = false;
 
     }
 
@@ -792,7 +839,7 @@ async function loadStocks() {
 
 
 /* ========================================
-   새로고침
+   수동 새로고침
 ======================================== */
 
 document
@@ -801,12 +848,16 @@ document
     )
     .addEventListener(
         "click",
-        loadStocks
+        function () {
+
+            loadStocks(true);
+
+        }
     );
 
 
 /* ========================================
-   로그인 사용자 현금 표시
+   로그인 사용자 현금
 ======================================== */
 
 async function loadUser() {
@@ -830,8 +881,11 @@ async function loadUser() {
                 {
                     headers: {
                         "Authorization":
-                            "Bearer " + token
-                    }
+                            "Bearer " +
+                            token
+                    },
+
+                    cache: "no-store"
                 }
             );
 
@@ -874,15 +928,48 @@ async function loadUser() {
 
 
 /* ========================================
-   시작
+   최초 실행
 ======================================== */
 
-loadStocks();
+loadStocks(true);
 
 loadUser();
 
-</script>
 
+/* ========================================
+   ⭐ 실시간 자동 갱신
+========================================
+
+   2초마다 서버에서 최신 주가를
+   다시 가져온다.
+
+   새로고침(F5)이 필요 없다.
+======================================== */
+
+setInterval(
+    function () {
+
+        loadStocks(false);
+
+    },
+    2000
+);
+
+
+/* ========================================
+   사용자 돈 자동 갱신
+======================================== */
+
+setInterval(
+    function () {
+
+        loadUser();
+
+    },
+    5000
+);
+
+</script>
 
 </body>
 </html>
