@@ -1,5 +1,6 @@
 const { pool, companies } = require("./market");
 
+
 async function initializeDatabase() {
 
     const client = await pool.connect();
@@ -38,6 +39,7 @@ async function initializeDatabase() {
         `);
 
 
+        // 기존 DB 보정
         await client.query(`
             ALTER TABLE users
             ADD COLUMN IF NOT EXISTS player_number SERIAL
@@ -52,7 +54,6 @@ async function initializeDatabase() {
             ALTER TABLE users
             ADD COLUMN IF NOT EXISTS ban_reason TEXT
         `);
-
 
         await client.query(`
             CREATE UNIQUE INDEX IF NOT EXISTS
@@ -88,58 +89,50 @@ async function initializeDatabase() {
 
                 name TEXT NOT NULL,
 
+                volatility NUMERIC NOT NULL DEFAULT 0.05,
+
                 price NUMERIC NOT NULL,
                 previous NUMERIC NOT NULL,
 
                 open_price NUMERIC NOT NULL,
+
                 high NUMERIC NOT NULL,
                 low NUMERIC NOT NULL,
 
                 volume BIGINT NOT NULL DEFAULT 0,
 
-                min_change NUMERIC NOT NULL DEFAULT 1,
-                max_change NUMERIC NOT NULL DEFAULT 10,
-
-                change_interval INTEGER NOT NULL DEFAULT 5,
-
-                change_mode TEXT NOT NULL DEFAULT 'random',
-
                 volume_limit_enabled BOOLEAN NOT NULL DEFAULT FALSE,
-                volume_limit BIGINT NOT NULL DEFAULT 0
+                volume_limit BIGINT NOT NULL DEFAULT 0,
+
+                min_change NUMERIC NOT NULL DEFAULT 0.01,
+                max_change NUMERIC NOT NULL DEFAULT 0.05
             )
         `);
 
 
         // 기존 stocks 테이블 보정
-
         await client.query(`
             ALTER TABLE stocks
-            ADD COLUMN IF NOT EXISTS min_change NUMERIC NOT NULL DEFAULT 1
+            ADD COLUMN IF NOT EXISTS volume_limit_enabled
+            BOOLEAN NOT NULL DEFAULT FALSE
         `);
 
         await client.query(`
             ALTER TABLE stocks
-            ADD COLUMN IF NOT EXISTS max_change NUMERIC NOT NULL DEFAULT 10
+            ADD COLUMN IF NOT EXISTS volume_limit
+            BIGINT NOT NULL DEFAULT 0
         `);
 
         await client.query(`
             ALTER TABLE stocks
-            ADD COLUMN IF NOT EXISTS change_interval INTEGER NOT NULL DEFAULT 5
+            ADD COLUMN IF NOT EXISTS min_change
+            NUMERIC NOT NULL DEFAULT 0.01
         `);
 
         await client.query(`
             ALTER TABLE stocks
-            ADD COLUMN IF NOT EXISTS change_mode TEXT NOT NULL DEFAULT 'random'
-        `);
-
-        await client.query(`
-            ALTER TABLE stocks
-            ADD COLUMN IF NOT EXISTS volume_limit_enabled BOOLEAN NOT NULL DEFAULT FALSE
-        `);
-
-        await client.query(`
-            ALTER TABLE stocks
-            ADD COLUMN IF NOT EXISTS volume_limit BIGINT NOT NULL DEFAULT 0
+            ADD COLUMN IF NOT EXISTS max_change
+            NUMERIC NOT NULL DEFAULT 0.05
         `);
 
 
@@ -324,8 +317,7 @@ async function initializeDatabase() {
                 name,
                 price,
                 minChange,
-                maxChange,
-                interval
+                maxChange
             ] = company;
 
 
@@ -340,7 +332,7 @@ async function initializeDatabase() {
                 );
 
 
-            if (!result.rows.length) {
+            if (result.rows.length === 0) {
 
                 await client.query(
                     `
@@ -348,36 +340,34 @@ async function initializeDatabase() {
                     (
                         id,
                         name,
+                        volatility,
                         price,
                         previous,
                         open_price,
                         high,
                         low,
                         volume,
-                        min_change,
-                        max_change,
-                        change_interval,
-                        change_mode,
                         volume_limit_enabled,
-                        volume_limit
+                        volume_limit,
+                        min_change,
+                        max_change
                     )
 
                     VALUES
                     (
                         $1,
                         $2,
+                        0,
                         $3,
                         $3,
                         $3,
                         $3,
                         $3,
                         0,
-                        $4,
-                        $5,
-                        $6,
-                        'random',
                         FALSE,
-                        0
+                        0,
+                        $4,
+                        $5
                     )
                     `,
                     [
@@ -385,8 +375,7 @@ async function initializeDatabase() {
                         name,
                         price,
                         minChange,
-                        maxChange,
-                        interval
+                        maxChange
                     ]
                 );
 
@@ -432,10 +421,32 @@ async function initializeDatabase() {
                         0,
                         1
                     )
+
                     ON CONFLICT (stock_id)
                     DO NOTHING
                     `,
                     [id]
+                );
+
+            } else {
+
+                // 기존 주식에도 최소/최대 변동값이
+                // 없거나 기본값이면 회사 설정으로 보정
+                await client.query(
+                    `
+                    UPDATE stocks
+
+                    SET
+                        min_change = $1,
+                        max_change = $2
+
+                    WHERE id = $3
+                    `,
+                    [
+                        minChange,
+                        maxChange,
+                        id
+                    ]
                 );
 
             }
@@ -472,12 +483,17 @@ async function initializeDatabase() {
         ]);
 
 
+        // ========================================
+        // 완료
+        // ========================================
+
         await client.query("COMMIT");
 
 
         console.log(
             "✅ PostgreSQL 데이터베이스 초기화 완료."
         );
+
 
     } catch (error) {
 
@@ -489,6 +505,7 @@ async function initializeDatabase() {
         );
 
         throw error;
+
 
     } finally {
 
