@@ -744,7 +744,12 @@ async function loadStocks() {
 
             `;
 
-
+            card.addEventListener("click", () => {
+    window.location.href =
+        "/stock.html?id=" +
+        encodeURIComponent(stock.id);
+});
+            
             stockList.appendChild(
                 card
             );
