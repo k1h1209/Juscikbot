@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
-
 <head>
-
     <meta charset="UTF-8">
 
     <meta
@@ -12,153 +10,409 @@
 
     <title>VSM - Virtual Stock Market</title>
 
-    <link
-        rel="stylesheet"
-        href="/style.css"
-    >
+    <style>
+        * {
+            box-sizing: border-box;
+        }
 
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            min-height: 100%;
+            font-family:
+                Arial,
+                "Noto Sans KR",
+                sans-serif;
+        }
+
+        body {
+            background: #f4f6f8;
+            color: #202124;
+            transition:
+                background 0.25s,
+                color 0.25s;
+        }
+
+        /* ================================
+           상단바
+        ================================= */
+
+        .topbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+
+            height: 58px;
+
+            display: flex;
+            align-items: center;
+
+            padding: 0 16px;
+
+            background: rgba(255, 255, 255, 0.92);
+            border-bottom: 1px solid #e5e7eb;
+
+            backdrop-filter: blur(12px);
+
+            z-index: 1000;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 800;
+
+            margin-right: 18px;
+
+            white-space: nowrap;
+        }
+
+        .menu-button {
+            width: 40px;
+            height: 40px;
+
+            border: none;
+            border-radius: 10px;
+
+            background: transparent;
+
+            font-size: 22px;
+
+            cursor: pointer;
+
+            transition: background 0.2s;
+        }
+
+        .menu-button:hover {
+            background: #eef1f4;
+        }
+
+        .top-spacer {
+            flex: 1;
+        }
+
+        .top-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .money {
+            padding: 8px 12px;
+
+            border-radius: 10px;
+
+            background: #f1f3f5;
+
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .icon-button {
+            width: 38px;
+            height: 38px;
+
+            border: none;
+            border-radius: 10px;
+
+            background: transparent;
+
+            font-size: 19px;
+
+            cursor: pointer;
+        }
+
+        .icon-button:hover {
+            background: #eef1f4;
+        }
+
+        /* ================================
+           펼쳐지는 메뉴
+        ================================= */
+
+        .menu-panel {
+            position: fixed;
+
+            top: 58px;
+            left: 12px;
+
+            width: 230px;
+
+            padding: 10px;
+
+            background: rgba(255, 255, 255, 0.97);
+
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+
+            box-shadow:
+                0 15px 40px rgba(0, 0, 0, 0.12);
+
+            transform:
+                translateY(-10px)
+                scale(0.98);
+
+            opacity: 0;
+            visibility: hidden;
+
+            transition:
+                opacity 0.2s,
+                transform 0.2s,
+                visibility 0.2s;
+
+            z-index: 999;
+        }
+
+        .menu-panel.open {
+            transform:
+                translateY(0)
+                scale(1);
+
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .menu-title {
+            padding: 10px 12px;
+
+            font-size: 12px;
+            font-weight: 700;
+
+            color: #7a8088;
+        }
+
+        .menu-item {
+            width: 100%;
+
+            display: flex;
+            align-items: center;
+
+            gap: 10px;
+
+            padding: 11px 12px;
+
+            border: none;
+            border-radius: 10px;
+
+            background: transparent;
+
+            font-size: 14px;
+            text-align: left;
+
+            cursor: pointer;
+
+            color: inherit;
+
+            transition: background 0.2s;
+        }
+
+        .menu-item:hover {
+            background: #f1f3f5;
+        }
+
+        /* ================================
+           메인
+        ================================= */
+
+        .main {
+            padding-top: 58px;
+
+            min-height: 100vh;
+        }
+
+        .content {
+            width: min(1200px, calc(100% - 32px));
+
+            margin: 0 auto;
+
+            padding: 35px 0 60px;
+        }
+
+        .welcome {
+            margin-bottom: 25px;
+        }
+
+        .welcome h1 {
+            margin: 0 0 8px;
+
+            font-size: 30px;
+        }
+
+        .welcome p {
+            margin: 0;
+
+            color: #6b7280;
+
+            font-size: 15px;
+        }
+
+        /* ================================
+           카드
+        ================================= */
+
+        .grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+
+            gap: 18px;
+        }
+
+        .card {
+            padding: 22px;
+
+            background: #ffffff;
+
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+
+            box-shadow:
+                0 4px 15px rgba(0, 0, 0, 0.04);
+        }
+
+        .card h2 {
+            margin: 0 0 10px;
+
+            font-size: 18px;
+        }
+
+        .card p {
+            margin: 0;
+
+            color: #6b7280;
+
+            line-height: 1.6;
+        }
+
+        .big-number {
+            margin-top: 15px;
+
+            font-size: 26px;
+            font-weight: 800;
+        }
+
+        /* ================================
+           모바일
+        ================================= */
+
+        @media (max-width: 700px) {
+            .money {
+                display: none;
+            }
+
+            .content {
+                width: calc(100% - 24px);
+
+                padding-top: 25px;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .welcome h1 {
+                font-size: 25px;
+            }
+
+            .menu-panel {
+                left: 8px;
+                width: calc(100% - 16px);
+            }
+        }
+
+        /* ================================
+           다크모드
+        ================================= */
+
+        body.dark {
+            background: #101214;
+            color: #f1f3f5;
+        }
+
+        body.dark .topbar {
+            background: rgba(24, 27, 31, 0.92);
+            border-color: #2d3238;
+        }
+
+        body.dark .menu-button:hover,
+        body.dark .icon-button:hover {
+            background: #292e34;
+        }
+
+        body.dark .money {
+            background: #292e34;
+        }
+
+        body.dark .menu-panel {
+            background: rgba(24, 27, 31, 0.98);
+            border-color: #2d3238;
+        }
+
+        body.dark .menu-item:hover {
+            background: #292e34;
+        }
+
+        body.dark .menu-title {
+            color: #9ca3af;
+        }
+
+        body.dark .welcome p,
+        body.dark .card p {
+            color: #9ca3af;
+        }
+
+        body.dark .card {
+            background: #181b1f;
+            border-color: #2d3238;
+        }
+    </style>
 </head>
-
 
 <body>
 
+    <!-- ================================
+         상단바
+    ================================= -->
 
-<!-- ======================================
-     로그인 / 회원가입
-====================================== -->
-
-<div id="auth">
-
-    <div class="auth-card">
+    <header class="topbar">
 
         <div class="logo">
             VSM
         </div>
 
-        <h1 id="title">
-            로그인
-        </h1>
-
-        <p class="subtitle">
-            Virtual Stock Market
-        </p>
-
-
-        <div class="input-group">
-
-            <input
-                id="user"
-                type="text"
-                placeholder="아이디"
-                autocomplete="username"
-            >
-
-        </div>
-
-
-        <div class="input-group">
-
-            <input
-                id="nick"
-                type="text"
-                placeholder="닉네임"
-                autocomplete="nickname"
-            >
-
-        </div>
-
-
-        <div class="input-group">
-
-            <input
-                id="pass"
-                type="password"
-                placeholder="비밀번호"
-                autocomplete="current-password"
-            >
-
-        </div>
-
-
         <button
-            id="authbtn"
-            class="primary-button"
+            class="menu-button"
+            id="menuButton"
+            aria-label="메뉴"
         >
-            로그인
+            ☰
         </button>
 
+        <div class="top-spacer"></div>
 
-        <button
-            id="toggle"
-            class="text-button"
-        >
-            회원가입
-        </button>
+        <div class="top-info">
 
-    </div>
-
-</div>
-
-
-
-<!-- ======================================
-     메인 앱
-====================================== -->
-
-<div
-    id="app"
-    class="hide"
->
-
-
-    <!-- 상단바 -->
-
-    <header class="topbar">
-
-        <div class="brand">
-
-            <span class="brand-logo">
-                VSM
-            </span>
-
-            <span class="brand-name">
-                Virtual Stock Market
-            </span>
-
-        </div>
-
-
-        <div class="top-actions">
+            <div class="money">
+                💰 <span id="money">10,000</span>원
+            </div>
 
             <button
-                onclick="page('market')"
+                class="icon-button"
+                id="notificationButton"
+                aria-label="알림"
             >
-                시장
+                🔔
             </button>
 
             <button
-                onclick="page('portfolio')"
+                class="icon-button"
+                id="profileButton"
+                aria-label="프로필"
             >
-                내 자산
-            </button>
-
-            <button
-                onclick="page('tx')"
-            >
-                거래내역
-            </button>
-
-            <button
-                onclick="page('rank')"
-            >
-                랭킹
-            </button>
-
-            <button
-                onclick="logout()"
-                class="logout"
-            >
-                로그아웃
+                👤
             </button>
 
         </div>
@@ -166,199 +420,264 @@
     </header>
 
 
+    <!-- ================================
+         메뉴
+    ================================= -->
 
-    <!-- ==================================
-         시장
-    ================================== -->
-
-    <main
-        id="market"
-        class="page"
+    <nav
+        class="menu-panel"
+        id="menuPanel"
     >
 
-        <section class="hero">
+        <div class="menu-title">
+            VSM MENU
+        </div>
 
-            <div>
+        <button class="menu-item">
+            🏠
+            <span>홈</span>
+        </button>
 
-                <p class="eyebrow">
-                    LIVE MARKET
-                </p>
+        <button class="menu-item">
+            📈
+            <span>주식</span>
+        </button>
+
+        <button class="menu-item">
+            🏦
+            <span>안드로메다뱅크</span>
+        </button>
+
+        <button class="menu-item">
+            🏢
+            <span>주식회사</span>
+        </button>
+
+        <button class="menu-item">
+            📢
+            <span>공지사항</span>
+        </button>
+
+        <button class="menu-item">
+            📮
+            <span>피드백</span>
+        </button>
+
+        <button
+            class="menu-item"
+            id="themeButton"
+        >
+            🌙
+            <span>다크모드</span>
+        </button>
+
+    </nav>
+
+
+    <!-- ================================
+         메인 화면
+    ================================= -->
+
+    <main class="main">
+
+        <div class="content">
+
+            <section class="welcome">
 
                 <h1>
-                    가상 주식시장
+                    VSM에 오신 것을 환영합니다.
                 </h1>
 
                 <p>
-                    실시간으로 변동하는 VSM 시장입니다.
+                    Virtual Stock Market
                 </p>
 
-            </div>
+            </section>
 
 
-            <div class="market-status">
+            <section class="grid">
 
-                <span class="live-dot"></span>
+                <div class="card">
 
-                시장 운영 중
+                    <h2>
+                        💰 내 자산
+                    </h2>
 
-            </div>
+                    <p>
+                        현재 보유하고 있는 현금입니다.
+                    </p>
 
-        </section>
+                    <div
+                        class="big-number"
+                        id="assetMoney"
+                    >
+                        10,000원
+                    </div>
+
+                </div>
 
 
-        <section>
+                <div class="card">
 
-            <div
-                id="cards"
-                class="cards"
-            ></div>
+                    <h2>
+                        📈 주식시장
+                    </h2>
 
-        </section>
+                    <p>
+                        현재 주식시장 정보를 확인할 수 있습니다.
+                    </p>
+
+                    <div
+                        class="big-number"
+                    >
+                        VSM
+                    </div>
+
+                </div>
+
+
+                <div class="card">
+
+                    <h2>
+                        🏦 안드로메다뱅크
+                    </h2>
+
+                    <p>
+                        다른 플레이어에게 돈을 보내거나
+                        거래내역을 확인할 수 있습니다.
+                    </p>
+
+                </div>
+
+
+                <div class="card">
+
+                    <h2>
+                        🏢 주식회사
+                    </h2>
+
+                    <p>
+                        플레이어가 직접 회사를 만들고
+                        운영할 수 있습니다.
+                    </p>
+
+                </div>
+
+            </section>
+
+        </div>
 
     </main>
 
 
+    <script>
 
-    <!-- ==================================
-         상세정보
-    ================================== -->
+        // ================================
+        // 메뉴 열기 / 닫기
+        // ================================
 
-    <main
-        id="detail"
-        class="page hide"
-    ></main>
+        const menuButton =
+            document.getElementById("menuButton");
 
-
-
-    <!-- ==================================
-         내 자산
-    ================================== -->
-
-    <main
-        id="portfolio"
-        class="page hide"
-    >
-
-        <section class="section-header">
-
-            <div>
-
-                <p class="eyebrow">
-                    PORTFOLIO
-                </p>
-
-                <h1>
-                    내 자산
-                </h1>
-
-            </div>
-
-        </section>
+        const menuPanel =
+            document.getElementById("menuPanel");
 
 
-        <section
-            id="sum"
-            class="stats"
-        ></section>
+        menuButton.addEventListener("click", () => {
+
+            menuPanel.classList.toggle("open");
+
+        });
 
 
-        <section class="panel">
+        // ================================
+        // 메뉴 밖을 클릭하면 닫기
+        // ================================
 
-            <h2>
-                보유 종목
-            </h2>
+        document.addEventListener("click", (event) => {
 
-            <div id="pos">
-                불러오는 중...
-            </div>
+            if (
+                !menuPanel.contains(event.target) &&
+                !menuButton.contains(event.target)
+            ) {
+                menuPanel.classList.remove("open");
+            }
 
-        </section>
-
-    </main>
-
-
-
-    <!-- ==================================
-         거래내역
-    ================================== -->
-
-    <main
-        id="tx"
-        class="page hide"
-    >
-
-        <section class="section-header">
-
-            <div>
-
-                <p class="eyebrow">
-                    TRANSACTIONS
-                </p>
-
-                <h1>
-                    거래내역
-                </h1>
-
-            </div>
-
-        </section>
+        });
 
 
-        <section class="panel">
+        // ================================
+        // 다크모드
+        // ================================
 
-            <div id="txlist">
-                불러오는 중...
-            </div>
-
-        </section>
-
-    </main>
+        const themeButton =
+            document.getElementById("themeButton");
 
 
+        themeButton.addEventListener("click", () => {
 
-    <!-- ==================================
-         랭킹
-    ================================== -->
+            document.body.classList.toggle("dark");
 
-    <main
-        id="rank"
-        class="page hide"
-    >
+            const dark =
+                document.body.classList.contains("dark");
 
-        <section class="section-header">
+            localStorage.setItem(
+                "vsm-theme",
+                dark ? "dark" : "light"
+            );
 
-            <div>
+            themeButton.innerHTML =
+                dark
+                    ? "☀️ <span>화이트모드</span>"
+                    : "🌙 <span>다크모드</span>";
 
-                <p class="eyebrow">
-                    RANKING
-                </p>
-
-                <h1>
-                    자산 랭킹
-                </h1>
-
-            </div>
-
-        </section>
+        });
 
 
-        <section class="panel">
+        // ================================
+        // 저장된 테마 불러오기
+        // ================================
 
-            <div id="ranklist">
-                불러오는 중...
-            </div>
-
-        </section>
-
-    </main>
+        const savedTheme =
+            localStorage.getItem("vsm-theme");
 
 
-</div>
+        if (savedTheme === "dark") {
+
+            document.body.classList.add("dark");
+
+            themeButton.innerHTML =
+                "☀️ <span>화이트모드</span>";
+
+        }
 
 
+        // ================================
+        // 임시 알림 버튼
+        // ================================
 
-<script src="/app.js"></script>
+        document
+            .getElementById("notificationButton")
+            .addEventListener("click", () => {
+
+                alert("현재 새로운 알림이 없습니다.");
+
+            });
+
+
+        // ================================
+        // 임시 프로필 버튼
+        // ================================
+
+        document
+            .getElementById("profileButton")
+            .addEventListener("click", () => {
+
+                alert("로그인 기능과 연결될 예정입니다.");
+
+            });
+
+    </script>
 
 </body>
-
 </html>
