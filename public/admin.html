@@ -639,23 +639,6 @@ th {
 }
 
 /* ================================
-   플레이어 상세정보 - 주식 UI
-================================ */
-
-.detail-toolbar { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
-.detail-summary { color:#6b7280; font-size:13px; font-weight:800; }
-.detail-summary strong { color:#202124; margin-left:4px; }
-.detail-table-wrap { width:100%; overflow-x:auto; border:1px solid #e5e7eb; border-radius:10px; margin-bottom:16px; }
-.detail-table { min-width:650px; }
-.detail-table.transaction-table { min-width:950px; }
-.detail-table th { background:#f7f8fa; white-space:nowrap; }
-.detail-table td { vertical-align:middle; }
-.detail-table input, .detail-table select { width:100%; min-width:80px; padding:8px 9px; border:1px solid #dfe3e8; border-radius:8px; outline:none; background:white; }
-.detail-table input:focus, .detail-table select:focus { border-color:#2563eb; }
-.detail-table .number-input { text-align:right; }
-.empty-detail { padding:24px !important; text-align:center !important; color:#9ca3af; }
-
-/* ================================
    반응형
 ================================ */
 
@@ -1066,7 +1049,7 @@ th {
     <h1>📈 주식 관리</h1>
 
     <p>
-        종목, 가격, 변동성, 거래량 및 주가 방향을 관리합니다.
+        종목, 가격, 최소·최대 변동값, 거래량 및 주가 방향을 관리합니다.
     </p>
 
 </div>
@@ -1647,70 +1630,39 @@ th {
 
 </div>
 
-    <div class="sub-title">
-        📦 보유 주식
-    </div>
 
-    <div class="detail-toolbar">
-        <div class="detail-summary">
-            보유 종목 <strong id="holdingsCount">0</strong>개
-        </div>
-        <button type="button" class="btn btn-blue" onclick="addHoldingRow()">
-            ＋ 주식 추가
-        </button>
-    </div>
+<div class="sub-title">
+📦 보유 주식
+</div>
 
-    <div class="detail-table-wrap">
-        <table class="detail-table">
-            <thead>
-                <tr>
-                    <th>종목</th>
-                    <th>보유 수량</th>
-                    <th>관리</th>
-                </tr>
-            </thead>
-            <tbody id="holdingsTable">
-                <tr>
-                    <td colspan="3" class="empty-detail">보유 주식이 없습니다.</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+<div class="field">
 
-    <div class="sub-title">
-        📜 거래 내역
-    </div>
+<label>
+JSON 형식
+</label>
 
-    <div class="detail-toolbar">
-        <div class="detail-summary">
-            총 거래 <strong id="transactionsCount">0</strong>건
-        </div>
-        <button type="button" class="btn btn-blue" onclick="addTransactionRow()">
-            ＋ 거래 추가
-        </button>
-    </div>
+<textarea
+    id="detailHoldings"
+></textarea>
 
-    <div class="detail-table-wrap">
-        <table class="detail-table transaction-table">
-            <thead>
-                <tr>
-                    <th>날짜</th>
-                    <th>구분</th>
-                    <th>종목</th>
-                    <th>수량</th>
-                    <th>가격</th>
-                    <th>총액</th>
-                    <th>관리</th>
-                </tr>
-            </thead>
-            <tbody id="transactionsTable">
-                <tr>
-                    <td colspan="7" class="empty-detail">거래 내역이 없습니다.</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+</div>
 
+
+<div class="sub-title">
+📜 거래 내역
+</div>
+
+<div class="field">
+
+<label>
+JSON 형식
+</label>
+
+<textarea
+    id="detailTransactions"
+></textarea>
+
+</div>
 
 
 <div class="sub-title">
@@ -2595,189 +2547,271 @@ async function loadUsers() {
 ======================================== */
 
 async function openUserDetail(id) {
+
     try {
-        const data = await api(`/api/admin/users/${encodeURIComponent(id)}`);
-        const user = data.user;
 
-        document.getElementById("detailUserId").value = user.id;
-        document.getElementById("detailId").textContent = user.id;
-        document.getElementById("detailCreated").textContent = formatDate(user.createdAt ?? user.created_at);
-        document.getElementById("detailNickname").value = user.nickname || "";
-        document.getElementById("detailPlayerNumber").value = user.playerNumber ?? user.player_number ?? "";
-        document.getElementById("detailCash").value = Number(user.cash || 0);
+        const data =
+            await api(
+                `/api/admin/users/${encodeURIComponent(id)}`
+            );
 
-        renderHoldings(user.holdings || {});
-        renderTransactions(user.transactions || []);
+        const user =
+            data.user;
 
-        const bannedUntil = user.bannedUntil ?? user.banned_until;
-        const banReason = user.banReason ?? user.ban_reason;
-        const banned = bannedUntil && Number(bannedUntil) > Date.now();
 
-        document.getElementById("detailBan").innerHTML = banned
-            ? `<span class="status status-banned">밴 상태</span><br><br>종료: ${formatDate(bannedUntil)}<br>사유: ${escapeHtml(banReason || "-")}`
-            : `<span class="status status-normal">정상</span>`;
+        document
+            .getElementById(
+                "detailUserId"
+            )
+            .value =
+                user.id;
 
-        openModal("userModal");
+
+        document
+            .getElementById(
+                "detailId"
+            )
+            .textContent =
+                user.id;
+
+
+        document
+            .getElementById(
+                "detailCreated"
+            )
+            .textContent =
+                formatDate(
+                    user.createdAt
+                );
+
+
+        document
+            .getElementById(
+                "detailNickname"
+            )
+            .value =
+                user.nickname || "";
+
+
+        document
+            .getElementById(
+                "detailPlayerNumber"
+            )
+            .value =
+                user.playerNumber || "";
+
+
+        document
+            .getElementById(
+                "detailCash"
+            )
+            .value =
+                user.cash || 0;
+
+
+        document
+            .getElementById(
+                "detailHoldings"
+            )
+            .value =
+                JSON.stringify(
+                    user.holdings || {},
+                    null,
+                    2
+                );
+
+
+        document
+            .getElementById(
+                "detailTransactions"
+            )
+            .value =
+                JSON.stringify(
+                    user.transactions || [],
+                    null,
+                    2
+                );
+
+
+        const banned =
+            user.bannedUntil &&
+            Number(
+                user.bannedUntil
+            ) > Date.now();
+
+
+        document
+            .getElementById(
+                "detailBan"
+            )
+            .innerHTML =
+                banned
+
+                ? `
+                    <span class="status status-banned">
+                        밴 상태
+                    </span>
+                    <br><br>
+                    종료:
+                    ${formatDate(
+                        user.bannedUntil
+                    )}
+                    <br>
+                    사유:
+                    ${escapeHtml(
+                        user.banReason || "-"
+                    )}
+                  `
+
+                : `
+                    <span class="status status-normal">
+                        정상
+                    </span>
+                  `;
+
+
+        openModal(
+            "userModal"
+        );
+
     } catch (error) {
-        alert(error.message);
+
+        alert(
+            error.message
+        );
+
     }
+
 }
 
-function renderHoldings(holdings) {
-    const tbody = document.getElementById("holdingsTable");
-    tbody.innerHTML = "";
-    const entries = holdings && typeof holdings === "object" && !Array.isArray(holdings)
-        ? Object.entries(holdings).map(([stockId, quantity]) => ({ stockId, quantity:Number(quantity) || 0 }))
-        : [];
-    document.getElementById("holdingsCount").textContent = entries.length;
-    if (!entries.length) {
-        tbody.innerHTML = `<tr><td colspan="3" class="empty-detail">보유 주식이 없습니다.</td></tr>`;
-        return;
-    }
-    entries.forEach(h => addHoldingRow(h.stockId, h.quantity));
-}
 
-function addHoldingRow(stockId = "", quantity = 0) {
-    const tbody = document.getElementById("holdingsTable");
-    if (tbody.querySelector(".empty-detail")) tbody.innerHTML = "";
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-        <td><input class="holding-stock" value="${escapeHtml(stockId)}" placeholder="예: SKNX"></td>
-        <td><input class="holding-quantity number-input" type="number" min="0" step="1" value="${Number(quantity) || 0}"></td>
-        <td><button type="button" class="btn btn-red" onclick="removeHoldingRow(this)">삭제</button></td>
-    `;
-    tbody.appendChild(tr);
-    updateHoldingsCount();
-}
-
-function removeHoldingRow(button) {
-    const row = button.closest("tr");
-    if (row) row.remove();
-    updateHoldingsCount();
-    const tbody = document.getElementById("holdingsTable");
-    if (!tbody.children.length) tbody.innerHTML = `<tr><td colspan="3" class="empty-detail">보유 주식이 없습니다.</td></tr>`;
-}
-
-function updateHoldingsCount() {
-    document.getElementById("holdingsCount").textContent = document.querySelectorAll("#holdingsTable .holding-stock").length;
-}
-
-function collectHoldings() {
-    const holdings = {};
-    document.querySelectorAll("#holdingsTable tr").forEach(row => {
-        const stockInput = row.querySelector(".holding-stock");
-        const quantityInput = row.querySelector(".holding-quantity");
-        if (!stockInput || !quantityInput) return;
-        const stockId = stockInput.value.trim().toUpperCase();
-        const quantity = Number(quantityInput.value);
-        if (!stockId || !Number.isFinite(quantity) || quantity < 0) return;
-        if (quantity > 0) holdings[stockId] = Math.floor(quantity);
-    });
-    return holdings;
-}
-
-function renderTransactions(transactions) {
-    const tbody = document.getElementById("transactionsTable");
-    tbody.innerHTML = "";
-    const list = Array.isArray(transactions) ? transactions : [];
-    document.getElementById("transactionsCount").textContent = list.length;
-    if (!list.length) {
-        tbody.innerHTML = `<tr><td colspan="7" class="empty-detail">거래 내역이 없습니다.</td></tr>`;
-        return;
-    }
-    list.forEach(t => addTransactionRow(t));
-}
-
-function addTransactionRow(transaction = {}) {
-    const tbody = document.getElementById("transactionsTable");
-    if (tbody.querySelector(".empty-detail")) tbody.innerHTML = "";
-    const tr = document.createElement("tr");
-    const type = transaction.type || transaction.action || transaction.side || "buy";
-    const stock = transaction.stockId || transaction.stock_id || transaction.stock || transaction.symbol || "";
-    const quantity = Number(transaction.quantity ?? transaction.qty ?? transaction.amount ?? transaction.count ?? 0);
-    const price = Number(transaction.price ?? transaction.unitPrice ?? transaction.unit_price ?? 0);
-    const total = Number(transaction.total ?? transaction.totalPrice ?? transaction.total_price ?? quantity * price);
-    const time = transaction.time ?? transaction.createdAt ?? transaction.created_at ?? transaction.timestamp ?? Date.now();
-    tr.innerHTML = `
-        <td><input class="transaction-time" type="datetime-local" value="${toDateTimeLocal(time)}"></td>
-        <td><select class="transaction-type"><option value="buy" ${type === "buy" ? "selected" : ""}>매수</option><option value="sell" ${type === "sell" ? "selected" : ""}>매도</option></select></td>
-        <td><input class="transaction-stock" value="${escapeHtml(stock)}" placeholder="예: SKNX"></td>
-        <td><input class="transaction-quantity number-input" type="number" min="1" step="1" value="${quantity}"></td>
-        <td><input class="transaction-price number-input" type="number" min="0" step="1" value="${price}"></td>
-        <td><input class="transaction-total number-input" type="number" min="0" step="1" value="${total}"></td>
-        <td><button type="button" class="btn btn-red" onclick="removeTransactionRow(this)">삭제</button></td>
-    `;
-    tbody.appendChild(tr);
-    updateTransactionsCount();
-}
-
-function removeTransactionRow(button) {
-    const row = button.closest("tr");
-    if (row) row.remove();
-    updateTransactionsCount();
-    const tbody = document.getElementById("transactionsTable");
-    if (!tbody.children.length) tbody.innerHTML = `<tr><td colspan="7" class="empty-detail">거래 내역이 없습니다.</td></tr>`;
-}
-
-function updateTransactionsCount() {
-    document.getElementById("transactionsCount").textContent = document.querySelectorAll("#transactionsTable .transaction-stock").length;
-}
-
-function collectTransactions() {
-    const transactions = [];
-    document.querySelectorAll("#transactionsTable tr").forEach(row => {
-        const timeInput = row.querySelector(".transaction-time");
-        const typeInput = row.querySelector(".transaction-type");
-        const stockInput = row.querySelector(".transaction-stock");
-        const quantityInput = row.querySelector(".transaction-quantity");
-        const priceInput = row.querySelector(".transaction-price");
-        const totalInput = row.querySelector(".transaction-total");
-        if (!timeInput || !typeInput || !stockInput || !quantityInput || !priceInput || !totalInput) return;
-        const stockId = stockInput.value.trim().toUpperCase();
-        const quantity = Number(quantityInput.value);
-        const price = Number(priceInput.value);
-        const total = Number(totalInput.value);
-        const timestamp = new Date(timeInput.value).getTime();
-        if (!stockId || !Number.isFinite(quantity) || quantity <= 0 || !Number.isFinite(price) || price < 0 || !Number.isFinite(total) || total < 0) return;
-        transactions.push({
-            time: Number.isFinite(timestamp) ? timestamp : Date.now(),
-            type: typeInput.value,
-            stockId,
-            quantity: Math.floor(quantity),
-            price,
-            total
-        });
-    });
-    return transactions;
-}
+/* ========================================
+   플레이어 저장
+======================================== */
 
 async function saveUserDetail() {
-    const id = document.getElementById("detailUserId").value;
+
+    const id =
+        document
+            .getElementById(
+                "detailUserId"
+            )
+            .value;
+
+    let holdings;
+    let transactions;
+
+
     try {
-        await api(`/api/admin/users/${encodeURIComponent(id)}`, {
-            method: "PATCH",
-            body: {
-                nickname: document.getElementById("detailNickname").value.trim(),
-                playerNumber: Number(document.getElementById("detailPlayerNumber").value),
-                cash: Number(document.getElementById("detailCash").value),
-                holdings: collectHoldings(),
-                transactions: collectTransactions()
-            }
-        });
-        closeModal("userModal");
-        alert("플레이어 상세정보가 저장되었습니다.");
-        loadUsers();
-    } catch (error) {
-        alert(error.message);
+
+        holdings =
+            JSON.parse(
+                document
+                    .getElementById(
+                        "detailHoldings"
+                    )
+                    .value ||
+                "{}"
+            );
+
+    } catch (_) {
+
+        alert(
+            "보유 주식 JSON 형식이 올바르지 않습니다."
+        );
+
+        return;
+
     }
+
+
+    try {
+
+        transactions =
+            JSON.parse(
+                document
+                    .getElementById(
+                        "detailTransactions"
+                    )
+                    .value ||
+                "[]"
+            );
+
+    } catch (_) {
+
+        alert(
+            "거래 내역 JSON 형식이 올바르지 않습니다."
+        );
+
+        return;
+
+    }
+
+
+    try {
+
+        await api(
+            `/api/admin/users/${encodeURIComponent(id)}`,
+            {
+                method: "PATCH",
+
+                body: {
+
+                    nickname:
+                        document
+                            .getElementById(
+                                "detailNickname"
+                            )
+                            .value,
+
+                    playerNumber:
+                        Number(
+                            document
+                                .getElementById(
+                                    "detailPlayerNumber"
+                                )
+                                .value
+                        ),
+
+                    cash:
+                        Number(
+                            document
+                                .getElementById(
+                                    "detailCash"
+                                )
+                                .value
+                        ),
+
+                    holdings,
+
+                    transactions
+
+                }
+
+            }
+        );
+
+
+        closeModal(
+            "userModal"
+        );
+
+        alert(
+            "플레이어 상세정보가 저장되었습니다."
+        );
+
+        loadUsers();
+
+    } catch (error) {
+
+        alert(
+            error.message
+        );
+
+    }
+
 }
 
-function toDateTimeLocal(value) {
-    const date = new Date(Number(value));
-    if (Number.isNaN(date.getTime())) return "";
-    const pad = number => String(number).padStart(2, "0");
-    return date.getFullYear() + "-" + pad(date.getMonth() + 1) + "-" + pad(date.getDate()) + "T" + pad(date.getHours()) + ":" + pad(date.getMinutes());
-}
 
 /* ========================================
    밴
@@ -2939,23 +2973,33 @@ async function loadStocks() {
                     );
 
 
-                /*
-                 * 현재 DB가 단일 volatility를
-                 * 반환하는 동안은 해당 값을
-                 * 변동 범위의 최대치로 표시.
-                 *
-                 * min/max 필드가 적용되면
-                 * 아래 부분만 min/max로 연결.
-                 */
+                const currentPrice =
+                    Number(stock.price || 0);
 
-                const volatility =
-                    Number(
-                        stock.volatility || 0
+                const minChange =
+                    Number(stock.min_change || 0);
+
+                const maxChange =
+                    Number(stock.max_change || 0);
+
+                const minimumPrice =
+                    Math.max(
+                        0,
+                        Math.round(
+                            currentPrice - minChange
+                        )
                     );
 
+                const maximumPrice =
+                    Math.max(
+                        minimumPrice,
+                        Math.round(
+                            currentPrice + maxChange
+                        )
+                    );
 
                 const rangeText =
-                    `0% ~ ${volatility * 100}%`;
+                    `${formatMoney(minimumPrice)}원 ~ ${formatMoney(maximumPrice)}원`;
 
 
                 tr.innerHTML = `
@@ -3081,11 +3125,20 @@ async function createStock() {
                                 .value
                         ),
 
-                    volatility:
+                    minChange:
                         Number(
                             document
                                 .getElementById(
-                                    "newStockVolatility"
+                                    "newStockMinChange"
+                                )
+                                .value
+                        ),
+
+                    maxChange:
+                        Number(
+                            document
+                                .getElementById(
+                                    "newStockMaxChange"
                                 )
                                 .value
                         ),
@@ -3158,10 +3211,17 @@ function openStockEdit(stock) {
 
     document
         .getElementById(
-            "editStockVolatility"
+            "editStockMinChange"
         )
         .value =
-            stock.volatility || 0;
+            Number(stock.min_change || 0);
+
+    document
+        .getElementById(
+            "editStockMaxChange"
+        )
+        .value =
+            Number(stock.max_change || 0);
 
     document
         .getElementById(
@@ -3223,11 +3283,20 @@ async function saveStock() {
                                 .value
                         ),
 
-                    volatility:
+                    minChange:
                         Number(
                             document
                                 .getElementById(
-                                    "editStockVolatility"
+                                    "editStockMinChange"
+                                )
+                                .value
+                        ),
+
+                    maxChange:
+                        Number(
+                            document
+                                .getElementById(
+                                    "editStockMaxChange"
                                 )
                                 .value
                         ),
