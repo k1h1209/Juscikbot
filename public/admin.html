@@ -1,688 +1,698 @@
-```html
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>VSM 관리자 패널</title>
+<title>VSM 관리자 패널</title>
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+<style>
 
-        html,
-        body {
-            margin: 0;
-            padding: 0;
-            min-height: 100%;
-            font-family:
-                Arial,
-                "Noto Sans KR",
-                sans-serif;
-        }
+* {
+    box-sizing: border-box;
+}
 
-        body {
-            background: #f4f6f8;
-            color: #202124;
-        }
+body {
+    margin: 0;
+    font-family:
+        Arial,
+        "Noto Sans KR",
+        sans-serif;
 
-        button,
-        input,
-        textarea,
-        select {
-            font: inherit;
-        }
+    background: #f4f6f8;
+    color: #202124;
+}
 
-        button {
-            cursor: pointer;
-        }
+button,
+input,
+textarea,
+select {
+    font: inherit;
+}
 
-        /* ========================================
-           로그인
-        ======================================== */
+button {
+    cursor: pointer;
+}
 
-        #loginScreen {
-            min-height: 100vh;
+.hidden {
+    display: none !important;
+}
 
-            display: flex;
-            align-items: center;
-            justify-content: center;
+/* ================================
+   로그인
+================================ */
 
-            padding: 20px;
-        }
+#loginScreen {
+    min-height: 100vh;
 
-        .login-box {
-            width: min(420px, 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-            background: white;
+    padding: 20px;
+}
 
-            border: 1px solid #e5e7eb;
-            border-radius: 20px;
+.login-box {
+    width: min(420px, 100%);
 
-            padding: 32px;
+    background: white;
 
-            box-shadow:
-                0 15px 45px
-                rgba(0,0,0,0.08);
-        }
+    border: 1px solid #e5e7eb;
+    border-radius: 20px;
 
-        .login-logo {
-            font-size: 28px;
-            font-weight: 900;
+    padding: 30px;
 
-            margin-bottom: 8px;
-        }
+    box-shadow:
+        0 15px 45px rgba(0,0,0,.08);
+}
 
-        .login-description {
-            color: #6b7280;
-            font-size: 14px;
+.login-title {
+    font-size: 27px;
+    font-weight: 900;
 
-            margin-bottom: 25px;
-        }
+    margin-bottom: 8px;
+}
 
-        .login-input {
-            width: 100%;
+.login-description {
+    color: #6b7280;
+    font-size: 14px;
 
-            padding: 13px 14px;
+    margin-bottom: 22px;
+}
 
-            border: 1px solid #dfe3e8;
-            border-radius: 10px;
+.login-input {
+    width: 100%;
 
-            outline: none;
+    padding: 13px;
 
-            margin-bottom: 12px;
-        }
+    border: 1px solid #dfe3e8;
+    border-radius: 10px;
 
-        .login-input:focus {
-            border-color: #202124;
-        }
+    margin-bottom: 12px;
+}
 
-        .login-button {
-            width: 100%;
+.login-button {
+    width: 100%;
 
-            padding: 13px;
+    padding: 13px;
 
-            border: none;
-            border-radius: 10px;
+    border: none;
+    border-radius: 10px;
 
-            background: #202124;
-            color: white;
+    background: #202124;
+    color: white;
 
-            font-weight: 800;
-        }
+    font-weight: 800;
+}
 
-        .login-error {
-            margin-top: 12px;
+.login-error {
+    color: #dc2626;
+    font-size: 13px;
 
-            color: #dc2626;
-            font-size: 13px;
-        }
+    margin-top: 10px;
+}
 
-        /* ========================================
-           관리자 전체
-        ======================================== */
+/* ================================
+   관리자
+================================ */
 
-        #adminApp {
-            display: none;
-        }
+#adminApp {
+    display: none;
+}
 
-        .topbar {
-            position: fixed;
+.topbar {
+    position: fixed;
 
-            top: 0;
-            left: 0;
-            right: 0;
+    top: 0;
+    left: 0;
+    right: 0;
 
-            height: 60px;
+    height: 60px;
 
-            display: flex;
-            align-items: center;
+    display: flex;
+    align-items: center;
 
-            padding: 0 18px;
+    padding: 0 18px;
 
-            background:
-                rgba(255,255,255,0.95);
+    background: rgba(255,255,255,.96);
 
-            border-bottom:
-                1px solid #e5e7eb;
+    border-bottom:
+        1px solid #e5e7eb;
 
-            backdrop-filter: blur(12px);
+    z-index: 1000;
+}
 
-            z-index: 1000;
-        }
+.logo {
+    font-size: 19px;
+    font-weight: 900;
+}
 
-        .logo {
-            font-size: 19px;
-            font-weight: 900;
-        }
+.badge {
+    margin-left: 10px;
 
-        .admin-badge {
-            margin-left: 10px;
+    padding: 5px 8px;
 
-            padding: 5px 8px;
+    border-radius: 7px;
 
-            border-radius: 7px;
+    background: #fee2e2;
+    color: #b91c1c;
 
-            background: #fee2e2;
-            color: #b91c1c;
+    font-size: 11px;
+    font-weight: 900;
+}
 
-            font-size: 11px;
-            font-weight: 800;
-        }
+.spacer {
+    flex: 1;
+}
 
-        .top-spacer {
-            flex: 1;
-        }
+.top-button {
+    border: none;
+    border-radius: 9px;
 
-        .refresh-all {
-            border: none;
-            border-radius: 9px;
+    padding: 9px 12px;
 
-            padding: 8px 12px;
+    margin-left: 7px;
 
-            background: #eef1f4;
-        }
+    background: #eef1f4;
+}
 
-        .logout-button {
-            margin-left: 8px;
+.site-button {
+    background: #dbeafe;
+    color: #1d4ed8;
 
-            border: none;
-            border-radius: 9px;
+    font-weight: 800;
+}
 
-            padding: 8px 12px;
+.logout-button {
+    background: #fee2e2;
+    color: #b91c1c;
 
-            background: #fee2e2;
-            color: #b91c1c;
+    font-weight: 800;
+}
 
-            font-weight: 700;
-        }
+/* ================================
+   레이아웃
+================================ */
 
-        /* ========================================
-           레이아웃
-        ======================================== */
+.layout {
+    min-height: 100vh;
 
-        .layout {
-            display: flex;
+    padding-top: 60px;
+}
 
-            min-height: 100vh;
+.sidebar {
+    position: fixed;
 
-            padding-top: 60px;
-        }
+    top: 60px;
+    bottom: 0;
+    left: 0;
 
-        .sidebar {
-            position: fixed;
+    width: 225px;
 
-            top: 60px;
-            bottom: 0;
-            left: 0;
+    padding: 18px 12px;
 
-            width: 225px;
+    background: white;
 
-            padding: 18px 12px;
+    border-right:
+        1px solid #e5e7eb;
+}
 
-            background: white;
+.nav-button {
+    width: 100%;
 
-            border-right:
-                1px solid #e5e7eb;
-        }
+    display: flex;
+    align-items: center;
 
-        .nav-button {
-            width: 100%;
+    gap: 10px;
 
-            display: flex;
-            align-items: center;
+    padding: 12px;
 
-            gap: 10px;
+    margin-bottom: 5px;
 
-            padding: 12px;
+    border: none;
+    border-radius: 10px;
 
-            margin-bottom: 5px;
+    background: transparent;
 
-            border: none;
-            border-radius: 10px;
+    color: #4b5563;
 
-            background: transparent;
+    text-align: left;
+    font-weight: 800;
+}
 
-            text-align: left;
+.nav-button:hover {
+    background: #f1f3f5;
+}
 
-            color: #4b5563;
+.nav-button.active {
+    background: #202124;
+    color: white;
+}
 
-            font-weight: 700;
-        }
+.main {
+    margin-left: 225px;
 
-        .nav-button:hover {
-            background: #f1f3f5;
-        }
+    padding: 28px;
 
-        .nav-button.active {
-            background: #202124;
-            color: white;
-        }
+    max-width: 1550px;
+}
 
-        .main {
-            width: 100%;
+.section {
+    display: none;
+}
 
-            margin-left: 225px;
+.section.active {
+    display: block;
+}
 
-            padding: 28px;
+.page-title {
+    margin-bottom: 22px;
+}
 
-            max-width: 1500px;
-        }
+.page-title h1 {
+    margin: 0 0 6px;
 
-        .section {
-            display: none;
-        }
+    font-size: 28px;
+}
 
-        .section.active {
-            display: block;
-        }
+.page-title p {
+    margin: 0;
 
-        .page-title {
-            margin-bottom: 22px;
-        }
+    color: #6b7280;
+}
 
-        .page-title h1 {
-            margin: 0 0 6px;
+/* ================================
+   카드
+================================ */
 
-            font-size: 28px;
-        }
+.card {
+    background: white;
 
-        .page-title p {
-            margin: 0;
+    border: 1px solid #e5e7eb;
+    border-radius: 15px;
 
-            color: #6b7280;
-        }
+    padding: 18px;
 
-        /* ========================================
-           카드
-        ======================================== */
+    margin-bottom: 16px;
+}
 
-        .stats {
-            display: grid;
+.card-title {
+    font-size: 17px;
+    font-weight: 900;
 
-            grid-template-columns:
-                repeat(4, minmax(0, 1fr));
+    margin-bottom: 15px;
+}
 
-            gap: 14px;
+.stats {
+    display: grid;
 
-            margin-bottom: 20px;
-        }
+    grid-template-columns:
+        repeat(4, minmax(0,1fr));
 
-        .stat-card {
-            background: white;
+    gap: 14px;
 
-            border:
-                1px solid #e5e7eb;
+    margin-bottom: 20px;
+}
 
-            border-radius: 15px;
+.stat-card {
+    background: white;
 
-            padding: 18px;
-        }
+    border: 1px solid #e5e7eb;
+    border-radius: 15px;
 
-        .stat-label {
-            color: #6b7280;
-            font-size: 13px;
+    padding: 18px;
+}
 
-            margin-bottom: 7px;
-        }
+.stat-label {
+    color: #6b7280;
 
-        .stat-value {
-            font-size: 25px;
-            font-weight: 900;
-        }
+    font-size: 13px;
 
-        .card {
-            background: white;
+    margin-bottom: 7px;
+}
 
-            border:
-                1px solid #e5e7eb;
+.stat-value {
+    font-size: 25px;
+    font-weight: 900;
+}
 
-            border-radius: 15px;
+/* ================================
+   테이블
+================================ */
 
-            padding: 18px;
+.table-wrap {
+    width: 100%;
 
-            margin-bottom: 16px;
-        }
+    overflow-x: auto;
+}
 
-        .card-title {
-            font-size: 17px;
-            font-weight: 900;
+table {
+    width: 100%;
 
-            margin-bottom: 15px;
-        }
+    border-collapse: collapse;
 
-        /* ========================================
-           테이블
-        ======================================== */
+    min-width: 800px;
+}
 
-        .table-wrap {
-            width: 100%;
-            overflow-x: auto;
-        }
+th,
+td {
+    padding: 12px 10px;
 
-        table {
-            width: 100%;
+    border-bottom:
+        1px solid #eef0f2;
 
-            border-collapse: collapse;
+    text-align: left;
 
-            min-width: 700px;
-        }
+    font-size: 13px;
+}
 
-        th,
-        td {
-            padding: 12px 10px;
+th {
+    color: #6b7280;
 
-            border-bottom:
-                1px solid #eef0f2;
+    font-size: 12px;
+}
 
-            text-align: left;
+/* ================================
+   버튼
+================================ */
 
-            font-size: 13px;
-        }
+.btn {
+    border: none;
 
-        th {
-            color: #6b7280;
-            font-size: 12px;
-        }
+    border-radius: 8px;
 
-        td strong {
-            font-weight: 800;
-        }
+    padding: 8px 10px;
 
-        /* ========================================
-           버튼
-        ======================================== */
+    margin: 2px;
 
-        .btn {
-            border: none;
-            border-radius: 8px;
+    font-size: 12px;
+    font-weight: 800;
+}
 
-            padding: 8px 10px;
+.btn-dark {
+    background: #202124;
+    color: white;
+}
 
-            font-size: 12px;
-            font-weight: 800;
+.btn-gray {
+    background: #eef1f4;
+    color: #202124;
+}
 
-            margin: 2px;
-        }
+.btn-blue {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
 
-        .btn-dark {
-            background: #202124;
-            color: white;
-        }
+.btn-green {
+    background: #dcfce7;
+    color: #15803d;
+}
 
-        .btn-gray {
-            background: #eef1f4;
-            color: #202124;
-        }
+.btn-red {
+    background: #fee2e2;
+    color: #b91c1c;
+}
 
-        .btn-red {
-            background: #fee2e2;
-            color: #b91c1c;
-        }
+/* ================================
+   상태
+================================ */
 
-        .btn-blue {
-            background: #dbeafe;
-            color: #1d4ed8;
-        }
+.status {
+    display: inline-block;
 
-        .btn-green {
-            background: #dcfce7;
-            color: #15803d;
-        }
+    padding: 5px 8px;
 
-        /* ========================================
-           폼
-        ======================================== */
+    border-radius: 7px;
 
-        .form-grid {
-            display: grid;
+    font-size: 11px;
+    font-weight: 800;
+}
 
-            grid-template-columns:
-                repeat(2, minmax(0, 1fr));
+.status-normal {
+    background: #dcfce7;
+    color: #15803d;
+}
 
-            gap: 12px;
-        }
+.status-banned {
+    background: #fee2e2;
+    color: #b91c1c;
+}
 
-        .field {
-            display: flex;
-            flex-direction: column;
+.status-pending {
+    background: #fef3c7;
+    color: #92400e;
+}
 
-            gap: 6px;
-        }
+.status-review {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
 
-        .field.full {
-            grid-column: 1 / -1;
-        }
+.status-accepted {
+    background: #dcfce7;
+    color: #15803d;
+}
 
-        .field label {
-            color: #6b7280;
+.status-rejected {
+    background: #fee2e2;
+    color: #b91c1c;
+}
 
-            font-size: 12px;
-            font-weight: 700;
-        }
+/* ================================
+   폼
+================================ */
 
-        .field input,
-        .field textarea,
-        .field select {
-            width: 100%;
+.form-grid {
+    display: grid;
 
-            padding: 10px 11px;
+    grid-template-columns:
+        repeat(2, minmax(0,1fr));
 
-            border: 1px solid #dfe3e8;
-            border-radius: 9px;
+    gap: 12px;
+}
 
-            outline: none;
-        }
+.field {
+    display: flex;
 
-        .field textarea {
-            min-height: 120px;
-            resize: vertical;
-        }
+    flex-direction: column;
 
-        .field input:focus,
-        .field textarea:focus,
-        .field select:focus {
-            border-color: #202124;
-        }
+    gap: 6px;
+}
 
-        .form-actions {
-            margin-top: 14px;
-        }
+.field.full {
+    grid-column: 1 / -1;
+}
 
-        /* ========================================
-           상태
-        ======================================== */
+.field label {
+    color: #6b7280;
 
-        .status {
-            display: inline-block;
+    font-size: 12px;
+    font-weight: 800;
+}
 
-            padding: 5px 8px;
+.field input,
+.field textarea,
+.field select {
+    width: 100%;
 
-            border-radius: 7px;
+    padding: 10px 11px;
 
-            font-size: 11px;
-            font-weight: 800;
-        }
+    border: 1px solid #dfe3e8;
+    border-radius: 9px;
 
-        .status.pending {
-            background: #fef3c7;
-            color: #92400e;
-        }
+    outline: none;
+}
 
-        .status.review {
-            background: #dbeafe;
-            color: #1d4ed8;
-        }
+.field textarea {
+    min-height: 120px;
 
-        .status.accepted {
-            background: #dcfce7;
-            color: #15803d;
-        }
+    resize: vertical;
 
-        .status.rejected {
-            background: #fee2e2;
-            color: #b91c1c;
-        }
+    font-family:
+        Consolas,
+        monospace;
+}
 
-        .status.banned {
-            background: #fee2e2;
-            color: #b91c1c;
-        }
+/* ================================
+   모달
+================================ */
 
-        .status-normal {
-            color: #15803d;
-        }
+.modal {
+    position: fixed;
 
-        .status-up {
-            color: #dc2626;
-        }
+    inset: 0;
 
-        .status-down {
-            color: #2563eb;
-        }
+    display: none;
 
-        /* ========================================
-           모달
-        ======================================== */
+    align-items: center;
+    justify-content: center;
 
-        .modal {
-            position: fixed;
+    padding: 20px;
 
-            inset: 0;
+    background:
+        rgba(0,0,0,.48);
 
-            display: none;
-            align-items: center;
-            justify-content: center;
+    z-index: 3000;
+}
 
-            padding: 20px;
+.modal.show {
+    display: flex;
+}
 
-            background:
-                rgba(0,0,0,0.45);
+.modal-box {
+    width: min(850px, 100%);
 
-            z-index: 3000;
-        }
+    max-height: 92vh;
 
-        .modal.show {
-            display: flex;
-        }
+    overflow-y: auto;
 
-        .modal-box {
-            width: min(560px, 100%);
+    background: white;
 
-            max-height: 90vh;
+    border-radius: 18px;
 
-            overflow-y: auto;
+    padding: 22px;
+}
 
-            background: white;
+.modal-title {
+    margin: 0 0 18px;
 
-            border-radius: 18px;
+    font-size: 21px;
+    font-weight: 900;
+}
 
-            padding: 22px;
-        }
+.modal-buttons {
+    display: flex;
 
-        .modal-title {
-            margin: 0 0 18px;
+    justify-content: flex-end;
 
-            font-size: 20px;
-            font-weight: 900;
-        }
+    gap: 8px;
 
-        .modal-buttons {
-            display: flex;
-            justify-content: flex-end;
+    margin-top: 18px;
+}
 
-            gap: 8px;
+.detail-grid {
+    display: grid;
 
-            margin-top: 18px;
-        }
+    grid-template-columns:
+        repeat(2, minmax(0,1fr));
 
-        /* ========================================
-           점검
-        ======================================== */
+    gap: 10px;
 
-        .maintenance-box {
-            display: flex;
+    margin-bottom: 18px;
+}
 
-            align-items: center;
-            justify-content: space-between;
+.detail-item {
+    padding: 12px;
 
-            gap: 20px;
-        }
+    background: #f7f8fa;
 
-        .maintenance-state {
-            font-size: 18px;
-            font-weight: 900;
-        }
+    border-radius: 10px;
+}
 
-        .maintenance-on {
-            color: #dc2626;
-        }
+.detail-label {
+    color: #6b7280;
 
-        .maintenance-off {
-            color: #16a34a;
-        }
+    font-size: 11px;
 
-        /* ========================================
-           모바일
-        ======================================== */
+    margin-bottom: 5px;
+}
 
-        @media (max-width: 850px) {
+.detail-value {
+    font-weight: 800;
 
-            .sidebar {
-                width: 65px;
-            }
+    word-break: break-all;
+}
 
-            .nav-button {
-                justify-content: center;
-                font-size: 0;
-            }
+.sub-title {
+    margin:
+        20px 0 10px;
 
-            .nav-button span {
-                display: none;
-            }
+    font-size: 15px;
+    font-weight: 900;
+}
 
-            .main {
-                margin-left: 65px;
-                padding: 18px;
-            }
+/* ================================
+   점검
+================================ */
 
-            .stats {
-                grid-template-columns:
-                    repeat(2, minmax(0, 1fr));
-            }
+.maintenance-box {
+    display: flex;
 
-        }
+    align-items: center;
+    justify-content: space-between;
 
-        @media (max-width: 600px) {
+    gap: 20px;
+}
 
-            .stats {
-                grid-template-columns: 1fr;
-            }
+.maintenance-state {
+    font-size: 19px;
+    font-weight: 900;
+}
 
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
+.maintenance-on {
+    color: #dc2626;
+}
 
-            .field.full {
-                grid-column: auto;
-            }
+.maintenance-off {
+    color: #16a34a;
+}
 
-            .logo {
-                font-size: 16px;
-            }
+/* ================================
+   반응형
+================================ */
 
-            .admin-badge {
-                display: none;
-            }
+@media (max-width: 850px) {
 
-            .refresh-all {
-                display: none;
-            }
+    .sidebar {
+        width: 65px;
+    }
 
-        }
-    </style>
+    .nav-button {
+        justify-content: center;
+
+        font-size: 0;
+    }
+
+    .nav-button span {
+        display: none;
+    }
+
+    .main {
+        margin-left: 65px;
+
+        padding: 18px;
+    }
+
+    .stats {
+        grid-template-columns:
+            repeat(2, minmax(0,1fr));
+    }
+
+}
+
+@media (max-width: 600px) {
+
+    .stats {
+        grid-template-columns: 1fr;
+    }
+
+    .form-grid,
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .field.full {
+        grid-column: auto;
+    }
+
+    .site-button {
+        display: none;
+    }
+
+}
+
+</style>
 </head>
 
 <body>
@@ -695,12 +705,12 @@
 
     <div class="login-box">
 
-        <div class="login-logo">
+        <div class="login-title">
             🛠️ VSM 관리자
         </div>
 
         <div class="login-description">
-            관리자 비밀번호를 입력하여 관리자 패널에 접속하세요.
+            관리자 비밀번호를 입력하세요.
         </div>
 
         <input
@@ -708,7 +718,6 @@
             class="login-input"
             type="password"
             placeholder="관리자 비밀번호"
-            autocomplete="current-password"
         >
 
         <button
@@ -729,738 +738,793 @@
 
 
 <!-- ========================================
-     관리자 앱
+     관리자
 ======================================== -->
 
 <div id="adminApp">
 
-    <header class="topbar">
+<header class="topbar">
 
-        <div class="logo">
-            VSM 관리자 패널
+    <div class="logo">
+        VSM 관리자 패널
+    </div>
+
+    <div class="badge">
+        ADMIN
+    </div>
+
+    <div class="spacer"></div>
+
+    <button
+        class="top-button site-button"
+        onclick="goToSite()"
+    >
+        🌐 VSM 사이트
+    </button>
+
+    <button
+        class="top-button"
+        onclick="refreshCurrentSection()"
+    >
+        🔄 새로고침
+    </button>
+
+    <button
+        class="top-button logout-button"
+        onclick="logout()"
+    >
+        로그아웃
+    </button>
+
+</header>
+
+
+<div class="layout">
+
+<aside class="sidebar">
+
+    <button
+        class="nav-button active"
+        data-section="dashboard"
+        onclick="showSection('dashboard')"
+    >
+        📊
+        <span>대시보드</span>
+    </button>
+
+    <button
+        class="nav-button"
+        data-section="users"
+        onclick="showSection('users')"
+    >
+        👥
+        <span>플레이어</span>
+    </button>
+
+    <button
+        class="nav-button"
+        data-section="stocks"
+        onclick="showSection('stocks')"
+    >
+        📈
+        <span>주식 관리</span>
+    </button>
+
+    <button
+        class="nav-button"
+        data-section="feedback"
+        onclick="showSection('feedback')"
+    >
+        💬
+        <span>피드백</span>
+    </button>
+
+    <button
+        class="nav-button"
+        data-section="notices"
+        onclick="showSection('notices')"
+    >
+        📢
+        <span>공지사항</span>
+    </button>
+
+    <button
+        class="nav-button"
+        data-section="maintenance"
+        onclick="showSection('maintenance')"
+    >
+        🔧
+        <span>서버 점검</span>
+    </button>
+
+</aside>
+
+
+<main class="main">
+
+
+<!-- ========================================
+     대시보드
+======================================== -->
+
+<section
+    id="section-dashboard"
+    class="section active"
+>
+
+<div class="page-title">
+
+    <h1>📊 대시보드</h1>
+
+    <p>
+        VSM 전체 시스템을 관리합니다.
+    </p>
+
+</div>
+
+
+<div class="stats">
+
+    <div class="stat-card">
+
+        <div class="stat-label">
+            전체 플레이어
         </div>
 
-        <div class="admin-badge">
-            ADMIN
+        <div
+            id="statUsers"
+            class="stat-value"
+        >
+            -
         </div>
 
-        <div class="top-spacer"></div>
+    </div>
 
-        <button
-            class="refresh-all"
-            onclick="refreshCurrentSection()"
+    <div class="stat-card">
+
+        <div class="stat-label">
+            등록 주식
+        </div>
+
+        <div
+            id="statStocks"
+            class="stat-value"
         >
-            🔄 새로고침
-        </button>
+            -
+        </div>
 
-        <button
-            class="logout-button"
-            onclick="logout()"
+    </div>
+
+    <div class="stat-card">
+
+        <div class="stat-label">
+            피드백
+        </div>
+
+        <div
+            id="statFeedback"
+            class="stat-value"
         >
-            로그아웃
-        </button>
-
-    </header>
-
-
-    <div class="layout">
-
-        <!-- ========================================
-             사이드바
-        ======================================== -->
-
-        <aside class="sidebar">
-
-            <button
-                class="nav-button active"
-                data-section="dashboard"
-                onclick="showSection('dashboard')"
-            >
-                📊
-                <span>대시보드</span>
-            </button>
-
-            <button
-                class="nav-button"
-                data-section="users"
-                onclick="showSection('users')"
-            >
-                👥
-                <span>플레이어</span>
-            </button>
-
-            <button
-                class="nav-button"
-                data-section="stocks"
-                onclick="showSection('stocks')"
-            >
-                📈
-                <span>주식 관리</span>
-            </button>
-
-            <button
-                class="nav-button"
-                data-section="feedback"
-                onclick="showSection('feedback')"
-            >
-                💬
-                <span>피드백</span>
-            </button>
-
-            <button
-                class="nav-button"
-                data-section="notices"
-                onclick="showSection('notices')"
-            >
-                📢
-                <span>공지사항</span>
-            </button>
-
-            <button
-                class="nav-button"
-                data-section="maintenance"
-                onclick="showSection('maintenance')"
-            >
-                🔧
-                <span>서버 점검</span>
-            </button>
-
-        </aside>
-
-
-        <!-- ========================================
-             메인
-        ======================================== -->
-
-        <main class="main">
-
-
-            <!-- ====================================
-                 대시보드
-            ==================================== -->
-
-            <section
-                id="section-dashboard"
-                class="section active"
-            >
-
-                <div class="page-title">
-
-                    <h1>📊 대시보드</h1>
-
-                    <p>
-                        VSM 전체 시스템을 관리합니다.
-                    </p>
-
-                </div>
-
-
-                <div class="stats">
-
-                    <div class="stat-card">
-
-                        <div class="stat-label">
-                            전체 플레이어
-                        </div>
-
-                        <div
-                            class="stat-value"
-                            id="statUsers"
-                        >
-                            -
-                        </div>
-
-                    </div>
-
-
-                    <div class="stat-card">
-
-                        <div class="stat-label">
-                            등록 주식
-                        </div>
-
-                        <div
-                            class="stat-value"
-                            id="statStocks"
-                        >
-                            -
-                        </div>
-
-                    </div>
-
-
-                    <div class="stat-card">
-
-                        <div class="stat-label">
-                            피드백
-                        </div>
-
-                        <div
-                            class="stat-value"
-                            id="statFeedback"
-                        >
-                            -
-                        </div>
-
-                    </div>
-
-
-                    <div class="stat-card">
-
-                        <div class="stat-label">
-                            서버 점검
-                        </div>
-
-                        <div
-                            class="stat-value"
-                            id="statMaintenance"
-                        >
-                            -
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                <div class="card">
-
-                    <div class="card-title">
-                        ⚡ 빠른 관리
-                    </div>
-
-                    <button
-                        class="btn btn-dark"
-                        onclick="showSection('users')"
-                    >
-                        👥 플레이어 관리
-                    </button>
-
-                    <button
-                        class="btn btn-dark"
-                        onclick="showSection('stocks')"
-                    >
-                        📈 주식 관리
-                    </button>
-
-                    <button
-                        class="btn btn-gray"
-                        onclick="showSection('feedback')"
-                    >
-                        💬 피드백 확인
-                    </button>
-
-                    <button
-                        class="btn btn-gray"
-                        onclick="showSection('notices')"
-                    >
-                        📢 공지 작성
-                    </button>
-
-                    <button
-                        class="btn btn-red"
-                        onclick="showSection('maintenance')"
-                    >
-                        🔧 서버 점검
-                    </button>
-
-                </div>
-
-            </section>
-
-
-            <!-- ====================================
-                 플레이어
-            ==================================== -->
-
-            <section
-                id="section-users"
-                class="section"
-            >
-
-                <div class="page-title">
-
-                    <h1>👥 플레이어 관리</h1>
-
-                    <p>
-                        플레이어의 계정, 현금, 번호 및 밴 상태를 관리합니다.
-                    </p>
-
-                </div>
-
-
-                <div class="card">
-
-                    <div class="table-wrap">
-
-                        <table>
-
-                            <thead>
-
-                                <tr>
-                                    <th>번호</th>
-                                    <th>닉네임</th>
-                                    <th>아이디</th>
-                                    <th>현금</th>
-                                    <th>상태</th>
-                                    <th>가입일</th>
-                                    <th>관리</th>
-                                </tr>
-
-                            </thead>
-
-                            <tbody id="usersTable">
-
-                                <tr>
-                                    <td colspan="7">
-                                        불러오는 중...
-                                    </td>
-                                </tr>
-
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-
-            <!-- ====================================
-                 주식
-            ==================================== -->
-
-            <section
-                id="section-stocks"
-                class="section"
-            >
-
-                <div class="page-title">
-
-                    <h1>📈 주식 관리</h1>
-
-                    <p>
-                        종목 추가, 가격, 변동성, 거래량 제한 및 주가 방향을 관리합니다.
-                    </p>
-
-                </div>
-
-
-                <div class="card">
-
-                    <div class="card-title">
-                        ➕ 새 주식 등록
-                    </div>
-
-                    <div class="form-grid">
-
-                        <div class="field">
-                            <label>주식 ID</label>
-                            <input
-                                id="newStockId"
-                                placeholder="예: TEST"
-                            >
-                        </div>
-
-                        <div class="field">
-                            <label>회사 이름</label>
-                            <input
-                                id="newStockName"
-                                placeholder="예: 테스트전자"
-                            >
-                        </div>
-
-                        <div class="field">
-                            <label>초기 주가</label>
-                            <input
-                                id="newStockPrice"
-                                type="number"
-                                min="100"
-                                placeholder="1000"
-                            >
-                        </div>
-
-                        <div class="field">
-                            <label>변동성</label>
-                            <input
-                                id="newStockVolatility"
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                placeholder="0.05"
-                            >
-                        </div>
-
-                        <div class="field">
-
-                            <label>
-                                거래량 제한
-                            </label>
-
-                            <select id="newStockLimitEnabled">
-
-                                <option value="false">
-                                    사용 안 함
-                                </option>
-
-                                <option value="true">
-                                    사용
-                                </option>
-
-                            </select>
-
-                        </div>
-
-                        <div class="field">
-
-                            <label>
-                                거래량 제한 수량
-                            </label>
-
-                            <input
-                                id="newStockLimit"
-                                type="number"
-                                min="0"
-                                value="30"
-                            >
-
-                        </div>
-
-                    </div>
-
-                    <div class="form-actions">
-
-                        <button
-                            class="btn btn-dark"
-                            onclick="createStock()"
-                        >
-                            주식 등록
-                        </button>
-
-                    </div>
-
-                </div>
-
-
-                <div class="card">
-
-                    <div class="card-title">
-                        📊 등록된 주식
-                    </div>
-
-                    <div class="table-wrap">
-
-                        <table>
-
-                            <thead>
-
-                                <tr>
-                                    <th>ID</th>
-                                    <th>회사</th>
-                                    <th>현재가</th>
-                                    <th>변동성</th>
-                                    <th>거래량 제한</th>
-                                    <th>방향</th>
-                                    <th>관리</th>
-                                </tr>
-
-                            </thead>
-
-                            <tbody id="stocksTable">
-
-                                <tr>
-                                    <td colspan="7">
-                                        불러오는 중...
-                                    </td>
-                                </tr>
-
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-
-            <!-- ====================================
-                 피드백
-            ==================================== -->
-
-            <section
-                id="section-feedback"
-                class="section"
-            >
-
-                <div class="page-title">
-
-                    <h1>💬 피드백 관리</h1>
-
-                    <p>
-                        플레이어가 제출한 기능 제안 및 버그 신고를 확인합니다.
-                    </p>
-
-                </div>
-
-
-                <div class="card">
-
-                    <div class="table-wrap">
-
-                        <table>
-
-                            <thead>
-
-                                <tr>
-                                    <th>번호</th>
-                                    <th>플레이어</th>
-                                    <th>내용</th>
-                                    <th>상태</th>
-                                    <th>작성일</th>
-                                    <th>관리</th>
-                                </tr>
-
-                            </thead>
-
-                            <tbody id="feedbackTable">
-
-                                <tr>
-                                    <td colspan="6">
-                                        불러오는 중...
-                                    </td>
-                                </tr>
-
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-
-            <!-- ====================================
-                 공지
-            ==================================== -->
-
-            <section
-                id="section-notices"
-                class="section"
-            >
-
-                <div class="page-title">
-
-                    <h1>📢 공지사항</h1>
-
-                    <p>
-                        플레이어에게 표시할 공지사항을 관리합니다.
-                    </p>
-
-                </div>
-
-
-                <div class="card">
-
-                    <div class="card-title">
-                        📝 새 공지 작성
-                    </div>
-
-                    <div class="field">
-
-                        <label>제목</label>
-
-                        <input
-                            id="noticeTitle"
-                            placeholder="공지사항 제목"
-                        >
-
-                    </div>
-
-                    <br>
-
-                    <div class="field">
-
-                        <label>내용</label>
-
-                        <textarea
-                            id="noticeContent"
-                            placeholder="공지사항 내용을 입력하세요."
-                        ></textarea>
-
-                    </div>
-
-                    <div class="form-actions">
-
-                        <button
-                            class="btn btn-dark"
-                            onclick="createNotice()"
-                        >
-                            공지 등록
-                        </button>
-
-                    </div>
-
-                </div>
-
-
-                <div class="card">
-
-                    <div class="card-title">
-                        📋 기존 공지
-                    </div>
-
-                    <div class="table-wrap">
-
-                        <table>
-
-                            <thead>
-
-                                <tr>
-                                    <th>ID</th>
-                                    <th>제목</th>
-                                    <th>내용</th>
-                                    <th>작성일</th>
-                                    <th>관리</th>
-                                </tr>
-
-                            </thead>
-
-                            <tbody id="noticesTable">
-
-                                <tr>
-                                    <td colspan="5">
-                                        불러오는 중...
-                                    </td>
-                                </tr>
-
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-
-            <!-- ====================================
-                 점검
-            ==================================== -->
-
-            <section
-                id="section-maintenance"
-                class="section"
-            >
-
-                <div class="page-title">
-
-                    <h1>🔧 서버 점검</h1>
-
-                    <p>
-                        서버 점검 상태를 관리합니다.
-                    </p>
-
-                </div>
-
-
-                <div class="card">
-
-                    <div class="maintenance-box">
-
-                        <div>
-
-                            <div class="stat-label">
-                                현재 상태
-                            </div>
-
-                            <div
-                                id="maintenanceState"
-                                class="maintenance-state"
-                            >
-                                확인 중...
-                            </div>
-
-                        </div>
-
-                        <div>
-
-                            <button
-                                class="btn btn-red"
-                                onclick="startMaintenance()"
-                            >
-                                점검 시작
-                            </button>
-
-                            <button
-                                class="btn btn-green"
-                                onclick="endMaintenance()"
-                            >
-                                점검 종료
-                            </button>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                <div class="card">
-
-                    <div class="card-title">
-                        ⏱️ 점검 시간 설정
-                    </div>
-
-                    <div class="form-grid">
-
-                        <div class="field">
-
-                            <label>
-                                종료 시간
-                            </label>
-
-                            <input
-                                id="maintenanceMinutes"
-                                type="number"
-                                min="1"
-                                placeholder="예: 30"
-                            >
-
-                        </div>
-
-                    </div>
-
-                    <div class="form-actions">
-
-                        <button
-                            class="btn btn-red"
-                            onclick="startMaintenanceWithTime()"
-                        >
-                            지금부터 점검 시작
-                        </button>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-        </main>
+            -
+        </div>
+
+    </div>
+
+    <div class="stat-card">
+
+        <div class="stat-label">
+            서버 점검
+        </div>
+
+        <div
+            id="statMaintenance"
+            class="stat-value"
+        >
+            -
+        </div>
 
     </div>
 
 </div>
 
 
+<div class="card">
+
+    <div class="card-title">
+        ⚡ 빠른 관리
+    </div>
+
+    <button
+        class="btn btn-dark"
+        onclick="showSection('users')"
+    >
+        👥 플레이어 관리
+    </button>
+
+    <button
+        class="btn btn-dark"
+        onclick="showSection('stocks')"
+    >
+        📈 주식 관리
+    </button>
+
+    <button
+        class="btn btn-gray"
+        onclick="showSection('feedback')"
+    >
+        💬 피드백 확인
+    </button>
+
+    <button
+        class="btn btn-gray"
+        onclick="showSection('notices')"
+    >
+        📢 공지 작성
+    </button>
+
+    <button
+        class="btn btn-red"
+        onclick="showSection('maintenance')"
+    >
+        🔧 서버 점검
+    </button>
+
+</div>
+
+</section>
+
+
 <!-- ========================================
-     플레이어 수정 모달
+     플레이어
+======================================== -->
+
+<section
+    id="section-users"
+    class="section"
+>
+
+<div class="page-title">
+
+    <h1>👥 플레이어 관리</h1>
+
+    <p>
+        플레이어의 계정과 상세 정보를 관리합니다.
+    </p>
+
+</div>
+
+
+<div class="card">
+
+<div class="table-wrap">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>번호</th>
+<th>닉네임</th>
+<th>아이디</th>
+<th>현금</th>
+<th>상태</th>
+<th>가입일</th>
+<th>관리</th>
+
+</tr>
+
+</thead>
+
+<tbody id="usersTable">
+
+<tr>
+<td colspan="7">
+불러오는 중...
+</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- ========================================
+     주식
+======================================== -->
+
+<section
+    id="section-stocks"
+    class="section"
+>
+
+<div class="page-title">
+
+    <h1>📈 주식 관리</h1>
+
+    <p>
+        종목, 가격, 변동성, 거래량 및 주가 방향을 관리합니다.
+    </p>
+
+</div>
+
+
+<div class="card">
+
+<div class="card-title">
+➕ 새 주식 등록
+</div>
+
+<div class="form-grid">
+
+<div class="field">
+
+<label>
+주식 ID
+</label>
+
+<input
+    id="newStockId"
+    placeholder="예: TEST"
+>
+
+</div>
+
+
+<div class="field">
+
+<label>
+회사 이름
+</label>
+
+<input
+    id="newStockName"
+    placeholder="예: 테스트전자"
+>
+
+</div>
+
+
+<div class="field">
+
+<label>
+초기 주가
+</label>
+
+<input
+    id="newStockPrice"
+    type="number"
+    min="100"
+>
+
+</div>
+
+
+<div class="field">
+
+<label>
+변동성
+</label>
+
+<input
+    id="newStockVolatility"
+    type="number"
+    step="0.01"
+    min="0"
+    placeholder="0.05"
+>
+
+</div>
+
+
+<div class="field">
+
+<label>
+거래량 제한
+</label>
+
+<select id="newStockLimitEnabled">
+
+<option value="false">
+사용 안 함
+</option>
+
+<option value="true">
+사용
+</option>
+
+</select>
+
+</div>
+
+
+<div class="field">
+
+<label>
+거래량 제한 수량
+</label>
+
+<input
+    id="newStockLimit"
+    type="number"
+    min="0"
+    value="30"
+>
+
+</div>
+
+</div>
+
+
+<div style="margin-top:15px">
+
+<button
+    class="btn btn-dark"
+    onclick="createStock()"
+>
+주식 등록
+</button>
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+<div class="card-title">
+📊 등록된 주식
+</div>
+
+<div class="table-wrap">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>ID</th>
+<th>회사</th>
+<th>현재가</th>
+<th>변동 범위</th>
+<th>거래량 제한</th>
+<th>관리</th>
+
+</tr>
+
+</thead>
+
+<tbody id="stocksTable">
+
+<tr>
+<td colspan="6">
+불러오는 중...
+</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- ========================================
+     피드백
+======================================== -->
+
+<section
+    id="section-feedback"
+    class="section"
+>
+
+<div class="page-title">
+
+<h1>💬 피드백 관리</h1>
+
+<p>
+플레이어가 보낸 피드백을 확인하고 처리합니다.
+</p>
+
+</div>
+
+
+<div class="card">
+
+<div class="table-wrap">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>번호</th>
+<th>플레이어</th>
+<th>제목</th>
+<th>내용</th>
+<th>상태</th>
+<th>작성일</th>
+<th>관리</th>
+
+</tr>
+
+</thead>
+
+<tbody id="feedbackTable">
+
+<tr>
+<td colspan="7">
+불러오는 중...
+</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- ========================================
+     공지
+======================================== -->
+
+<section
+    id="section-notices"
+    class="section"
+>
+
+<div class="page-title">
+
+<h1>📢 공지사항</h1>
+
+<p>
+플레이어에게 표시할 공지를 관리합니다.
+</p>
+
+</div>
+
+
+<div class="card">
+
+<div class="card-title">
+📝 새 공지 작성
+</div>
+
+<div class="field">
+
+<label>
+제목
+</label>
+
+<input
+    id="noticeTitle"
+    placeholder="공지사항 제목"
+>
+
+</div>
+
+<br>
+
+<div class="field">
+
+<label>
+내용
+</label>
+
+<textarea
+    id="noticeContent"
+    placeholder="공지사항 내용을 입력하세요."
+></textarea>
+
+</div>
+
+<div style="margin-top:15px">
+
+<button
+    class="btn btn-dark"
+    onclick="createNotice()"
+>
+📢 발행
+</button>
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+<div class="card-title">
+📋 기존 공지
+</div>
+
+<div class="table-wrap">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>ID</th>
+<th>제목</th>
+<th>내용</th>
+<th>작성일</th>
+<th>관리</th>
+
+</tr>
+
+</thead>
+
+<tbody id="noticesTable">
+
+<tr>
+<td colspan="5">
+불러오는 중...
+</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- ========================================
+     점검
+======================================== -->
+
+<section
+    id="section-maintenance"
+    class="section"
+>
+
+<div class="page-title">
+
+<h1>🔧 서버 점검</h1>
+
+<p>
+서버 점검 상태를 관리합니다.
+</p>
+
+</div>
+
+
+<div class="card">
+
+<div class="maintenance-box">
+
+<div>
+
+<div class="stat-label">
+현재 상태
+</div>
+
+<div
+    id="maintenanceState"
+    class="maintenance-state"
+>
+확인 중...
+</div>
+
+</div>
+
+
+<div>
+
+<button
+    class="btn btn-red"
+    onclick="startMaintenance()"
+>
+점검 시작
+</button>
+
+<button
+    class="btn btn-green"
+    onclick="endMaintenance()"
+>
+점검 종료
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+
+<div class="card">
+
+<div class="card-title">
+🌐 사이트 바로가기
+</div>
+
+<p>
+점검 화면에서도 실제 VSM 사이트로 이동할 수 있습니다.
+</p>
+
+<button
+    class="btn btn-blue"
+    onclick="goToSite()"
+>
+🌐 VSM 사이트 열기
+</button>
+
+</div>
+
+
+<div class="card">
+
+<div class="card-title">
+⏱️ 점검 시간 설정
+</div>
+
+<div class="form-grid">
+
+<div class="field">
+
+<label>
+점검 시간 (분)
+</label>
+
+<input
+    id="maintenanceMinutes"
+    type="number"
+    min="1"
+    placeholder="예: 30"
+>
+
+</div>
+
+</div>
+
+<div style="margin-top:15px">
+
+<button
+    class="btn btn-red"
+    onclick="startMaintenanceWithTime()"
+>
+지금부터 점검 시작
+</button>
+
+</div>
+
+</div>
+
+</section>
+
+
+</main>
+
+</div>
+
+</div>
+
+
+<!-- ========================================
+     플레이어 상세정보
 ======================================== -->
 
 <div
@@ -1468,84 +1532,176 @@
     class="modal"
 >
 
-    <div class="modal-box">
+<div class="modal-box">
 
-        <h2 class="modal-title">
-            플레이어 수정
-        </h2>
+<h2 class="modal-title">
+👤 플레이어 상세정보
+</h2>
 
-        <input
-            id="editUserId"
-            type="hidden"
-        >
 
-        <div class="form-grid">
+<input
+    id="detailUserId"
+    type="hidden"
+>
 
-            <div class="field">
 
-                <label>
-                    닉네임
-                </label>
+<div class="detail-grid">
 
-                <input id="editNickname">
+<div class="detail-item">
 
-            </div>
+<div class="detail-label">
+플레이어 ID
+</div>
 
-            <div class="field">
+<div
+    id="detailId"
+    class="detail-value"
+>
+-
+</div>
 
-                <label>
-                    플레이어 번호
-                </label>
+</div>
 
-                <input
-                    id="editPlayerNumber"
-                    type="number"
-                    min="1"
-                >
 
-            </div>
+<div class="detail-item">
 
-            <div class="field">
+<div class="detail-label">
+가입일
+</div>
 
-                <label>
-                    현금
-                </label>
+<div
+    id="detailCreated"
+    class="detail-value"
+>
+-
+</div>
 
-                <input
-                    id="editCash"
-                    type="number"
-                    min="0"
-                >
+</div>
 
-            </div>
+</div>
 
-        </div>
 
-        <div class="modal-buttons">
+<div class="sub-title">
+✏️ 계정 정보 수정
+</div>
 
-            <button
-                class="btn btn-gray"
-                onclick="closeModal('userModal')"
-            >
-                취소
-            </button>
 
-            <button
-                class="btn btn-dark"
-                onclick="saveUser()"
-            >
-                저장
-            </button>
+<div class="form-grid">
 
-        </div>
+<div class="field">
 
-    </div>
+<label>
+닉네임
+</label>
+
+<input id="detailNickname">
+
+</div>
+
+
+<div class="field">
+
+<label>
+플레이어 번호
+</label>
+
+<input
+    id="detailPlayerNumber"
+    type="number"
+    min="1"
+>
+
+</div>
+
+
+<div class="field">
+
+<label>
+현금
+</label>
+
+<input
+    id="detailCash"
+    type="number"
+    min="0"
+>
+
+</div>
+
+</div>
+
+
+<div class="sub-title">
+📦 보유 주식
+</div>
+
+<div class="field">
+
+<label>
+JSON 형식
+</label>
+
+<textarea
+    id="detailHoldings"
+></textarea>
+
+</div>
+
+
+<div class="sub-title">
+📜 거래 내역
+</div>
+
+<div class="field">
+
+<label>
+JSON 형식
+</label>
+
+<textarea
+    id="detailTransactions"
+></textarea>
+
+</div>
+
+
+<div class="sub-title">
+🚫 밴 정보
+</div>
+
+<div
+    id="detailBan"
+    class="detail-item"
+>
+-
+</div>
+
+
+<div class="modal-buttons">
+
+<button
+    class="btn btn-gray"
+    onclick="closeModal('userModal')"
+>
+닫기
+</button>
+
+<button
+    class="btn btn-dark"
+    onclick="saveUserDetail()"
+>
+💾 저장
+</button>
+
+</div>
+
+</div>
 
 </div>
 
 
 <!-- ========================================
-     주식 수정 모달
+     주식 수정
 ======================================== -->
 
 <div
@@ -1553,119 +1709,124 @@
     class="modal"
 >
 
-    <div class="modal-box">
+<div class="modal-box">
 
-        <h2 class="modal-title">
-            주식 수정
-        </h2>
+<h2 class="modal-title">
+📈 주식 수정
+</h2>
 
-        <input
-            id="editStockId"
-            type="hidden"
-        >
+<input
+    id="editStockId"
+    type="hidden"
+>
 
-        <div class="form-grid">
+<div class="form-grid">
 
-            <div class="field">
+<div class="field">
 
-                <label>
-                    회사 이름
-                </label>
+<label>
+회사 이름
+</label>
 
-                <input id="editStockName">
+<input id="editStockName">
 
-            </div>
+</div>
 
-            <div class="field">
 
-                <label>
-                    주가
-                </label>
+<div class="field">
 
-                <input
-                    id="editStockPrice"
-                    type="number"
-                    min="100"
-                >
+<label>
+주가
+</label>
 
-            </div>
+<input
+    id="editStockPrice"
+    type="number"
+    min="100"
+>
 
-            <div class="field">
+</div>
 
-                <label>
-                    변동성
-                </label>
 
-                <input
-                    id="editStockVolatility"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                >
+<div class="field">
 
-            </div>
+<label>
+변동성
+</label>
 
-            <div class="field">
+<input
+    id="editStockVolatility"
+    type="number"
+    min="0"
+    step="0.01"
+>
 
-                <label>
-                    거래량 제한
-                </label>
+</div>
 
-                <select id="editStockLimitEnabled">
 
-                    <option value="false">
-                        사용 안 함
-                    </option>
+<div class="field">
 
-                    <option value="true">
-                        사용
-                    </option>
+<label>
+거래량 제한
+</label>
 
-                </select>
+<select id="editStockLimitEnabled">
 
-            </div>
+<option value="false">
+사용 안 함
+</option>
 
-            <div class="field">
+<option value="true">
+사용
+</option>
 
-                <label>
-                    거래량 제한 수량
-                </label>
+</select>
 
-                <input
-                    id="editStockLimit"
-                    type="number"
-                    min="0"
-                >
+</div>
 
-            </div>
 
-        </div>
+<div class="field">
 
-        <div class="modal-buttons">
+<label>
+거래량 제한 수량
+</label>
 
-            <button
-                class="btn btn-gray"
-                onclick="closeModal('stockModal')"
-            >
-                취소
-            </button>
+<input
+    id="editStockLimit"
+    type="number"
+    min="0"
+>
 
-            <button
-                class="btn btn-dark"
-                onclick="saveStock()"
-            >
-                저장
-            </button>
+</div>
 
-        </div>
+</div>
 
-    </div>
+
+<div class="modal-buttons">
+
+<button
+    class="btn btn-gray"
+    onclick="closeModal('stockModal')"
+>
+취소
+</button>
+
+<button
+    class="btn btn-dark"
+    onclick="saveStock()"
+>
+저장
+</button>
+
+</div>
+
+</div>
 
 </div>
 
 
 <!-- ========================================
-     주가 제어 모달
+     주가 제어
 ======================================== -->
 
 <div
@@ -1673,95 +1834,98 @@
     class="modal"
 >
 
-    <div class="modal-box">
+<div class="modal-box">
 
-        <h2 class="modal-title">
-            📈 주가 방향 제어
-        </h2>
+<h2 class="modal-title">
+🎛️ 주가 방향 제어
+</h2>
 
-        <input
-            id="controlStockId"
-            type="hidden"
-        >
+<input
+    id="controlStockId"
+    type="hidden"
+>
 
-        <div class="form-grid">
+<div class="form-grid">
 
-            <div class="field">
+<div class="field">
 
-                <label>
-                    방향
-                </label>
+<label>
+방향
+</label>
 
-                <select id="controlDirection">
+<select id="controlDirection">
 
-                    <option value="normal">
-                        정상
-                    </option>
+<option value="normal">
+정상
+</option>
 
-                    <option value="up">
-                        상승
-                    </option>
+<option value="up">
+상승
+</option>
 
-                    <option value="down">
-                        하락
-                    </option>
+<option value="down">
+하락
+</option>
 
-                </select>
+</select>
 
-            </div>
+</div>
 
-            <div class="field">
 
-                <label>
-                    지속 시간 (분)
-                </label>
+<div class="field">
 
-                <input
-                    id="controlDuration"
-                    type="number"
-                    min="0"
-                    value="10"
-                >
+<label>
+지속 시간 (분)
+</label>
 
-            </div>
+<input
+    id="controlDuration"
+    type="number"
+    min="0"
+    value="10"
+>
 
-            <div class="field">
+</div>
 
-                <label>
-                    강도
-                </label>
 
-                <input
-                    id="controlStrength"
-                    type="number"
-                    min="0"
-                    step="0.1"
-                    value="1"
-                >
+<div class="field">
 
-            </div>
+<label>
+강도
+</label>
 
-        </div>
+<input
+    id="controlStrength"
+    type="number"
+    min="0"
+    step="0.1"
+    value="1"
+>
 
-        <div class="modal-buttons">
+</div>
 
-            <button
-                class="btn btn-gray"
-                onclick="closeModal('controlModal')"
-            >
-                취소
-            </button>
+</div>
 
-            <button
-                class="btn btn-dark"
-                onclick="saveControl()"
-            >
-                적용
-            </button>
 
-        </div>
+<div class="modal-buttons">
 
-    </div>
+<button
+    class="btn btn-gray"
+    onclick="closeModal('controlModal')"
+>
+취소
+</button>
+
+<button
+    class="btn btn-dark"
+    onclick="saveControl()"
+>
+적용
+</button>
+
+</div>
+
+</div>
 
 </div>
 
@@ -1773,14 +1937,16 @@
 ======================================== */
 
 let adminPassword =
-    localStorage.getItem("vsm_admin_password") || "";
+    localStorage.getItem(
+        "vsm_admin_password"
+    ) || "";
 
 let currentSection =
     "dashboard";
 
 
 /* ========================================
-   API
+   공통 API
 ======================================== */
 
 async function api(
@@ -1805,7 +1971,9 @@ async function api(
         ] = "application/json";
 
         options.body =
-            JSON.stringify(options.body);
+            JSON.stringify(
+                options.body
+            );
 
     }
 
@@ -1818,10 +1986,13 @@ async function api(
     let data = {};
 
     try {
-        data = await response.json();
+        data =
+            await response.json();
     } catch (_) {}
 
-    if (response.status === 401) {
+    if (
+        response.status === 401
+    ) {
 
         logout();
 
@@ -1831,7 +2002,10 @@ async function api(
 
     }
 
-    if (!response.ok || data.ok === false) {
+    if (
+        !response.ok ||
+        data.ok === false
+    ) {
 
         throw new Error(
             data.error ||
@@ -1841,6 +2015,17 @@ async function api(
     }
 
     return data;
+}
+
+
+/* ========================================
+   사이트 이동
+======================================== */
+
+function goToSite() {
+
+    window.location.href = "/";
+
 }
 
 
@@ -1890,7 +2075,10 @@ async function login() {
         const data =
             await response.json();
 
-        if (!response.ok || !data.ok) {
+        if (
+            !response.ok ||
+            !data.ok
+        ) {
 
             throw new Error(
                 data.error ||
@@ -1920,7 +2108,9 @@ async function login() {
 
 
 document
-    .getElementById("loginButton")
+    .getElementById(
+        "loginButton"
+    )
     .addEventListener(
         "click",
         login
@@ -1928,22 +2118,24 @@ document
 
 
 document
-    .getElementById("adminPassword")
+    .getElementById(
+        "adminPassword"
+    )
     .addEventListener(
         "keydown",
         event => {
 
-            if (event.key === "Enter") {
+            if (
+                event.key === "Enter"
+            ) {
+
                 login();
+
             }
 
         }
     );
 
-
-/* ========================================
-   관리자 열기
-======================================== */
 
 async function openAdmin() {
 
@@ -1969,20 +2161,12 @@ async function openAdmin() {
 
     } catch (_) {
 
-        localStorage.removeItem(
-            "vsm_admin_password"
-        );
-
-        adminPassword = "";
+        logout();
 
     }
 
 }
 
-
-/* ========================================
-   로그아웃
-======================================== */
 
 function logout() {
 
@@ -2004,12 +2188,6 @@ function logout() {
         )
         .style.display = "flex";
 
-    document
-        .getElementById(
-            "adminPassword"
-        )
-        .value = "";
-
 }
 
 
@@ -2023,15 +2201,18 @@ function showSection(section) {
         section;
 
     document
-        .querySelectorAll(".section")
-        .forEach(element => {
+        .querySelectorAll(
+            ".section"
+        )
+        .forEach(
+            element => {
 
-            element.classList.remove(
-                "active"
-            );
+                element.classList.remove(
+                    "active"
+                );
 
-        });
-
+            }
+        );
 
     const target =
         document.getElementById(
@@ -2046,42 +2227,46 @@ function showSection(section) {
 
     }
 
-
     document
-        .querySelectorAll(".nav-button")
-        .forEach(button => {
+        .querySelectorAll(
+            ".nav-button"
+        )
+        .forEach(
+            button => {
 
-            button.classList.toggle(
-                "active",
-                button.dataset.section === section
-            );
+                button.classList.toggle(
+                    "active",
+                    button.dataset.section ===
+                    section
+                );
 
-        });
+            }
+        );
 
 
-    if (section === "dashboard") {
-        loadDashboard();
-    }
+    if (
+        section === "dashboard"
+    ) loadDashboard();
 
-    if (section === "users") {
-        loadUsers();
-    }
+    if (
+        section === "users"
+    ) loadUsers();
 
-    if (section === "stocks") {
-        loadStocks();
-    }
+    if (
+        section === "stocks"
+    ) loadStocks();
 
-    if (section === "feedback") {
-        loadFeedback();
-    }
+    if (
+        section === "feedback"
+    ) loadFeedback();
 
-    if (section === "notices") {
-        loadNotices();
-    }
+    if (
+        section === "notices"
+    ) loadNotices();
 
-    if (section === "maintenance") {
-        loadMaintenance();
-    }
+    if (
+        section === "maintenance"
+    ) loadMaintenance();
 
 }
 
@@ -2109,41 +2294,64 @@ async function loadDashboard() {
             feedback,
             maintenance
         ] = await Promise.all([
-            api("/api/admin/users"),
-            api("/api/admin/stocks"),
-            api("/api/admin/feedback"),
-            fetch("/api/admin/maintenance")
-                .then(r => r.json())
+
+            api(
+                "/api/admin/users"
+            ),
+
+            api(
+                "/api/admin/stocks"
+            ),
+
+            api(
+                "/api/admin/feedback"
+            ),
+
+            fetch(
+                "/api/admin/maintenance"
+            ).then(
+                response =>
+                    response.json()
+            )
+
         ]);
 
 
         document
-            .getElementById("statUsers")
+            .getElementById(
+                "statUsers"
+            )
             .textContent =
                 users.users.length;
 
 
         document
-            .getElementById("statStocks")
+            .getElementById(
+                "statStocks"
+            )
             .textContent =
                 stocks.stocks.length;
 
 
         document
-            .getElementById("statFeedback")
+            .getElementById(
+                "statFeedback"
+            )
             .textContent =
                 feedback.feedback.length;
 
 
-        const maintenanceData =
-            maintenance.maintenance;
+        const state =
+            maintenance.maintenance &&
+            maintenance.maintenance.enabled;
 
 
         document
-            .getElementById("statMaintenance")
+            .getElementById(
+                "statMaintenance"
+            )
             .textContent =
-                maintenanceData &&
-                maintenanceData.enabled
+                state
                     ? "점검 중"
                     : "정상";
 
@@ -2160,7 +2368,7 @@ async function loadDashboard() {
 
 
 /* ========================================
-   플레이어
+   플레이어 목록
 ======================================== */
 
 async function loadUsers() {
@@ -2170,13 +2378,14 @@ async function loadUsers() {
             "usersTable"
         );
 
-    tbody.innerHTML = `
+    tbody.innerHTML =
+        `
         <tr>
             <td colspan="7">
                 불러오는 중...
             </td>
         </tr>
-    `;
+        `;
 
     try {
 
@@ -2187,109 +2396,124 @@ async function loadUsers() {
 
         tbody.innerHTML = "";
 
-        data.users.forEach(user => {
+        data.users.forEach(
+            user => {
 
-            const tr =
-                document.createElement("tr");
+                const tr =
+                    document.createElement(
+                        "tr"
+                    );
 
-            const banned =
-                user.banned_until &&
-                Number(user.banned_until) >
-                Date.now();
+                const banned =
+                    user.banned_until &&
+                    Number(
+                        user.banned_until
+                    ) > Date.now();
 
 
-            tr.innerHTML = `
+                tr.innerHTML = `
 
-                <td>
-                    <strong>
-                        #${user.player_number}
-                    </strong>
-                </td>
+                    <td>
+                        <strong>
+                            #${user.player_number}
+                        </strong>
+                    </td>
 
-                <td>
-                    ${escapeHtml(
-                        user.nickname || "-"
-                    )}
-                </td>
+                    <td>
+                        ${escapeHtml(
+                            user.nickname || "-"
+                        )}
+                    </td>
 
-                <td>
-                    ${escapeHtml(
-                        user.username || "-"
-                    )}
-                </td>
+                    <td>
+                        ${escapeHtml(
+                            user.username || "-"
+                        )}
+                    </td>
 
-                <td>
-                    ${formatMoney(user.cash)}원
-                </td>
+                    <td>
+                        ${formatMoney(
+                            user.cash
+                        )}원
+                    </td>
 
-                <td>
-                    ${
-                        banned
+                    <td>
+
+                        ${
+                            banned
+
                             ? `
-                                <span class="status banned">
+                                <span class="status status-banned">
                                     밴
                                 </span>
-                            `
+                              `
+
                             : `
-                                <span class="status accepted">
+                                <span class="status status-normal">
                                     정상
                                 </span>
-                            `
-                    }
-                </td>
+                              `
+                        }
 
-                <td>
-                    ${formatDate(
-                        user.created_at
-                    )}
-                </td>
+                    </td>
 
-                <td>
+                    <td>
+                        ${formatDate(
+                            user.created_at
+                        )}
+                    </td>
 
-                    <button
-                        class="btn btn-gray"
-                        onclick='openUserEdit(${JSON.stringify(user)})'
-                    >
-                        수정
-                    </button>
+                    <td>
 
-                    ${
-                        banned
+                        <button
+                            class="btn btn-dark"
+                            onclick="openUserDetail('${escapeAttr(user.id)}')"
+                        >
+                            상세정보
+                        </button>
+
+                        ${
+                            banned
+
                             ? `
                                 <button
                                     class="btn btn-green"
-                                    onclick="unbanUser('${user.id}')"
+                                    onclick="unbanUser('${escapeAttr(user.id)}')"
                                 >
                                     밴 해제
                                 </button>
-                            `
+                              `
+
                             : `
                                 <button
                                     class="btn btn-red"
-                                    onclick="banUser('${user.id}')"
+                                    onclick="banUser('${escapeAttr(user.id)}')"
                                 >
                                     밴
                                 </button>
-                            `
-                    }
+                              `
+                        }
 
-                    <button
-                        class="btn btn-red"
-                        onclick="deleteUser('${user.id}')"
-                    >
-                        삭제
-                    </button>
+                        <button
+                            class="btn btn-red"
+                            onclick="deleteUser('${escapeAttr(user.id)}')"
+                        >
+                            삭제
+                        </button>
 
-                </td>
+                    </td>
 
-            `;
+                `;
 
-            tbody.appendChild(tr);
+                tbody.appendChild(tr);
 
-        });
+            }
+        );
 
 
-        if (!data.users.length) {
+        if (
+            !data.users.length
+        ) {
 
             tbody.innerHTML = `
                 <tr>
@@ -2319,46 +2543,210 @@ async function loadUsers() {
 
 
 /* ========================================
-   플레이어 수정
+   플레이어 상세정보
 ======================================== */
 
-function openUserEdit(user) {
+async function openUserDetail(id) {
 
-    document
-        .getElementById("editUserId")
-        .value =
-            user.id;
+    try {
 
-    document
-        .getElementById("editNickname")
-        .value =
-            user.nickname || "";
+        const data =
+            await api(
+                `/api/admin/users/${encodeURIComponent(id)}`
+            );
 
-    document
-        .getElementById("editPlayerNumber")
-        .value =
-            user.player_number || "";
+        const user =
+            data.user;
 
-    document
-        .getElementById("editCash")
-        .value =
-            user.cash || 0;
 
-    openModal(
-        "userModal"
-    );
+        document
+            .getElementById(
+                "detailUserId"
+            )
+            .value =
+                user.id;
+
+
+        document
+            .getElementById(
+                "detailId"
+            )
+            .textContent =
+                user.id;
+
+
+        document
+            .getElementById(
+                "detailCreated"
+            )
+            .textContent =
+                formatDate(
+                    user.createdAt
+                );
+
+
+        document
+            .getElementById(
+                "detailNickname"
+            )
+            .value =
+                user.nickname || "";
+
+
+        document
+            .getElementById(
+                "detailPlayerNumber"
+            )
+            .value =
+                user.playerNumber || "";
+
+
+        document
+            .getElementById(
+                "detailCash"
+            )
+            .value =
+                user.cash || 0;
+
+
+        document
+            .getElementById(
+                "detailHoldings"
+            )
+            .value =
+                JSON.stringify(
+                    user.holdings || {},
+                    null,
+                    2
+                );
+
+
+        document
+            .getElementById(
+                "detailTransactions"
+            )
+            .value =
+                JSON.stringify(
+                    user.transactions || [],
+                    null,
+                    2
+                );
+
+
+        const banned =
+            user.bannedUntil &&
+            Number(
+                user.bannedUntil
+            ) > Date.now();
+
+
+        document
+            .getElementById(
+                "detailBan"
+            )
+            .innerHTML =
+                banned
+
+                ? `
+                    <span class="status status-banned">
+                        밴 상태
+                    </span>
+                    <br><br>
+                    종료:
+                    ${formatDate(
+                        user.bannedUntil
+                    )}
+                    <br>
+                    사유:
+                    ${escapeHtml(
+                        user.banReason || "-"
+                    )}
+                  `
+
+                : `
+                    <span class="status status-normal">
+                        정상
+                    </span>
+                  `;
+
+
+        openModal(
+            "userModal"
+        );
+
+    } catch (error) {
+
+        alert(
+            error.message
+        );
+
+    }
 
 }
 
 
-async function saveUser() {
+/* ========================================
+   플레이어 저장
+======================================== */
+
+async function saveUserDetail() {
 
     const id =
         document
             .getElementById(
-                "editUserId"
+                "detailUserId"
             )
             .value;
+
+    let holdings;
+    let transactions;
+
+
+    try {
+
+        holdings =
+            JSON.parse(
+                document
+                    .getElementById(
+                        "detailHoldings"
+                    )
+                    .value ||
+                "{}"
+            );
+
+    } catch (_) {
+
+        alert(
+            "보유 주식 JSON 형식이 올바르지 않습니다."
+        );
+
+        return;
+
+    }
+
+
+    try {
+
+        transactions =
+            JSON.parse(
+                document
+                    .getElementById(
+                        "detailTransactions"
+                    )
+                    .value ||
+                "[]"
+            );
+
+    } catch (_) {
+
+        alert(
+            "거래 내역 JSON 형식이 올바르지 않습니다."
+        );
+
+        return;
+
+    }
+
 
     try {
 
@@ -2366,11 +2754,13 @@ async function saveUser() {
             `/api/admin/users/${encodeURIComponent(id)}`,
             {
                 method: "PATCH",
+
                 body: {
+
                     nickname:
                         document
                             .getElementById(
-                                "editNickname"
+                                "detailNickname"
                             )
                             .value,
 
@@ -2378,7 +2768,7 @@ async function saveUser() {
                         Number(
                             document
                                 .getElementById(
-                                    "editPlayerNumber"
+                                    "detailPlayerNumber"
                                 )
                                 .value
                         ),
@@ -2387,20 +2777,27 @@ async function saveUser() {
                         Number(
                             document
                                 .getElementById(
-                                    "editCash"
+                                    "detailCash"
                                 )
                                 .value
-                        )
+                        ),
+
+                    holdings,
+
+                    transactions
+
                 }
+
             }
         );
+
 
         closeModal(
             "userModal"
         );
 
         alert(
-            "플레이어 정보가 수정되었습니다."
+            "플레이어 상세정보가 저장되었습니다."
         );
 
         loadUsers();
@@ -2432,6 +2829,7 @@ async function banUser(id) {
         return;
     }
 
+
     const reason =
         prompt(
             "밴 사유를 입력하세요.",
@@ -2445,10 +2843,12 @@ async function banUser(id) {
             `/api/admin/users/${encodeURIComponent(id)}/ban`,
             {
                 method: "POST",
+
                 body: {
                     duration,
                     reason
                 }
+
             }
         );
 
@@ -2478,6 +2878,7 @@ async function unbanUser(id) {
     ) {
         return;
     }
+
 
     try {
 
@@ -2509,11 +2910,12 @@ async function deleteUser(id) {
 
     if (
         !confirm(
-            "정말 이 플레이어 계정을 삭제할까요?\n이 작업은 되돌릴 수 없습니다."
+            "정말 이 플레이어를 삭제할까요?\n되돌릴 수 없습니다."
         )
     ) {
         return;
     }
+
 
     try {
 
@@ -2552,15 +2954,6 @@ async function loadStocks() {
             "stocksTable"
         );
 
-    tbody.innerHTML = `
-        <tr>
-            <td colspan="7">
-                불러오는 중...
-            </td>
-        </tr>
-    `;
-
-
     try {
 
         const data =
@@ -2570,101 +2963,111 @@ async function loadStocks() {
 
         tbody.innerHTML = "";
 
-        data.stocks.forEach(stock => {
 
-            const tr =
-                document.createElement(
-                    "tr"
-                );
+        data.stocks.forEach(
+            stock => {
 
-            tr.innerHTML = `
-
-                <td>
-                    <strong>
-                        ${escapeHtml(stock.id)}
-                    </strong>
-                </td>
-
-                <td>
-                    ${escapeHtml(stock.name)}
-                </td>
-
-                <td>
-                    ${formatMoney(stock.price)}원
-                </td>
-
-                <td>
-                    ${Number(stock.volatility) * 100}%
-                </td>
-
-                <td>
-                    ${
-                        stock.volume_limit_enabled
-                            ? `${formatMoney(stock.volume_limit)}주`
-                            : "없음"
-                    }
-                </td>
-
-                <td>
-                    <span
-                        class="status-${getDirection(stock.id)}"
-                    >
-                        ${getDirectionText(stock.id)}
-                    </span>
-                </td>
-
-                <td>
-
-                    <button
-                        class="btn btn-gray"
-                        onclick='openStockEdit(${JSON.stringify(stock)})'
-                    >
-                        수정
-                    </button>
-
-                    <button
-                        class="btn btn-blue"
-                        onclick="openControl('${escapeAttr(stock.id)}')"
-                    >
-                        주가 제어
-                    </button>
-
-                    <button
-                        class="btn btn-red"
-                        onclick="deleteStock('${escapeAttr(stock.id)}')"
-                    >
-                        삭제
-                    </button>
-
-                </td>
-
-            `;
-
-            tbody.appendChild(
-                tr
-            );
-
-        });
+                const tr =
+                    document.createElement(
+                        "tr"
+                    );
 
 
-        if (!data.stocks.length) {
+                /*
+                 * 현재 DB가 단일 volatility를
+                 * 반환하는 동안은 해당 값을
+                 * 변동 범위의 최대치로 표시.
+                 *
+                 * min/max 필드가 적용되면
+                 * 아래 부분만 min/max로 연결.
+                 */
 
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="7">
-                        등록된 주식이 없습니다.
+                const volatility =
+                    Number(
+                        stock.volatility || 0
+                    );
+
+
+                const rangeText =
+                    `0% ~ ${volatility * 100}%`;
+
+
+                tr.innerHTML = `
+
+                    <td>
+                        <strong>
+                            ${escapeHtml(
+                                stock.id
+                            )}
+                        </strong>
                     </td>
-                </tr>
-            `;
 
-        }
+                    <td>
+                        ${escapeHtml(
+                            stock.name
+                        )}
+                    </td>
+
+                    <td>
+                        ${formatMoney(
+                            stock.price
+                        )}원
+                    </td>
+
+                    <td>
+                        ${rangeText}
+                    </td>
+
+                    <td>
+                        ${
+                            stock.volume_limit_enabled
+                                ? `${formatMoney(stock.volume_limit)}주`
+                                : "없음"
+                        }
+                    </td>
+
+                    <td>
+
+                        <button
+                            class="btn btn-gray"
+                            onclick='openStockEdit(${JSON.stringify(stock)})'
+                        >
+                            수정
+                        </button>
+
+                        <button
+                            class="btn btn-blue"
+                            onclick="openControl('${escapeAttr(stock.id)}')"
+                        >
+                            주가 제어
+                        </button>
+
+                        <button
+                            class="btn btn-red"
+                            onclick="deleteStock('${escapeAttr(stock.id)}')"
+                        >
+                            삭제
+                        </button>
+
+                    </td>
+
+                `;
+
+
+                tbody.appendChild(tr);
+
+            }
+        );
+
 
     } catch (error) {
 
         tbody.innerHTML = `
             <tr>
-                <td colspan="7">
-                    ${escapeHtml(error.message)}
+                <td colspan="6">
+                    ${escapeHtml(
+                        error.message
+                    )}
                 </td>
             </tr>
         `;
@@ -2674,78 +3077,11 @@ async function loadStocks() {
 }
 
 
-/*
- * 현재 control 정보는 별도 API가 없기 때문에
- * 기본적으로 정상 표시.
- *
- * 실제 제어 적용은 서버에서 처리된다.
- */
-
-function getDirection() {
-    return "normal";
-}
-
-function getDirectionText() {
-    return "정상";
-}
-
-
 /* ========================================
    주식 추가
 ======================================== */
 
 async function createStock() {
-
-    const id =
-        document
-            .getElementById(
-                "newStockId"
-            )
-            .value
-            .trim();
-
-    const name =
-        document
-            .getElementById(
-                "newStockName"
-            )
-            .value
-            .trim();
-
-    const price =
-        Number(
-            document
-                .getElementById(
-                    "newStockPrice"
-                )
-                .value
-        );
-
-    const volatility =
-        Number(
-            document
-                .getElementById(
-                    "newStockVolatility"
-                )
-                .value
-        );
-
-    const volumeLimitEnabled =
-        document
-            .getElementById(
-                "newStockLimitEnabled"
-            )
-            .value === "true";
-
-    const volumeLimit =
-        Number(
-            document
-                .getElementById(
-                    "newStockLimit"
-                )
-                .value
-        );
-
 
     try {
 
@@ -2753,41 +3089,61 @@ async function createStock() {
             "/api/admin/stocks",
             {
                 method: "POST",
+
                 body: {
-                    id,
-                    name,
-                    price,
-                    volatility,
-                    volumeLimitEnabled,
-                    volumeLimit
+
+                    id:
+                        document
+                            .getElementById(
+                                "newStockId"
+                            )
+                            .value,
+
+                    name:
+                        document
+                            .getElementById(
+                                "newStockName"
+                            )
+                            .value,
+
+                    price:
+                        Number(
+                            document
+                                .getElementById(
+                                    "newStockPrice"
+                                )
+                                .value
+                        ),
+
+                    volatility:
+                        Number(
+                            document
+                                .getElementById(
+                                    "newStockVolatility"
+                                )
+                                .value
+                        ),
+
+                    volumeLimitEnabled:
+                        document
+                            .getElementById(
+                                "newStockLimitEnabled"
+                            )
+                            .value === "true",
+
+                    volumeLimit:
+                        Number(
+                            document
+                                .getElementById(
+                                    "newStockLimit"
+                                )
+                                .value
+                        )
+
                 }
+
             }
         );
-
-
-        document
-            .getElementById(
-                "newStockId"
-            )
-            .value = "";
-
-        document
-            .getElementById(
-                "newStockName"
-            )
-            .value = "";
-
-        document
-            .getElementById(
-                "newStockPrice"
-            )
-            .value = "";
-
-        document
-            .getElementById(
-                "newStockVolatility"
-            )
-            .value = "";
 
 
         alert(
@@ -2825,30 +3181,32 @@ function openStockEdit(stock) {
             "editStockName"
         )
         .value =
-            stock.name;
+            stock.name || "";
 
     document
         .getElementById(
             "editStockPrice"
         )
         .value =
-            stock.price;
+            stock.price || 0;
 
     document
         .getElementById(
             "editStockVolatility"
         )
         .value =
-            stock.volatility;
+            stock.volatility || 0;
 
     document
         .getElementById(
             "editStockLimitEnabled"
         )
         .value =
-            stock.volume_limit_enabled
-                ? "true"
-                : "false";
+            String(
+                Boolean(
+                    stock.volume_limit_enabled
+                )
+            );
 
     document
         .getElementById(
@@ -2880,7 +3238,9 @@ async function saveStock() {
             `/api/admin/stocks/${encodeURIComponent(id)}`,
             {
                 method: "PATCH",
+
                 body: {
+
                     name:
                         document
                             .getElementById(
@@ -2921,57 +3281,15 @@ async function saveStock() {
                                 )
                                 .value
                         )
+
                 }
+
             }
         );
 
 
         closeModal(
             "stockModal"
-        );
-
-        alert(
-            "주식 정보가 수정되었습니다."
-        );
-
-        loadStocks();
-
-    } catch (error) {
-
-        alert(
-            error.message
-        );
-
-    }
-
-}
-
-
-/* ========================================
-   주식 삭제
-======================================== */
-
-async function deleteStock(id) {
-
-    if (
-        !confirm(
-            "정말 이 주식을 삭제할까요?\n관련 데이터에 영향을 줄 수 있습니다."
-        )
-    ) {
-        return;
-    }
-
-    try {
-
-        await api(
-            `/api/admin/stocks/${encodeURIComponent(id)}`,
-            {
-                method: "DELETE"
-            }
-        );
-
-        alert(
-            "주식이 삭제되었습니다."
         );
 
         loadStocks();
@@ -3016,31 +3334,6 @@ async function saveControl() {
             )
             .value;
 
-    const direction =
-        document
-            .getElementById(
-                "controlDirection"
-            )
-            .value;
-
-    const duration =
-        Number(
-            document
-                .getElementById(
-                    "controlDuration"
-                )
-                .value
-        );
-
-    const strength =
-        Number(
-            document
-                .getElementById(
-                    "controlStrength"
-                )
-                .value
-        );
-
 
     try {
 
@@ -3048,13 +3341,39 @@ async function saveControl() {
             `/api/admin/stocks/${encodeURIComponent(id)}/control`,
             {
                 method: "POST",
+
                 body: {
-                    direction,
-                    duration,
-                    strength
+
+                    direction:
+                        document
+                            .getElementById(
+                                "controlDirection"
+                            )
+                            .value,
+
+                    duration:
+                        Number(
+                            document
+                                .getElementById(
+                                    "controlDuration"
+                                )
+                                .value
+                        ),
+
+                    strength:
+                        Number(
+                            document
+                                .getElementById(
+                                    "controlStrength"
+                                )
+                                .value
+                        )
+
                 }
+
             }
         );
+
 
         closeModal(
             "controlModal"
@@ -3062,6 +3381,37 @@ async function saveControl() {
 
         alert(
             "주가 제어가 적용되었습니다."
+        );
+
+    } catch (error) {
+
+        alert(
+            error.message
+        );
+
+    }
+
+}
+
+
+async function deleteStock(id) {
+
+    if (
+        !confirm(
+            "정말 이 주식을 삭제할까요?"
+        )
+    ) {
+        return;
+    }
+
+
+    try {
+
+        await api(
+            `/api/admin/stocks/${encodeURIComponent(id)}`,
+            {
+                method: "DELETE"
+            }
         );
 
         loadStocks();
@@ -3088,15 +3438,6 @@ async function loadFeedback() {
             "feedbackTable"
         );
 
-    tbody.innerHTML = `
-        <tr>
-            <td colspan="6">
-                불러오는 중...
-            </td>
-        </tr>
-    `;
-
-
     try {
 
         const data =
@@ -3106,124 +3447,127 @@ async function loadFeedback() {
 
         tbody.innerHTML = "";
 
-        data.feedback.forEach(item => {
 
-            const tr =
-                document.createElement(
-                    "tr"
-                );
+        data.feedback.forEach(
+            item => {
 
-            const status =
-                item.status || "pending";
-
-
-            tr.innerHTML = `
-
-                <td>
-                    #${item.id}
-                </td>
-
-                <td>
-                    ${
-                        item.nickname
-                            ? escapeHtml(item.nickname)
-                            : "-"
-                    }
-
-                    ${
-                        item.player_number
-                            ? `(#${item.player_number})`
-                            : ""
-                    }
-                </td>
-
-                <td style="max-width:400px;">
-                    ${escapeHtml(
-                        item.content ||
-                        item.message ||
-                        "-"
-                    )}
-                </td>
-
-                <td>
-
-                    <span class="status ${status}">
-                        ${statusText(status)}
-                    </span>
-
-                </td>
-
-                <td>
-                    ${formatDate(
-                        item.created_at
-                    )}
-                </td>
-
-                <td>
-
-                    <select
-                        onchange="changeFeedbackStatus('${item.id}', this.value)"
-                    >
-
-                        <option
-                            value="pending"
-                            ${status === "pending" ? "selected" : ""}
-                        >
-                            대기
-                        </option>
-
-                        <option
-                            value="review"
-                            ${status === "review" ? "selected" : ""}
-                        >
-                            검토
-                        </option>
-
-                        <option
-                            value="accepted"
-                            ${status === "accepted" ? "selected" : ""}
-                        >
-                            반영
-                        </option>
-
-                        <option
-                            value="rejected"
-                            ${status === "rejected" ? "selected" : ""}
-                        >
-                            거절
-                        </option>
-
-                    </select>
-
-                </td>
-
-            `;
-
-            tbody.appendChild(
-                tr
-            );
-
-        });
+                const tr =
+                    document.createElement(
+                        "tr"
+                    );
 
 
-        if (!data.feedback.length) {
+                const status =
+                    item.status ||
+                    "pending";
 
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="6">
-                        등록된 피드백이 없습니다.
+
+                const statusText = {
+
+                    pending:
+                        "보류중",
+
+                    review:
+                        "검토중",
+
+                    accepted:
+                        "수락",
+
+                    rejected:
+                        "거절"
+
+                }[status] || status;
+
+
+                tr.innerHTML = `
+
+                    <td>
+                        #${item.id}
                     </td>
-                </tr>
-            `;
 
-        }
+                    <td>
+                        ${escapeHtml(
+                            item.nickname ||
+                            item.username ||
+                            "-"
+                        )}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(
+                            item.title || "-"
+                        )}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(
+                            item.content || "-"
+                        )}
+                    </td>
+
+                    <td>
+
+                        <span
+                            class="status status-${status}"
+                        >
+                            ${statusText}
+                        </span>
+
+                    </td>
+
+                    <td>
+                        ${formatDate(
+                            item.created_at
+                        )}
+                    </td>
+
+                    <td>
+
+                        ${
+                            status !== "accepted"
+                                ? `
+                                    <button
+                                        class="btn btn-green"
+                                        onclick="updateFeedback(${item.id}, 'accepted')"
+                                    >
+                                        수락
+                                    </button>
+                                  `
+                                : ""
+                        }
+
+                        ${
+                            status !== "rejected"
+                                ? `
+                                    <button
+                                        class="btn btn-red"
+                                        onclick="updateFeedback(${item.id}, 'rejected')"
+                                    >
+                                        거절
+                                    </button>
+                                  `
+                                : ""
+                        }
+
+                    </td>
+
+                `;
+
+
+                tbody.appendChild(tr);
+
+            }
+        );
+
 
     } catch (error) {
 
         tbody.innerHTML = `
             <tr>
-                <td colspan="6">
-                    ${escapeHtml(error.message)}
+                <td colspan="7">
+                    ${escapeHtml(
+                        error.message
+                    )}
                 </td>
             </tr>
         `;
@@ -3233,22 +3577,38 @@ async function loadFeedback() {
 }
 
 
-async function changeFeedbackStatus(
+async function updateFeedback(
     id,
     status
 ) {
 
+    const text =
+        status === "accepted"
+            ? "이 피드백을 수락할까요?"
+            : "이 피드백을 거절할까요?";
+
+
+    if (
+        !confirm(text)
+    ) {
+        return;
+    }
+
+
     try {
 
         await api(
-            `/api/admin/feedback/${encodeURIComponent(id)}`,
+            `/api/admin/feedback/${id}`,
             {
                 method: "PATCH",
+
                 body: {
                     status
                 }
+
             }
         );
+
 
         loadFeedback();
 
@@ -3264,7 +3624,7 @@ async function changeFeedbackStatus(
 
 
 /* ========================================
-   공지
+   공지사항
 ======================================== */
 
 async function loadNotices() {
@@ -3273,15 +3633,6 @@ async function loadNotices() {
         document.getElementById(
             "noticesTable"
         );
-
-    tbody.innerHTML = `
-        <tr>
-            <td colspan="5">
-                불러오는 중...
-            </td>
-        </tr>
-    `;
-
 
     try {
 
@@ -3292,77 +3643,68 @@ async function loadNotices() {
 
         tbody.innerHTML = "";
 
-        data.notices.forEach(notice => {
 
-            const tr =
-                document.createElement(
-                    "tr"
-                );
+        data.notices.forEach(
+            notice => {
 
-            tr.innerHTML = `
+                const tr =
+                    document.createElement(
+                        "tr"
+                    );
 
-                <td>
-                    #${notice.id}
-                </td>
 
-                <td>
-                    <strong>
+                tr.innerHTML = `
+
+                    <td>
+                        #${notice.id}
+                    </td>
+
+                    <td>
                         ${escapeHtml(
                             notice.title
                         )}
-                    </strong>
-                </td>
-
-                <td style="max-width:450px;">
-                    ${escapeHtml(
-                        notice.content
-                    )}
-                </td>
-
-                <td>
-                    ${formatDate(
-                        notice.created_at
-                    )}
-                </td>
-
-                <td>
-
-                    <button
-                        class="btn btn-red"
-                        onclick="deleteNotice('${notice.id}')"
-                    >
-                        삭제
-                    </button>
-
-                </td>
-
-            `;
-
-            tbody.appendChild(
-                tr
-            );
-
-        });
-
-
-        if (!data.notices.length) {
-
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="5">
-                        등록된 공지사항이 없습니다.
                     </td>
-                </tr>
-            `;
 
-        }
+                    <td>
+                        ${escapeHtml(
+                            notice.content
+                        )}
+                    </td>
+
+                    <td>
+                        ${formatDate(
+                            notice.created_at
+                        )}
+                    </td>
+
+                    <td>
+
+                        <button
+                            class="btn btn-red"
+                            onclick="deleteNotice(${notice.id})"
+                        >
+                            삭제
+                        </button>
+
+                    </td>
+
+                `;
+
+
+                tbody.appendChild(tr);
+
+            }
+        );
+
 
     } catch (error) {
 
         tbody.innerHTML = `
             <tr>
                 <td colspan="5">
-                    ${escapeHtml(error.message)}
+                    ${escapeHtml(
+                        error.message
+                    )}
                 </td>
             </tr>
         `;
@@ -3382,6 +3724,7 @@ async function createNotice() {
             .value
             .trim();
 
+
     const content =
         document
             .getElementById(
@@ -3391,7 +3734,10 @@ async function createNotice() {
             .trim();
 
 
-    if (!title || !content) {
+    if (
+        !title ||
+        !content
+    ) {
 
         alert(
             "제목과 내용을 입력하세요."
@@ -3408,10 +3754,12 @@ async function createNotice() {
             "/api/admin/notices",
             {
                 method: "POST",
+
                 body: {
                     title,
                     content
                 }
+
             }
         );
 
@@ -3430,7 +3778,7 @@ async function createNotice() {
 
 
         alert(
-            "공지사항이 등록되었습니다."
+            "공지사항이 발행되었습니다."
         );
 
         loadNotices();
@@ -3460,7 +3808,7 @@ async function deleteNotice(id) {
     try {
 
         await api(
-            `/api/admin/notices/${encodeURIComponent(id)}`,
+            `/api/admin/notices/${id}`,
             {
                 method: "DELETE"
             }
@@ -3499,7 +3847,7 @@ async function loadMaintenance() {
             data.maintenance;
 
 
-        const state =
+        const element =
             document
                 .getElementById(
                     "maintenanceState"
@@ -3511,18 +3859,18 @@ async function loadMaintenance() {
             maintenance.enabled
         ) {
 
-            state.textContent =
+            element.textContent =
                 "🔴 점검 중";
 
-            state.className =
+            element.className =
                 "maintenance-state maintenance-on";
 
         } else {
 
-            state.textContent =
+            element.textContent =
                 "🟢 정상 운영";
 
-            state.className =
+            element.className =
                 "maintenance-state maintenance-off";
 
         }
@@ -3530,7 +3878,6 @@ async function loadMaintenance() {
     } catch (error) {
 
         console.error(
-            "MAINTENANCE LOAD ERROR:",
             error
         );
 
@@ -3543,7 +3890,7 @@ async function startMaintenance() {
 
     if (
         !confirm(
-            "서버 점검을 시작할까요?"
+            "지금 서버 점검을 시작할까요?"
         )
     ) {
         return;
@@ -3556,18 +3903,18 @@ async function startMaintenance() {
             "/api/admin/maintenance/start",
             {
                 method: "POST",
+
                 body: {
                     startTime:
                         Date.now(),
+
                     endTime:
                         null
                 }
+
             }
         );
 
-        alert(
-            "서버 점검이 시작되었습니다."
-        );
 
         loadMaintenance();
 
@@ -3600,7 +3947,7 @@ async function startMaintenanceWithTime() {
     ) {
 
         alert(
-            "점검 시간을 올바르게 입력하세요."
+            "점검 시간을 입력하세요."
         );
 
         return;
@@ -3614,7 +3961,9 @@ async function startMaintenanceWithTime() {
             "/api/admin/maintenance/start",
             {
                 method: "POST",
+
                 body: {
+
                     startTime:
                         Date.now(),
 
@@ -3623,14 +3972,12 @@ async function startMaintenanceWithTime() {
                         minutes *
                         60 *
                         1000
+
                 }
+
             }
         );
 
-
-        alert(
-            `${minutes}분 동안 점검 상태로 설정했습니다.`
-        );
 
         loadMaintenance();
 
@@ -3665,9 +4012,6 @@ async function endMaintenance() {
             }
         );
 
-        alert(
-            "서버 점검이 종료되었습니다."
-        );
 
         loadMaintenance();
 
@@ -3690,7 +4034,9 @@ function openModal(id) {
 
     document
         .getElementById(id)
-        .classList.add("show");
+        .classList.add(
+            "show"
+        );
 
 }
 
@@ -3699,33 +4045,11 @@ function closeModal(id) {
 
     document
         .getElementById(id)
-        .classList.remove("show");
-
-}
-
-
-document
-    .querySelectorAll(".modal")
-    .forEach(modal => {
-
-        modal.addEventListener(
-            "click",
-            event => {
-
-                if (
-                    event.target === modal
-                ) {
-
-                    modal.classList.remove(
-                        "show"
-                    );
-
-                }
-
-            }
+        .classList.remove(
+            "show"
         );
 
-    });
+}
 
 
 /* ========================================
@@ -3734,8 +4058,11 @@ document
 
 function formatMoney(value) {
 
-    return Number(value || 0)
-        .toLocaleString("ko-KR");
+    return Number(
+        value || 0
+    ).toLocaleString(
+        "ko-KR"
+    );
 
 }
 
@@ -3766,46 +4093,59 @@ function formatDate(value) {
 }
 
 
-function statusText(status) {
-
-    const map = {
-        pending: "대기",
-        review: "검토",
-        accepted: "반영",
-        rejected: "거절"
-    };
-
-    return map[status] ||
-        status;
-
-}
-
-
 function escapeHtml(value) {
 
-    return String(value ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+    return String(
+        value ?? ""
+    )
+    .replaceAll(
+        "&",
+        "&amp;"
+    )
+    .replaceAll(
+        "<",
+        "&lt;"
+    )
+    .replaceAll(
+        ">",
+        "&gt;"
+    )
+    .replaceAll(
+        '"',
+        "&quot;"
+    )
+    .replaceAll(
+        "'",
+        "&#039;"
+    );
 
 }
 
 
 function escapeAttr(value) {
 
-    return String(value ?? "")
-        .replaceAll("\\", "\\\\")
-        .replaceAll("'", "\\'");
+    return String(
+        value ?? ""
+    )
+    .replaceAll(
+        "\\",
+        "\\\\"
+    )
+    .replaceAll(
+        "'",
+        "\\'"
+    );
+
 }
 
 
 /* ========================================
-   시작
+   자동 로그인
 ======================================== */
 
-if (adminPassword) {
+if (
+    adminPassword
+) {
 
     openAdmin();
 
@@ -3815,4 +4155,3 @@ if (adminPassword) {
 
 </body>
 </html>
-```
