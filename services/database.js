@@ -1,45 +1,4 @@
-
-const { Pool } = require("pg");
-
-
-// =====================================================
-// PostgreSQL 연결
-// =====================================================
-
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-
-    ssl: {
-        rejectUnauthorized: false
-    }
-});
-
-
-// =====================================================
-// 기본 주식
-//
-// min_change / max_change
-// 실제 1회 주가 변동 범위
-//
-// 예:
-// 20 ~ 180
-// → 한 번의 변동에서 최소 20원 ~ 최대 180원
-// =====================================================
-
-const companies = [
-
-    ["SKNX", "스카닉스하이닉스", 4250, 20, 180],
-    ["SAMS", "샘숭전자", 7100, 20, 150],
-    ["TWAI", "티Wai", 1850, 10, 120],
-    ["NVR", "나이버", 3500, 15, 140],
-    ["NFLX", "니플릭스", 5200, 20, 170],
-    ["PASC", "파스코", 2800, 10, 100],
-    ["LG", "알쥐", 6400, 15, 130],
-    ["HYUN", "현재자동차", 8300, 20, 160],
-    ["NVDO", "N비디오", 9700, 30, 220],
-    ["MHD", "마이크로하드", 7600, 20, 170]
-
-];
+const { pool, companies } = require("./market");
 
 
 // =====================================================
@@ -68,64 +27,52 @@ async function initializeDatabase() {
                 player_number SERIAL UNIQUE,
 
                 username TEXT UNIQUE NOT NULL,
-
                 nickname TEXT UNIQUE NOT NULL,
 
                 salt TEXT NOT NULL,
-
                 password_hash TEXT NOT NULL,
 
                 cash NUMERIC NOT NULL DEFAULT 10000,
 
-                holdings JSONB NOT NULL
-                    DEFAULT '{}'::jsonb,
+                holdings JSONB NOT NULL DEFAULT '{}'::jsonb,
 
-                transactions JSONB NOT NULL
-                    DEFAULT '[]'::jsonb,
-
-                created_at BIGINT NOT NULL,
+                transactions JSONB NOT NULL DEFAULT '[]'::jsonb,
 
                 banned_until BIGINT,
 
-                ban_reason TEXT
+                ban_reason TEXT,
 
+                created_at BIGINT NOT NULL
             )
         `);
 
 
-        // 기존 DB에 없는 컬럼 추가
-
+        // 기존 DB 보정
         await client.query(`
             ALTER TABLE users
-            ADD COLUMN IF NOT EXISTS
-            player_number SERIAL
+            ADD COLUMN IF NOT EXISTS player_number SERIAL
         `);
 
         await client.query(`
             ALTER TABLE users
-            ADD COLUMN IF NOT EXISTS
-            banned_until BIGINT
+            ADD COLUMN IF NOT EXISTS banned_until BIGINT
         `);
 
         await client.query(`
             ALTER TABLE users
-            ADD COLUMN IF NOT EXISTS
-            ban_reason TEXT
+            ADD COLUMN IF NOT EXISTS ban_reason TEXT
         `);
 
-
-        // 플레이어 번호 UNIQUE
 
         await client.query(`
             CREATE UNIQUE INDEX IF NOT EXISTS
             users_player_number_unique
-
             ON users(player_number)
         `);
 
 
         // =================================================
-        // 로그인 세션
+        // 세션
         // =================================================
 
         await client.query(`
@@ -138,7 +85,6 @@ async function initializeDatabase() {
                     ON DELETE CASCADE,
 
                 created_at BIGINT NOT NULL
-
             )
         `);
 
@@ -154,7 +100,11 @@ async function initializeDatabase() {
 
                 name TEXT NOT NULL,
 
-                volatility NUMERIC NOT NULL DEFAULT 0,
+                volatility NUMERIC NOT NULL DEFAULT 0.05,
+
+                min_change NUMERIC NOT NULL DEFAULT 1,
+
+                max_change NUMERIC NOT NULL DEFAULT 100,
 
                 price NUMERIC NOT NULL,
 
@@ -168,48 +118,39 @@ async function initializeDatabase() {
 
                 volume BIGINT NOT NULL DEFAULT 0,
 
-                volume_limit_enabled
-                    BOOLEAN NOT NULL DEFAULT FALSE,
+                volume_limit_enabled BOOLEAN
+                    NOT NULL DEFAULT FALSE,
 
-                volume_limit BIGINT NOT NULL DEFAULT 0,
-
-                min_change NUMERIC NOT NULL DEFAULT 10,
-
-                max_change NUMERIC NOT NULL DEFAULT 100
-
+                volume_limit BIGINT
+                    NOT NULL DEFAULT 0
             )
         `);
 
 
-        // 기존 stocks 테이블 보완
+        // 기존 stocks 테이블 보정
 
         await client.query(`
             ALTER TABLE stocks
-
-            ADD COLUMN IF NOT EXISTS
-            min_change NUMERIC NOT NULL DEFAULT 10
+            ADD COLUMN IF NOT EXISTS min_change NUMERIC
+            NOT NULL DEFAULT 1
         `);
 
         await client.query(`
             ALTER TABLE stocks
-
-            ADD COLUMN IF NOT EXISTS
-            max_change NUMERIC NOT NULL DEFAULT 100
+            ADD COLUMN IF NOT EXISTS max_change NUMERIC
+            NOT NULL DEFAULT 100
         `);
 
         await client.query(`
             ALTER TABLE stocks
-
-            ADD COLUMN IF NOT EXISTS
-            volume_limit_enabled
-            BOOLEAN NOT NULL DEFAULT FALSE
+            ADD COLUMN IF NOT EXISTS volume_limit_enabled BOOLEAN
+            NOT NULL DEFAULT FALSE
         `);
 
         await client.query(`
             ALTER TABLE stocks
-
-            ADD COLUMN IF NOT EXISTS
-            volume_limit BIGINT NOT NULL DEFAULT 0
+            ADD COLUMN IF NOT EXISTS volume_limit BIGINT
+            NOT NULL DEFAULT 0
         `);
 
 
@@ -229,7 +170,6 @@ async function initializeDatabase() {
                 time BIGINT NOT NULL,
 
                 price NUMERIC NOT NULL
-
             )
         `);
 
@@ -245,15 +185,11 @@ async function initializeDatabase() {
                     REFERENCES stocks(id)
                     ON DELETE CASCADE,
 
-                direction TEXT NOT NULL
-                    DEFAULT 'normal',
+                direction TEXT NOT NULL DEFAULT 'normal',
 
-                until_time BIGINT NOT NULL
-                    DEFAULT 0,
+                until_time BIGINT NOT NULL DEFAULT 0,
 
-                strength NUMERIC NOT NULL
-                    DEFAULT 1
-
+                strength NUMERIC NOT NULL DEFAULT 1
             )
         `);
 
@@ -273,20 +209,17 @@ async function initializeDatabase() {
 
                 message TEXT NOT NULL,
 
-                type TEXT NOT NULL
-                    DEFAULT 'info',
+                type TEXT NOT NULL DEFAULT 'info',
 
-                is_read BOOLEAN NOT NULL
-                    DEFAULT FALSE,
+                is_read BOOLEAN NOT NULL DEFAULT FALSE,
 
                 created_at BIGINT NOT NULL
-
             )
         `);
 
 
         // =================================================
-        // 은행 거래
+        // 은행 이체
         // =================================================
 
         await client.query(`
@@ -309,7 +242,6 @@ async function initializeDatabase() {
                 type TEXT NOT NULL,
 
                 created_at BIGINT NOT NULL
-
             )
         `);
 
@@ -331,13 +263,11 @@ async function initializeDatabase() {
 
                 content TEXT NOT NULL,
 
-                status TEXT NOT NULL
-                    DEFAULT 'pending',
+                status TEXT NOT NULL DEFAULT 'pending',
 
                 created_at BIGINT NOT NULL,
 
                 updated_at BIGINT NOT NULL
-
             )
         `);
 
@@ -358,7 +288,6 @@ async function initializeDatabase() {
                 feedback_id BIGINT,
 
                 created_at BIGINT NOT NULL
-
             )
         `);
 
@@ -379,7 +308,6 @@ async function initializeDatabase() {
                 created_at BIGINT NOT NULL,
 
                 updated_at BIGINT NOT NULL
-
             )
         `);
 
@@ -393,31 +321,23 @@ async function initializeDatabase() {
 
                 id INTEGER PRIMARY KEY,
 
-                enabled BOOLEAN NOT NULL
-                    DEFAULT FALSE,
+                enabled BOOLEAN NOT NULL DEFAULT FALSE,
 
                 start_time BIGINT,
 
                 end_time BIGINT,
 
                 updated_at BIGINT NOT NULL
-
             )
         `);
 
 
         // =================================================
-        // 기본 주식 생성 / 기존 주식 보완
+        // 기본 주식 생성
         // =================================================
 
         for (
-            const [
-                id,
-                name,
-                price,
-                minChange,
-                maxChange
-            ]
+            const [id, name, price, volatility]
             of companies
         ) {
 
@@ -434,6 +354,28 @@ async function initializeDatabase() {
 
             if (!result.rows.length) {
 
+                const defaultMin =
+                    Math.max(
+                        1,
+                        Math.round(
+                            Number(price) *
+                            Number(volatility) *
+                            0.01
+                        )
+                    );
+
+
+                const defaultMax =
+                    Math.max(
+                        defaultMin,
+                        Math.round(
+                            Number(price) *
+                            Number(volatility) *
+                            0.05
+                        )
+                    );
+
+
                 await client.query(
                     `
                     INSERT INTO stocks
@@ -441,6 +383,8 @@ async function initializeDatabase() {
                         id,
                         name,
                         volatility,
+                        min_change,
+                        max_change,
                         price,
                         previous,
                         open_price,
@@ -448,34 +392,33 @@ async function initializeDatabase() {
                         low,
                         volume,
                         volume_limit_enabled,
-                        volume_limit,
-                        min_change,
-                        max_change
+                        volume_limit
                     )
 
                     VALUES
                     (
                         $1,
                         $2,
-                        0,
                         $3,
-                        $3,
-                        $3,
-                        $3,
-                        $3,
+                        $4,
+                        $5,
+                        $6,
+                        $6,
+                        $6,
+                        $6,
+                        $6,
                         0,
                         FALSE,
-                        0,
-                        $4,
-                        $5
+                        0
                     )
                     `,
                     [
                         id,
                         name,
-                        price,
-                        minChange,
-                        maxChange
+                        volatility,
+                        defaultMin,
+                        defaultMax,
+                        price
                     ]
                 );
 
@@ -521,66 +464,11 @@ async function initializeDatabase() {
                         0,
                         1
                     )
-
-                    ON CONFLICT (stock_id)
-                    DO NOTHING
-                    `,
-                    [id]
-                );
-
-            } else {
-
-                // 기존 종목은
-                // min/max가 기본값 상태일 때
-                // 현재 설정값을 유지한다.
-
-                await client.query(
-                    `
-                    UPDATE stocks
-
-                    SET
-                        min_change =
-                            COALESCE(min_change, $2),
-
-                        max_change =
-                            COALESCE(max_change, $3)
-
-                    WHERE id = $1
-                    `,
-                    [
-                        id,
-                        minChange,
-                        maxChange
-                    ]
-                );
-
-
-                await client.query(
-                    `
-                    INSERT INTO market_controls
-                    (
-                        stock_id,
-                        direction,
-                        until_time,
-                        strength
-                    )
-
-                    VALUES
-                    (
-                        $1,
-                        'normal',
-                        0,
-                        1
-                    )
-
-                    ON CONFLICT (stock_id)
-                    DO NOTHING
                     `,
                     [id]
                 );
 
             }
-
         }
 
 
@@ -614,17 +502,12 @@ async function initializeDatabase() {
         ]);
 
 
-        // =================================================
-        // 완료
-        // =================================================
-
         await client.query("COMMIT");
 
 
         console.log(
             "✅ PostgreSQL 데이터베이스 초기화 완료."
         );
-
 
     } catch (error) {
 
@@ -637,27 +520,13 @@ async function initializeDatabase() {
 
         throw error;
 
-
     } finally {
 
         client.release();
-
     }
-
 }
 
 
-// =====================================================
-// Export
-// =====================================================
-
 module.exports = {
-
-    pool,
-
-    companies,
-
     initializeDatabase
-
 };
-
