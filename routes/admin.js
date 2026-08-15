@@ -1,4123 +1,1899 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+const express = require("express");
 
-<title>VSM 관리자 패널</title>
+const { pool } = require("../services/market");
 
-<style>
+const router = express.Router();
 
-* {
-    box-sizing: border-box;
-}
-
-body {
-    margin: 0;
-    font-family:
-        Arial,
-        "Noto Sans KR",
-        sans-serif;
-
-    background: #f4f6f8;
-    color: #202124;
-}
-
-button,
-input,
-textarea,
-select {
-    font: inherit;
-}
-
-button {
-    cursor: pointer;
-}
-
-.hidden {
-    display: none !important;
-}
-
-/* ================================
-   로그인
-================================ */
-
-#loginScreen {
-    min-height: 100vh;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    padding: 20px;
-}
-
-.login-box {
-    width: min(420px, 100%);
-
-    background: white;
-
-    border: 1px solid #e5e7eb;
-    border-radius: 20px;
-
-    padding: 30px;
-
-    box-shadow:
-        0 15px 45px rgba(0,0,0,.08);
-}
-
-.login-title {
-    font-size: 27px;
-    font-weight: 900;
-
-    margin-bottom: 8px;
-}
-
-.login-description {
-    color: #6b7280;
-    font-size: 14px;
-
-    margin-bottom: 22px;
-}
-
-.login-input {
-    width: 100%;
-
-    padding: 13px;
-
-    border: 1px solid #dfe3e8;
-    border-radius: 10px;
-
-    margin-bottom: 12px;
-}
-
-.login-button {
-    width: 100%;
-
-    padding: 13px;
-
-    border: none;
-    border-radius: 10px;
-
-    background: #202124;
-    color: white;
-
-    font-weight: 800;
-}
-
-.login-error {
-    color: #dc2626;
-    font-size: 13px;
-
-    margin-top: 10px;
-}
-
-/* ================================
-   관리자
-================================ */
-
-#adminApp {
-    display: none;
-}
-
-.topbar {
-    position: fixed;
-
-    top: 0;
-    left: 0;
-    right: 0;
-
-    height: 60px;
-
-    display: flex;
-    align-items: center;
-
-    padding: 0 18px;
-
-    background: rgba(255,255,255,.96);
-
-    border-bottom:
-        1px solid #e5e7eb;
-
-    z-index: 1000;
-}
-
-.logo {
-    font-size: 19px;
-    font-weight: 900;
-}
-
-.badge {
-    margin-left: 10px;
-
-    padding: 5px 8px;
-
-    border-radius: 7px;
-
-    background: #fee2e2;
-    color: #b91c1c;
-
-    font-size: 11px;
-    font-weight: 900;
-}
-
-.spacer {
-    flex: 1;
-}
-
-.top-button {
-    border: none;
-    border-radius: 9px;
-
-    padding: 9px 12px;
-
-    margin-left: 7px;
-
-    background: #eef1f4;
-}
-
-.site-button {
-    background: #dbeafe;
-    color: #1d4ed8;
-
-    font-weight: 800;
-}
-
-.logout-button {
-    background: #fee2e2;
-    color: #b91c1c;
-
-    font-weight: 800;
-}
-
-/* ================================
-   레이아웃
-================================ */
-
-.layout {
-    min-height: 100vh;
-
-    padding-top: 60px;
-}
-
-.sidebar {
-    position: fixed;
-
-    top: 60px;
-    bottom: 0;
-    left: 0;
-
-    width: 225px;
-
-    padding: 18px 12px;
-
-    background: white;
-
-    border-right:
-        1px solid #e5e7eb;
-}
-
-.nav-button {
-    width: 100%;
-
-    display: flex;
-    align-items: center;
-
-    gap: 10px;
-
-    padding: 12px;
-
-    margin-bottom: 5px;
-
-    border: none;
-    border-radius: 10px;
-
-    background: transparent;
-
-    color: #4b5563;
-
-    text-align: left;
-    font-weight: 800;
-}
-
-.nav-button:hover {
-    background: #f1f3f5;
-}
-
-.nav-button.active {
-    background: #202124;
-    color: white;
-}
-
-.main {
-    margin-left: 225px;
-
-    padding: 28px;
-
-    max-width: 1550px;
-}
-
-.section {
-    display: none;
-}
-
-.section.active {
-    display: block;
-}
-
-.page-title {
-    margin-bottom: 22px;
-}
-
-.page-title h1 {
-    margin: 0 0 6px;
-
-    font-size: 28px;
-}
-
-.page-title p {
-    margin: 0;
-
-    color: #6b7280;
-}
-
-/* ================================
-   카드
-================================ */
-
-.card {
-    background: white;
-
-    border: 1px solid #e5e7eb;
-    border-radius: 15px;
-
-    padding: 18px;
-
-    margin-bottom: 16px;
-}
-
-.card-title {
-    font-size: 17px;
-    font-weight: 900;
-
-    margin-bottom: 15px;
-}
-
-.stats {
-    display: grid;
-
-    grid-template-columns:
-        repeat(4, minmax(0,1fr));
-
-    gap: 14px;
-
-    margin-bottom: 20px;
-}
-
-.stat-card {
-    background: white;
-
-    border: 1px solid #e5e7eb;
-    border-radius: 15px;
-
-    padding: 18px;
-}
-
-.stat-label {
-    color: #6b7280;
-
-    font-size: 13px;
-
-    margin-bottom: 7px;
-}
-
-.stat-value {
-    font-size: 25px;
-    font-weight: 900;
-}
-
-/* ================================
-   테이블
-================================ */
-
-.table-wrap {
-    width: 100%;
-
-    overflow-x: auto;
-}
-
-table {
-    width: 100%;
-
-    border-collapse: collapse;
-
-    min-width: 800px;
-}
-
-th,
-td {
-    padding: 12px 10px;
-
-    border-bottom:
-        1px solid #eef0f2;
-
-    text-align: left;
-
-    font-size: 13px;
-}
-
-th {
-    color: #6b7280;
-
-    font-size: 12px;
-}
-
-/* ================================
-   버튼
-================================ */
-
-.btn {
-    border: none;
-
-    border-radius: 8px;
-
-    padding: 8px 10px;
-
-    margin: 2px;
-
-    font-size: 12px;
-    font-weight: 800;
-}
-
-.btn-dark {
-    background: #202124;
-    color: white;
-}
-
-.btn-gray {
-    background: #eef1f4;
-    color: #202124;
-}
-
-.btn-blue {
-    background: #dbeafe;
-    color: #1d4ed8;
-}
-
-.btn-green {
-    background: #dcfce7;
-    color: #15803d;
-}
-
-.btn-red {
-    background: #fee2e2;
-    color: #b91c1c;
-}
-
-/* ================================
-   상태
-================================ */
-
-.status {
-    display: inline-block;
-
-    padding: 5px 8px;
-
-    border-radius: 7px;
-
-    font-size: 11px;
-    font-weight: 800;
-}
-
-.status-normal {
-    background: #dcfce7;
-    color: #15803d;
-}
-
-.status-banned {
-    background: #fee2e2;
-    color: #b91c1c;
-}
-
-.status-pending {
-    background: #fef3c7;
-    color: #92400e;
-}
-
-.status-review {
-    background: #dbeafe;
-    color: #1d4ed8;
-}
-
-.status-accepted {
-    background: #dcfce7;
-    color: #15803d;
-}
-
-.status-rejected {
-    background: #fee2e2;
-    color: #b91c1c;
-}
-
-/* ================================
-   폼
-================================ */
-
-.form-grid {
-    display: grid;
-
-    grid-template-columns:
-        repeat(2, minmax(0,1fr));
-
-    gap: 12px;
-}
-
-.field {
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 6px;
-}
-
-.field.full {
-    grid-column: 1 / -1;
-}
-
-.field label {
-    color: #6b7280;
-
-    font-size: 12px;
-    font-weight: 800;
-}
-
-.field input,
-.field textarea,
-.field select {
-    width: 100%;
-
-    padding: 10px 11px;
-
-    border: 1px solid #dfe3e8;
-    border-radius: 9px;
-
-    outline: none;
-}
-
-.field textarea {
-    min-height: 120px;
-
-    resize: vertical;
-
-    font-family:
-        Consolas,
-        monospace;
-}
-
-/* ================================
-   모달
-================================ */
-
-.modal {
-    position: fixed;
-
-    inset: 0;
-
-    display: none;
-
-    align-items: center;
-    justify-content: center;
-
-    padding: 20px;
-
-    background:
-        rgba(0,0,0,.48);
-
-    z-index: 3000;
-}
-
-.modal.show {
-    display: flex;
-}
-
-.modal-box {
-    width: min(850px, 100%);
-
-    max-height: 92vh;
-
-    overflow-y: auto;
-
-    background: white;
-
-    border-radius: 18px;
-
-    padding: 22px;
-}
-
-.modal-title {
-    margin: 0 0 18px;
-
-    font-size: 21px;
-    font-weight: 900;
-}
-
-.modal-buttons {
-    display: flex;
-
-    justify-content: flex-end;
-
-    gap: 8px;
-
-    margin-top: 18px;
-}
-
-.detail-grid {
-    display: grid;
-
-    grid-template-columns:
-        repeat(2, minmax(0,1fr));
-
-    gap: 10px;
-
-    margin-bottom: 18px;
-}
-
-.detail-item {
-    padding: 12px;
-
-    background: #f7f8fa;
-
-    border-radius: 10px;
-}
-
-.detail-label {
-    color: #6b7280;
-
-    font-size: 11px;
-
-    margin-bottom: 5px;
-}
-
-.detail-value {
-    font-weight: 800;
-
-    word-break: break-all;
-}
-
-.sub-title {
-    margin:
-        20px 0 10px;
-
-    font-size: 15px;
-    font-weight: 900;
-}
-
-/* ================================
-   점검
-================================ */
-
-.maintenance-box {
-    display: flex;
-
-    align-items: center;
-    justify-content: space-between;
-
-    gap: 20px;
-}
-
-.maintenance-state {
-    font-size: 19px;
-    font-weight: 900;
-}
-
-.maintenance-on {
-    color: #dc2626;
-}
-
-.maintenance-off {
-    color: #16a34a;
-}
-
-/* ================================
-   플레이어 상세정보 - 주식 UI
-================================ */
-
-.detail-toolbar { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
-.detail-summary { color:#6b7280; font-size:13px; font-weight:800; }
-.detail-summary strong { color:#202124; margin-left:4px; }
-.detail-table-wrap { width:100%; overflow-x:auto; border:1px solid #e5e7eb; border-radius:10px; margin-bottom:16px; }
-.detail-table { min-width:650px; }
-.detail-table.transaction-table { min-width:950px; }
-.detail-table th { background:#f7f8fa; white-space:nowrap; }
-.detail-table td { vertical-align:middle; }
-.detail-table input, .detail-table select { width:100%; min-width:80px; padding:8px 9px; border:1px solid #dfe3e8; border-radius:8px; outline:none; background:white; }
-.detail-table input:focus, .detail-table select:focus { border-color:#2563eb; }
-.detail-table .number-input { text-align:right; }
-.empty-detail { padding:24px !important; text-align:center !important; color:#9ca3af; }
-
-/* ================================
-   반응형
-================================ */
-
-@media (max-width: 850px) {
-
-    .sidebar {
-        width: 65px;
-    }
-
-    .nav-button {
-        justify-content: center;
-
-        font-size: 0;
-    }
-
-    .nav-button span {
-        display: none;
-    }
-
-    .main {
-        margin-left: 65px;
-
-        padding: 18px;
-    }
-
-    .stats {
-        grid-template-columns:
-            repeat(2, minmax(0,1fr));
-    }
-
-}
-
-@media (max-width: 600px) {
-
-    .stats {
-        grid-template-columns: 1fr;
-    }
-
-    .form-grid,
-    .detail-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .field.full {
-        grid-column: auto;
-    }
-
-    .site-button {
-        display: none;
-    }
-
-}
-
-</style>
-</head>
-
-<body>
-
-<!-- ========================================
-     로그인
-======================================== -->
-
-<div id="loginScreen">
-
-    <div class="login-box">
-
-        <div class="login-title">
-            🛠️ VSM 관리자
-        </div>
-
-        <div class="login-description">
-            관리자 비밀번호를 입력하세요.
-        </div>
-
-        <input
-            id="adminPassword"
-            class="login-input"
-            type="password"
-            placeholder="관리자 비밀번호"
-        >
-
-        <button
-            id="loginButton"
-            class="login-button"
-        >
-            관리자 로그인
-        </button>
-
-        <div
-            id="loginError"
-            class="login-error"
-        ></div>
-
-    </div>
-
-</div>
-
-
-<!-- ========================================
-     관리자
-======================================== -->
-
-<div id="adminApp">
-
-<header class="topbar">
-
-    <div class="logo">
-        VSM 관리자 패널
-    </div>
-
-    <div class="badge">
-        ADMIN
-    </div>
-
-    <div class="spacer"></div>
-
-    <button
-        class="top-button site-button"
-        onclick="goToSite()"
-    >
-        🌐 VSM 사이트
-    </button>
-
-    <button
-        class="top-button"
-        onclick="refreshCurrentSection()"
-    >
-        🔄 새로고침
-    </button>
-
-    <button
-        class="top-button logout-button"
-        onclick="logout()"
-    >
-        로그아웃
-    </button>
-
-</header>
-
-
-<div class="layout">
-
-<aside class="sidebar">
-
-    <button
-        class="nav-button active"
-        data-section="dashboard"
-        onclick="showSection('dashboard')"
-    >
-        📊
-        <span>대시보드</span>
-    </button>
-
-    <button
-        class="nav-button"
-        data-section="users"
-        onclick="showSection('users')"
-    >
-        👥
-        <span>플레이어</span>
-    </button>
-
-    <button
-        class="nav-button"
-        data-section="stocks"
-        onclick="showSection('stocks')"
-    >
-        📈
-        <span>주식 관리</span>
-    </button>
-
-    <button
-        class="nav-button"
-        data-section="feedback"
-        onclick="showSection('feedback')"
-    >
-        💬
-        <span>피드백</span>
-    </button>
-
-    <button
-        class="nav-button"
-        data-section="notices"
-        onclick="showSection('notices')"
-    >
-        📢
-        <span>공지사항</span>
-    </button>
-
-    <button
-        class="nav-button"
-        data-section="maintenance"
-        onclick="showSection('maintenance')"
-    >
-        🔧
-        <span>서버 점검</span>
-    </button>
-
-</aside>
-
-
-<main class="main">
-
-
-<!-- ========================================
-     대시보드
-======================================== -->
-
-<section
-    id="section-dashboard"
-    class="section active"
->
-
-<div class="page-title">
-
-    <h1>📊 대시보드</h1>
-
-    <p>
-        VSM 전체 시스템을 관리합니다.
-    </p>
-
-</div>
-
-
-<div class="stats">
-
-    <div class="stat-card">
-
-        <div class="stat-label">
-            전체 플레이어
-        </div>
-
-        <div
-            id="statUsers"
-            class="stat-value"
-        >
-            -
-        </div>
-
-    </div>
-
-    <div class="stat-card">
-
-        <div class="stat-label">
-            등록 주식
-        </div>
-
-        <div
-            id="statStocks"
-            class="stat-value"
-        >
-            -
-        </div>
-
-    </div>
-
-    <div class="stat-card">
-
-        <div class="stat-label">
-            피드백
-        </div>
-
-        <div
-            id="statFeedback"
-            class="stat-value"
-        >
-            -
-        </div>
-
-    </div>
-
-    <div class="stat-card">
-
-        <div class="stat-label">
-            서버 점검
-        </div>
-
-        <div
-            id="statMaintenance"
-            class="stat-value"
-        >
-            -
-        </div>
-
-    </div>
-
-</div>
-
-
-<div class="card">
-
-    <div class="card-title">
-        ⚡ 빠른 관리
-    </div>
-
-    <button
-        class="btn btn-dark"
-        onclick="showSection('users')"
-    >
-        👥 플레이어 관리
-    </button>
-
-    <button
-        class="btn btn-dark"
-        onclick="showSection('stocks')"
-    >
-        📈 주식 관리
-    </button>
-
-    <button
-        class="btn btn-gray"
-        onclick="showSection('feedback')"
-    >
-        💬 피드백 확인
-    </button>
-
-    <button
-        class="btn btn-gray"
-        onclick="showSection('notices')"
-    >
-        📢 공지 작성
-    </button>
-
-    <button
-        class="btn btn-red"
-        onclick="showSection('maintenance')"
-    >
-        🔧 서버 점검
-    </button>
-
-</div>
-
-</section>
-
-
-<!-- ========================================
-     플레이어
-======================================== -->
-
-<section
-    id="section-users"
-    class="section"
->
-
-<div class="page-title">
-
-    <h1>👥 플레이어 관리</h1>
-
-    <p>
-        플레이어의 계정과 상세 정보를 관리합니다.
-    </p>
-
-</div>
-
-
-<div class="card">
-
-<div class="table-wrap">
-
-<table>
-
-<thead>
-
-<tr>
-
-<th>번호</th>
-<th>닉네임</th>
-<th>아이디</th>
-<th>현금</th>
-<th>상태</th>
-<th>가입일</th>
-<th>관리</th>
-
-</tr>
-
-</thead>
-
-<tbody id="usersTable">
-
-<tr>
-<td colspan="7">
-불러오는 중...
-</td>
-</tr>
-
-</tbody>
-
-</table>
-
-</div>
-
-</div>
-
-</section>
-
-
-<!-- ========================================
-     주식
-======================================== -->
-
-<section
-    id="section-stocks"
-    class="section"
->
-
-<div class="page-title">
-
-    <h1>📈 주식 관리</h1>
-
-    <p>
-        종목, 가격, 변동성, 거래량 및 주가 방향을 관리합니다.
-    </p>
-
-</div>
-
-
-<div class="card">
-
-<div class="card-title">
-➕ 새 주식 등록
-</div>
-
-<div class="form-grid">
-
-<div class="field">
-
-<label>
-주식 ID
-</label>
-
-<input
-    id="newStockId"
-    placeholder="예: TEST"
->
-
-</div>
-
-
-<div class="field">
-
-<label>
-회사 이름
-</label>
-
-<input
-    id="newStockName"
-    placeholder="예: 테스트전자"
->
-
-</div>
-
-
-<div class="field">
-
-<label>
-초기 주가
-</label>
-
-<input
-    id="newStockPrice"
-    type="number"
-    min="100"
->
-
-</div>
-
-
-<div class="field">
-
-<label>
-변동성
-</label>
-
-<input
-    id="newStockVolatility"
-    type="number"
-    step="0.01"
-    min="0"
-    placeholder="0.05"
->
-
-</div>
-
-
-<div class="field">
-
-<label>
-거래량 제한
-</label>
-
-<select id="newStockLimitEnabled">
-
-<option value="false">
-사용 안 함
-</option>
-
-<option value="true">
-사용
-</option>
-
-</select>
-
-</div>
-
-
-<div class="field">
-
-<label>
-거래량 제한 수량
-</label>
-
-<input
-    id="newStockLimit"
-    type="number"
-    min="0"
-    value="30"
->
-
-</div>
-
-</div>
-
-
-<div style="margin-top:15px">
-
-<button
-    class="btn btn-dark"
-    onclick="createStock()"
->
-주식 등록
-</button>
-
-</div>
-
-</div>
-
-
-<div class="card">
-
-<div class="card-title">
-📊 등록된 주식
-</div>
-
-<div class="table-wrap">
-
-<table>
-
-<thead>
-
-<tr>
-
-<th>ID</th>
-<th>회사</th>
-<th>현재가</th>
-<th>변동 범위</th>
-<th>거래량 제한</th>
-<th>관리</th>
-
-</tr>
-
-</thead>
-
-<tbody id="stocksTable">
-
-<tr>
-<td colspan="6">
-불러오는 중...
-</td>
-</tr>
-
-</tbody>
-
-</table>
-
-</div>
-
-</div>
-
-</section>
-
-
-<!-- ========================================
-     피드백
-======================================== -->
-
-<section
-    id="section-feedback"
-    class="section"
->
-
-<div class="page-title">
-
-<h1>💬 피드백 관리</h1>
-
-<p>
-플레이어가 보낸 피드백을 확인하고 처리합니다.
-</p>
-
-</div>
-
-
-<div class="card">
-
-<div class="table-wrap">
-
-<table>
-
-<thead>
 
-<tr>
+// =====================================================
+// 관리자 인증
+// =====================================================
 
-<th>번호</th>
-<th>플레이어</th>
-<th>제목</th>
-<th>내용</th>
-<th>상태</th>
-<th>작성일</th>
-<th>관리</th>
-
-</tr>
-
-</thead>
-
-<tbody id="feedbackTable">
-
-<tr>
-<td colspan="7">
-불러오는 중...
-</td>
-</tr>
-
-</tbody>
-
-</table>
-
-</div>
-
-</div>
-
-</section>
-
-
-<!-- ========================================
-     공지
-======================================== -->
-
-<section
-    id="section-notices"
-    class="section"
->
-
-<div class="page-title">
-
-<h1>📢 공지사항</h1>
-
-<p>
-플레이어에게 표시할 공지를 관리합니다.
-</p>
-
-</div>
-
-
-<div class="card">
-
-<div class="card-title">
-📝 새 공지 작성
-</div>
-
-<div class="field">
-
-<label>
-제목
-</label>
-
-<input
-    id="noticeTitle"
-    placeholder="공지사항 제목"
->
-
-</div>
-
-<br>
-
-<div class="field">
-
-<label>
-내용
-</label>
-
-<textarea
-    id="noticeContent"
-    placeholder="공지사항 내용을 입력하세요."
-></textarea>
-
-</div>
-
-<div style="margin-top:15px">
-
-<button
-    class="btn btn-dark"
-    onclick="createNotice()"
->
-📢 발행
-</button>
-
-</div>
-
-</div>
-
-
-<div class="card">
-
-<div class="card-title">
-📋 기존 공지
-</div>
-
-<div class="table-wrap">
-
-<table>
-
-<thead>
-
-<tr>
-
-<th>ID</th>
-<th>제목</th>
-<th>내용</th>
-<th>작성일</th>
-<th>관리</th>
-
-</tr>
-
-</thead>
-
-<tbody id="noticesTable">
-
-<tr>
-<td colspan="5">
-불러오는 중...
-</td>
-</tr>
-
-</tbody>
-
-</table>
-
-</div>
-
-</div>
-
-</section>
-
-
-<!-- ========================================
-     점검
-======================================== -->
-
-<section
-    id="section-maintenance"
-    class="section"
->
-
-<div class="page-title">
-
-<h1>🔧 서버 점검</h1>
-
-<p>
-서버 점검 상태를 관리합니다.
-</p>
-
-</div>
-
-
-<div class="card">
-
-<div class="maintenance-box">
-
-<div>
-
-<div class="stat-label">
-현재 상태
-</div>
-
-<div
-    id="maintenanceState"
-    class="maintenance-state"
->
-확인 중...
-</div>
-
-</div>
-
-
-<div>
-
-<button
-    class="btn btn-red"
-    onclick="startMaintenance()"
->
-점검 시작
-</button>
-
-<button
-    class="btn btn-green"
-    onclick="endMaintenance()"
->
-점검 종료
-</button>
-
-</div>
-
-</div>
-
-</div>
-
-
-<div class="card">
-
-<div class="card-title">
-🌐 사이트 바로가기
-</div>
-
-<p>
-점검 화면에서도 실제 VSM 사이트로 이동할 수 있습니다.
-</p>
-
-<button
-    class="btn btn-blue"
-    onclick="goToSite()"
->
-🌐 VSM 사이트 열기
-</button>
-
-</div>
-
-
-<div class="card">
-
-<div class="card-title">
-⏱️ 점검 시간 설정
-</div>
-
-<div class="form-grid">
-
-<div class="field">
-
-<label>
-점검 시간 (분)
-</label>
-
-<input
-    id="maintenanceMinutes"
-    type="number"
-    min="1"
-    placeholder="예: 30"
->
-
-</div>
-
-</div>
-
-<div style="margin-top:15px">
-
-<button
-    class="btn btn-red"
-    onclick="startMaintenanceWithTime()"
->
-지금부터 점검 시작
-</button>
-
-</div>
-
-</div>
-
-</section>
-
-
-</main>
-
-</div>
-
-</div>
-
-
-<!-- ========================================
-     플레이어 상세정보
-======================================== -->
-
-<div
-    id="userModal"
-    class="modal"
->
-
-<div class="modal-box">
-
-<h2 class="modal-title">
-👤 플레이어 상세정보
-</h2>
-
-
-<input
-    id="detailUserId"
-    type="hidden"
->
-
-
-<div class="detail-grid">
-
-<div class="detail-item">
-
-<div class="detail-label">
-플레이어 ID
-</div>
-
-<div
-    id="detailId"
-    class="detail-value"
->
--
-</div>
-
-</div>
-
-
-<div class="detail-item">
-
-<div class="detail-label">
-가입일
-</div>
-
-<div
-    id="detailCreated"
-    class="detail-value"
->
--
-</div>
-
-</div>
-
-</div>
-
-
-<div class="sub-title">
-✏️ 계정 정보 수정
-</div>
-
-
-<div class="form-grid">
-
-<div class="field">
-
-<label>
-닉네임
-</label>
-
-<input id="detailNickname">
-
-</div>
-
-
-<div class="field">
-
-<label>
-플레이어 번호
-</label>
-
-<input
-    id="detailPlayerNumber"
-    type="number"
-    min="1"
->
-
-</div>
-
-
-<div class="field">
-
-<label>
-현금
-</label>
-
-<input
-    id="detailCash"
-    type="number"
-    min="0"
->
-
-</div>
-
-</div>
-
-    <div class="sub-title">
-        📦 보유 주식
-    </div>
-
-    <div class="detail-toolbar">
-        <div class="detail-summary">
-            보유 종목 <strong id="holdingsCount">0</strong>개
-        </div>
-        <button type="button" class="btn btn-blue" onclick="addHoldingRow()">
-            ＋ 주식 추가
-        </button>
-    </div>
-
-    <div class="detail-table-wrap">
-        <table class="detail-table">
-            <thead>
-                <tr>
-                    <th>종목</th>
-                    <th>보유 수량</th>
-                    <th>관리</th>
-                </tr>
-            </thead>
-            <tbody id="holdingsTable">
-                <tr>
-                    <td colspan="3" class="empty-detail">보유 주식이 없습니다.</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <div class="sub-title">
-        📜 거래 내역
-    </div>
-
-    <div class="detail-toolbar">
-        <div class="detail-summary">
-            총 거래 <strong id="transactionsCount">0</strong>건
-        </div>
-        <button type="button" class="btn btn-blue" onclick="addTransactionRow()">
-            ＋ 거래 추가
-        </button>
-    </div>
-
-    <div class="detail-table-wrap">
-        <table class="detail-table transaction-table">
-            <thead>
-                <tr>
-                    <th>날짜</th>
-                    <th>구분</th>
-                    <th>종목</th>
-                    <th>수량</th>
-                    <th>가격</th>
-                    <th>총액</th>
-                    <th>관리</th>
-                </tr>
-            </thead>
-            <tbody id="transactionsTable">
-                <tr>
-                    <td colspan="7" class="empty-detail">거래 내역이 없습니다.</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-
-
-<div class="sub-title">
-🚫 밴 정보
-</div>
-
-<div
-    id="detailBan"
-    class="detail-item"
->
--
-</div>
-
-
-<div class="modal-buttons">
-
-<button
-    class="btn btn-gray"
-    onclick="closeModal('userModal')"
->
-닫기
-</button>
-
-<button
-    class="btn btn-dark"
-    onclick="saveUserDetail()"
->
-💾 저장
-</button>
-
-</div>
-
-</div>
-
-</div>
-
-
-<!-- ========================================
-     주식 수정
-======================================== -->
-
-<div
-    id="stockModal"
-    class="modal"
->
-
-<div class="modal-box">
-
-<h2 class="modal-title">
-📈 주식 수정
-</h2>
-
-<input
-    id="editStockId"
-    type="hidden"
->
-
-<div class="form-grid">
-
-<div class="field">
-
-<label>
-회사 이름
-</label>
-
-<input id="editStockName">
-
-</div>
-
-
-<div class="field">
-
-<label>
-주가
-</label>
-
-<input
-    id="editStockPrice"
-    type="number"
-    min="100"
->
-
-</div>
-
-
-<div class="field">
-
-<label>
-변동성
-</label>
-
-<input
-    id="editStockVolatility"
-    type="number"
-    min="0"
-    step="0.01"
->
-
-</div>
-
-
-<div class="field">
-
-<label>
-거래량 제한
-</label>
-
-<select id="editStockLimitEnabled">
-
-<option value="false">
-사용 안 함
-</option>
-
-<option value="true">
-사용
-</option>
-
-</select>
-
-</div>
-
-
-<div class="field">
-
-<label>
-거래량 제한 수량
-</label>
-
-<input
-    id="editStockLimit"
-    type="number"
-    min="0"
->
-
-</div>
-
-</div>
-
-
-<div class="modal-buttons">
-
-<button
-    class="btn btn-gray"
-    onclick="closeModal('stockModal')"
->
-취소
-</button>
-
-<button
-    class="btn btn-dark"
-    onclick="saveStock()"
->
-저장
-</button>
-
-</div>
-
-</div>
-
-</div>
-
-
-<!-- ========================================
-     주가 제어
-======================================== -->
-
-<div
-    id="controlModal"
-    class="modal"
->
-
-<div class="modal-box">
-
-<h2 class="modal-title">
-🎛️ 주가 방향 제어
-</h2>
-
-<input
-    id="controlStockId"
-    type="hidden"
->
-
-<div class="form-grid">
-
-<div class="field">
-
-<label>
-방향
-</label>
-
-<select id="controlDirection">
-
-<option value="normal">
-정상
-</option>
-
-<option value="up">
-상승
-</option>
-
-<option value="down">
-하락
-</option>
-
-</select>
-
-</div>
-
-
-<div class="field">
-
-<label>
-지속 시간 (분)
-</label>
-
-<input
-    id="controlDuration"
-    type="number"
-    min="0"
-    value="10"
->
-
-</div>
-
-
-<div class="field">
-
-<label>
-강도
-</label>
-
-<input
-    id="controlStrength"
-    type="number"
-    min="0"
-    step="0.1"
-    value="1"
->
-
-</div>
-
-</div>
-
-
-<div class="modal-buttons">
-
-<button
-    class="btn btn-gray"
-    onclick="closeModal('controlModal')"
->
-취소
-</button>
-
-<button
-    class="btn btn-dark"
-    onclick="saveControl()"
->
-적용
-</button>
-
-</div>
-
-</div>
-
-</div>
-
-
-<script>
-
-/* ========================================
-   상태
-======================================== */
-
-let adminPassword =
-    localStorage.getItem(
-        "vsm_admin_password"
-    ) || "";
-
-let currentSection =
-    "dashboard";
-
-
-/* ========================================
-   공통 API
-======================================== */
-
-async function api(
-    url,
-    options = {}
-) {
-
-    options.headers =
-        options.headers || {};
-
-    options.headers[
-        "x-admin-password"
-    ] = adminPassword;
-
-    if (
-        options.body &&
-        typeof options.body !== "string"
-    ) {
-
-        options.headers[
-            "Content-Type"
-        ] = "application/json";
-
-        options.body =
-            JSON.stringify(
-                options.body
-            );
-
-    }
-
-    const response =
-        await fetch(
-            url,
-            options
-        );
-
-    let data = {};
-
-    try {
-        data =
-            await response.json();
-    } catch (_) {}
-
-    if (
-        response.status === 401
-    ) {
-
-        logout();
-
-        throw new Error(
-            "관리자 인증이 만료되었습니다."
-        );
-
-    }
-
-    if (
-        !response.ok ||
-        data.ok === false
-    ) {
-
-        throw new Error(
-            data.error ||
-            "요청 처리에 실패했습니다."
-        );
-
-    }
-
-    return data;
-}
-
-
-/* ========================================
-   사이트 이동
-======================================== */
-
-function goToSite() {
-
-    window.location.href = "/";
-
+function getAdminPassword() {
+    return process.env.ADMIN_PASSWORD || "admin1234";
 }
-
-
-/* ========================================
-   로그인
-======================================== */
 
-async function login() {
+function adminAuth(req, res, next) {
 
     const password =
-        document
-            .getElementById(
-                "adminPassword"
-            )
-            .value;
+        req.headers["x-admin-password"];
 
-    const error =
-        document
-            .getElementById(
-                "loginError"
-            );
-
-    error.textContent = "";
-
-    if (!password) {
-
-        error.textContent =
-            "관리자 비밀번호를 입력하세요.";
-
-        return;
-
+    if (
+        !password ||
+        password !== getAdminPassword()
+    ) {
+        return res.status(401).json({
+            ok: false,
+            error: "관리자 인증이 필요합니다."
+        });
     }
 
-    try {
-
-        const response =
-            await fetch(
-                "/api/admin/check",
-                {
-                    headers: {
-                        "x-admin-password":
-                            password
-                    }
-                }
-            );
-
-        const data =
-            await response.json();
-
-        if (
-            !response.ok ||
-            !data.ok
-        ) {
-
-            throw new Error(
-                data.error ||
-                "관리자 인증에 실패했습니다."
-            );
-
-        }
-
-        adminPassword =
-            password;
-
-        localStorage.setItem(
-            "vsm_admin_password",
-            password
-        );
-
-        openAdmin();
-
-    } catch (error) {
-
-        error.textContent =
-            error.message;
-
-    }
-
+    next();
 }
 
 
-document
-    .getElementById(
-        "loginButton"
-    )
-    .addEventListener(
-        "click",
-        login
-    );
+// =====================================================
+// 관리자 인증 확인
+// =====================================================
+
+router.get(
+    "/check",
+    adminAuth,
+    (req, res) => {
+
+        res.json({
+            ok: true,
+            message: "관리자 인증 성공"
+        });
+
+    }
+);
 
 
-document
-    .getElementById(
-        "adminPassword"
-    )
-    .addEventListener(
-        "keydown",
-        event => {
+// =====================================================
+// 플레이어 목록
+// =====================================================
+
+router.get(
+    "/users",
+    adminAuth,
+    async (req, res) => {
+
+        try {
+
+            const result =
+                await pool.query(`
+                    SELECT
+                        id,
+                        player_number,
+                        username,
+                        nickname,
+                        cash,
+                        holdings,
+                        transactions,
+                        banned_until,
+                        ban_reason,
+                        created_at
+                    FROM users
+                    ORDER BY player_number ASC
+                `);
+
+            res.json({
+                ok: true,
+                users: result.rows
+            });
+
+        } catch (error) {
+
+            console.error(
+                "ADMIN USERS ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                ok: false,
+                error:
+                    "플레이어 목록을 불러오지 못했습니다."
+            });
+
+        }
+
+    }
+);
+
+
+// =====================================================
+// 플레이어 수정
+// =====================================================
+
+router.patch(
+    "/users/:id",
+    adminAuth,
+    async (req, res) => {
+
+        try {
+
+            const id =
+                String(req.params.id);
+
+            const {
+                nickname,
+                cash,
+                playerNumber,
+                holdings,
+                transactions
+            } = req.body;
+
+            const fields = [];
+            const values = [];
+
+            let index = 1;
+
+
+            // 닉네임
 
             if (
-                event.key === "Enter"
+                nickname !== undefined &&
+                String(nickname).trim()
             ) {
 
-                login();
+                fields.push(
+                    `nickname = $${index++}`
+                );
 
-            }
-
-        }
-    );
-
-
-async function openAdmin() {
-
-    try {
-
-        await api(
-            "/api/admin/check"
-        );
-
-        document
-            .getElementById(
-                "loginScreen"
-            )
-            .style.display = "none";
-
-        document
-            .getElementById(
-                "adminApp"
-            )
-            .style.display = "block";
-
-        loadDashboard();
-
-    } catch (_) {
-
-        logout();
-
-    }
-
-}
-
-
-function logout() {
-
-    localStorage.removeItem(
-        "vsm_admin_password"
-    );
-
-    adminPassword = "";
-
-    document
-        .getElementById(
-            "adminApp"
-        )
-        .style.display = "none";
-
-    document
-        .getElementById(
-            "loginScreen"
-        )
-        .style.display = "flex";
-
-}
-
-
-/* ========================================
-   섹션
-======================================== */
-
-function showSection(section) {
-
-    currentSection =
-        section;
-
-    document
-        .querySelectorAll(
-            ".section"
-        )
-        .forEach(
-            element => {
-
-                element.classList.remove(
-                    "active"
+                values.push(
+                    String(nickname).trim()
                 );
 
             }
-        );
 
-    const target =
-        document.getElementById(
-            "section-" + section
-        );
 
-    if (target) {
+            // 현금
 
-        target.classList.add(
-            "active"
-        );
+            if (cash !== undefined) {
 
-    }
+                const money =
+                    Number(cash);
 
-    document
-        .querySelectorAll(
-            ".nav-button"
-        )
-        .forEach(
-            button => {
+                if (
+                    !Number.isFinite(money) ||
+                    money < 0
+                ) {
 
-                button.classList.toggle(
-                    "active",
-                    button.dataset.section ===
-                    section
-                );
+                    return res.status(400).json({
+                        ok: false,
+                        error:
+                            "잘못된 잔액입니다."
+                    });
 
-            }
-        );
-
-
-    if (
-        section === "dashboard"
-    ) loadDashboard();
-
-    if (
-        section === "users"
-    ) loadUsers();
-
-    if (
-        section === "stocks"
-    ) loadStocks();
-
-    if (
-        section === "feedback"
-    ) loadFeedback();
-
-    if (
-        section === "notices"
-    ) loadNotices();
-
-    if (
-        section === "maintenance"
-    ) loadMaintenance();
-
-}
-
-
-function refreshCurrentSection() {
-
-    showSection(
-        currentSection
-    );
-
-}
-
-
-/* ========================================
-   대시보드
-======================================== */
-
-async function loadDashboard() {
-
-    try {
-
-        const [
-            users,
-            stocks,
-            feedback,
-            maintenance
-        ] = await Promise.all([
-
-            api(
-                "/api/admin/users"
-            ),
-
-            api(
-                "/api/admin/stocks"
-            ),
-
-            api(
-                "/api/admin/feedback"
-            ),
-
-            fetch(
-                "/api/admin/maintenance"
-            ).then(
-                response =>
-                    response.json()
-            )
-
-        ]);
-
-
-        document
-            .getElementById(
-                "statUsers"
-            )
-            .textContent =
-                users.users.length;
-
-
-        document
-            .getElementById(
-                "statStocks"
-            )
-            .textContent =
-                stocks.stocks.length;
-
-
-        document
-            .getElementById(
-                "statFeedback"
-            )
-            .textContent =
-                feedback.feedback.length;
-
-
-        const state =
-            maintenance.maintenance &&
-            maintenance.maintenance.enabled;
-
-
-        document
-            .getElementById(
-                "statMaintenance"
-            )
-            .textContent =
-                state
-                    ? "점검 중"
-                    : "정상";
-
-    } catch (error) {
-
-        console.error(
-            "DASHBOARD ERROR:",
-            error
-        );
-
-    }
-
-}
-
-
-/* ========================================
-   플레이어 목록
-======================================== */
-
-async function loadUsers() {
-
-    const tbody =
-        document.getElementById(
-            "usersTable"
-        );
-
-    tbody.innerHTML =
-        `
-        <tr>
-            <td colspan="7">
-                불러오는 중...
-            </td>
-        </tr>
-        `;
-
-    try {
-
-        const data =
-            await api(
-                "/api/admin/users"
-            );
-
-        tbody.innerHTML = "";
-
-        data.users.forEach(
-            user => {
-
-                const tr =
-                    document.createElement(
-                        "tr"
-                    );
-
-                const banned =
-                    user.banned_until &&
-                    Number(
-                        user.banned_until
-                    ) > Date.now();
-
-
-                tr.innerHTML = `
-
-                    <td>
-                        <strong>
-                            #${user.player_number}
-                        </strong>
-                    </td>
-
-                    <td>
-                        ${escapeHtml(
-                            user.nickname || "-"
-                        )}
-                    </td>
-
-                    <td>
-                        ${escapeHtml(
-                            user.username || "-"
-                        )}
-                    </td>
-
-                    <td>
-                        ${formatMoney(
-                            user.cash
-                        )}원
-                    </td>
-
-                    <td>
-
-                        ${
-                            banned
-
-                            ? `
-                                <span class="status status-banned">
-                                    밴
-                                </span>
-                              `
-
-                            : `
-                                <span class="status status-normal">
-                                    정상
-                                </span>
-                              `
-                        }
-
-                    </td>
-
-                    <td>
-                        ${formatDate(
-                            user.created_at
-                        )}
-                    </td>
-
-                    <td>
-
-                        <button
-                            class="btn btn-dark"
-                            onclick="openUserDetail('${escapeAttr(user.id)}')"
-                        >
-                            상세정보
-                        </button>
-
-                        ${
-                            banned
-
-                            ? `
-                                <button
-                                    class="btn btn-green"
-                                    onclick="unbanUser('${escapeAttr(user.id)}')"
-                                >
-                                    밴 해제
-                                </button>
-                              `
-
-                            : `
-                                <button
-                                    class="btn btn-red"
-                                    onclick="banUser('${escapeAttr(user.id)}')"
-                                >
-                                    밴
-                                </button>
-                              `
-                        }
-
-                        <button
-                            class="btn btn-red"
-                            onclick="deleteUser('${escapeAttr(user.id)}')"
-                        >
-                            삭제
-                        </button>
-
-                    </td>
-
-                `;
-
-                tbody.appendChild(tr);
-
-            }
-        );
-
-
-        if (
-            !data.users.length
-        ) {
-
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="7">
-                        등록된 플레이어가 없습니다.
-                    </td>
-                </tr>
-            `;
-
-        }
-
-    } catch (error) {
-
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="7">
-                    ${escapeHtml(
-                        error.message
-                    )}
-                </td>
-            </tr>
-        `;
-
-    }
-
-}
-
-
-/* ========================================
-   플레이어 상세정보
-======================================== */
-
-async function openUserDetail(id) {
-    try {
-        const data = await api(`/api/admin/users/${encodeURIComponent(id)}`);
-        const user = data.user;
-
-        document.getElementById("detailUserId").value = user.id;
-        document.getElementById("detailId").textContent = user.id;
-        document.getElementById("detailCreated").textContent = formatDate(user.createdAt ?? user.created_at);
-        document.getElementById("detailNickname").value = user.nickname || "";
-        document.getElementById("detailPlayerNumber").value = user.playerNumber ?? user.player_number ?? "";
-        document.getElementById("detailCash").value = Number(user.cash || 0);
-
-        renderHoldings(user.holdings || {});
-        renderTransactions(user.transactions || []);
-
-        const bannedUntil = user.bannedUntil ?? user.banned_until;
-        const banReason = user.banReason ?? user.ban_reason;
-        const banned = bannedUntil && Number(bannedUntil) > Date.now();
-
-        document.getElementById("detailBan").innerHTML = banned
-            ? `<span class="status status-banned">밴 상태</span><br><br>종료: ${formatDate(bannedUntil)}<br>사유: ${escapeHtml(banReason || "-")}`
-            : `<span class="status status-normal">정상</span>`;
-
-        openModal("userModal");
-    } catch (error) {
-        alert(error.message);
-    }
-}
-
-function renderHoldings(holdings) {
-    const tbody = document.getElementById("holdingsTable");
-    tbody.innerHTML = "";
-    const entries = holdings && typeof holdings === "object" && !Array.isArray(holdings)
-        ? Object.entries(holdings).map(([stockId, quantity]) => ({ stockId, quantity:Number(quantity) || 0 }))
-        : [];
-    document.getElementById("holdingsCount").textContent = entries.length;
-    if (!entries.length) {
-        tbody.innerHTML = `<tr><td colspan="3" class="empty-detail">보유 주식이 없습니다.</td></tr>`;
-        return;
-    }
-    entries.forEach(h => addHoldingRow(h.stockId, h.quantity));
-}
-
-function addHoldingRow(stockId = "", quantity = 0) {
-    const tbody = document.getElementById("holdingsTable");
-    if (tbody.querySelector(".empty-detail")) tbody.innerHTML = "";
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-        <td><input class="holding-stock" value="${escapeHtml(stockId)}" placeholder="예: SKNX"></td>
-        <td><input class="holding-quantity number-input" type="number" min="0" step="1" value="${Number(quantity) || 0}"></td>
-        <td><button type="button" class="btn btn-red" onclick="removeHoldingRow(this)">삭제</button></td>
-    `;
-    tbody.appendChild(tr);
-    updateHoldingsCount();
-}
-
-function removeHoldingRow(button) {
-    const row = button.closest("tr");
-    if (row) row.remove();
-    updateHoldingsCount();
-    const tbody = document.getElementById("holdingsTable");
-    if (!tbody.children.length) tbody.innerHTML = `<tr><td colspan="3" class="empty-detail">보유 주식이 없습니다.</td></tr>`;
-}
-
-function updateHoldingsCount() {
-    document.getElementById("holdingsCount").textContent = document.querySelectorAll("#holdingsTable .holding-stock").length;
-}
-
-function collectHoldings() {
-    const holdings = {};
-    document.querySelectorAll("#holdingsTable tr").forEach(row => {
-        const stockInput = row.querySelector(".holding-stock");
-        const quantityInput = row.querySelector(".holding-quantity");
-        if (!stockInput || !quantityInput) return;
-        const stockId = stockInput.value.trim().toUpperCase();
-        const quantity = Number(quantityInput.value);
-        if (!stockId || !Number.isFinite(quantity) || quantity < 0) return;
-        if (quantity > 0) holdings[stockId] = Math.floor(quantity);
-    });
-    return holdings;
-}
-
-function renderTransactions(transactions) {
-    const tbody = document.getElementById("transactionsTable");
-    tbody.innerHTML = "";
-    const list = Array.isArray(transactions) ? transactions : [];
-    document.getElementById("transactionsCount").textContent = list.length;
-    if (!list.length) {
-        tbody.innerHTML = `<tr><td colspan="7" class="empty-detail">거래 내역이 없습니다.</td></tr>`;
-        return;
-    }
-    list.forEach(t => addTransactionRow(t));
-}
-
-function addTransactionRow(transaction = {}) {
-    const tbody = document.getElementById("transactionsTable");
-    if (tbody.querySelector(".empty-detail")) tbody.innerHTML = "";
-    const tr = document.createElement("tr");
-    const type = transaction.type || transaction.action || transaction.side || "buy";
-    const stock = transaction.stockId || transaction.stock_id || transaction.stock || transaction.symbol || "";
-    const quantity = Number(transaction.quantity ?? transaction.qty ?? transaction.amount ?? transaction.count ?? 0);
-    const price = Number(transaction.price ?? transaction.unitPrice ?? transaction.unit_price ?? 0);
-    const total = Number(transaction.total ?? transaction.totalPrice ?? transaction.total_price ?? quantity * price);
-    const time = transaction.time ?? transaction.createdAt ?? transaction.created_at ?? transaction.timestamp ?? Date.now();
-    tr.innerHTML = `
-        <td><input class="transaction-time" type="datetime-local" value="${toDateTimeLocal(time)}"></td>
-        <td><select class="transaction-type"><option value="buy" ${type === "buy" ? "selected" : ""}>매수</option><option value="sell" ${type === "sell" ? "selected" : ""}>매도</option></select></td>
-        <td><input class="transaction-stock" value="${escapeHtml(stock)}" placeholder="예: SKNX"></td>
-        <td><input class="transaction-quantity number-input" type="number" min="1" step="1" value="${quantity}"></td>
-        <td><input class="transaction-price number-input" type="number" min="0" step="1" value="${price}"></td>
-        <td><input class="transaction-total number-input" type="number" min="0" step="1" value="${total}"></td>
-        <td><button type="button" class="btn btn-red" onclick="removeTransactionRow(this)">삭제</button></td>
-    `;
-    tbody.appendChild(tr);
-    updateTransactionsCount();
-}
-
-function removeTransactionRow(button) {
-    const row = button.closest("tr");
-    if (row) row.remove();
-    updateTransactionsCount();
-    const tbody = document.getElementById("transactionsTable");
-    if (!tbody.children.length) tbody.innerHTML = `<tr><td colspan="7" class="empty-detail">거래 내역이 없습니다.</td></tr>`;
-}
-
-function updateTransactionsCount() {
-    document.getElementById("transactionsCount").textContent = document.querySelectorAll("#transactionsTable .transaction-stock").length;
-}
-
-function collectTransactions() {
-    const transactions = [];
-    document.querySelectorAll("#transactionsTable tr").forEach(row => {
-        const timeInput = row.querySelector(".transaction-time");
-        const typeInput = row.querySelector(".transaction-type");
-        const stockInput = row.querySelector(".transaction-stock");
-        const quantityInput = row.querySelector(".transaction-quantity");
-        const priceInput = row.querySelector(".transaction-price");
-        const totalInput = row.querySelector(".transaction-total");
-        if (!timeInput || !typeInput || !stockInput || !quantityInput || !priceInput || !totalInput) return;
-        const stockId = stockInput.value.trim().toUpperCase();
-        const quantity = Number(quantityInput.value);
-        const price = Number(priceInput.value);
-        const total = Number(totalInput.value);
-        const timestamp = new Date(timeInput.value).getTime();
-        if (!stockId || !Number.isFinite(quantity) || quantity <= 0 || !Number.isFinite(price) || price < 0 || !Number.isFinite(total) || total < 0) return;
-        transactions.push({
-            time: Number.isFinite(timestamp) ? timestamp : Date.now(),
-            type: typeInput.value,
-            stockId,
-            quantity: Math.floor(quantity),
-            price,
-            total
-        });
-    });
-    return transactions;
-}
-
-async function saveUserDetail() {
-    const id = document.getElementById("detailUserId").value;
-    try {
-        await api(`/api/admin/users/${encodeURIComponent(id)}`, {
-            method: "PATCH",
-            body: {
-                nickname: document.getElementById("detailNickname").value.trim(),
-                playerNumber: Number(document.getElementById("detailPlayerNumber").value),
-                cash: Number(document.getElementById("detailCash").value),
-                holdings: collectHoldings(),
-                transactions: collectTransactions()
-            }
-        });
-        closeModal("userModal");
-        alert("플레이어 상세정보가 저장되었습니다.");
-        loadUsers();
-    } catch (error) {
-        alert(error.message);
-    }
-}
-
-function toDateTimeLocal(value) {
-    const date = new Date(Number(value));
-    if (Number.isNaN(date.getTime())) return "";
-    const pad = number => String(number).padStart(2, "0");
-    return date.getFullYear() + "-" + pad(date.getMonth() + 1) + "-" + pad(date.getDate()) + "T" + pad(date.getHours()) + ":" + pad(date.getMinutes());
-}
-
-/* ========================================
-   밴
-======================================== */
-
-async function banUser(id) {
-
-    const duration =
-        prompt(
-            "밴 기간을 분 단위로 입력하세요.\n영구 밴은 permanent 입력",
-            "60"
-        );
-
-    if (!duration) {
-        return;
-    }
-
-
-    const reason =
-        prompt(
-            "밴 사유를 입력하세요.",
-            ""
-        ) || "";
-
-
-    try {
-
-        await api(
-            `/api/admin/users/${encodeURIComponent(id)}/ban`,
-            {
-                method: "POST",
-
-                body: {
-                    duration,
-                    reason
                 }
 
+                fields.push(
+                    `cash = $${index++}`
+                );
+
+                values.push(money);
+
             }
-        );
-
-        alert(
-            "플레이어가 밴되었습니다."
-        );
-
-        loadUsers();
-
-    } catch (error) {
-
-        alert(
-            error.message
-        );
-
-    }
-
-}
 
 
-async function unbanUser(id) {
+            // 플레이어 번호
 
-    if (
-        !confirm(
-            "이 플레이어의 밴을 해제할까요?"
-        )
-    ) {
-        return;
-    }
+            if (
+                playerNumber !== undefined
+            ) {
 
+                const number =
+                    Number(playerNumber);
 
-    try {
+                if (
+                    !Number.isInteger(number) ||
+                    number <= 0
+                ) {
 
-        await api(
-            `/api/admin/users/${encodeURIComponent(id)}/unban`,
-            {
-                method: "POST"
+                    return res.status(400).json({
+                        ok: false,
+                        error:
+                            "잘못된 플레이어 번호입니다."
+                    });
+
+                }
+
+                fields.push(
+                    `player_number = $${index++}`
+                );
+
+                values.push(number);
+
             }
-        );
-
-        loadUsers();
-
-    } catch (error) {
-
-        alert(
-            error.message
-        );
-
-    }
-
-}
 
 
-/* ========================================
-   플레이어 삭제
-======================================== */
+            // 보유 주식
 
-async function deleteUser(id) {
+            if (
+                holdings !== undefined
+            ) {
 
-    if (
-        !confirm(
-            "정말 이 플레이어를 삭제할까요?\n되돌릴 수 없습니다."
-        )
-    ) {
-        return;
-    }
+                if (
+                    typeof holdings !== "object" ||
+                    holdings === null ||
+                    Array.isArray(holdings)
+                ) {
 
+                    return res.status(400).json({
+                        ok: false,
+                        error:
+                            "보유 주식 데이터가 올바르지 않습니다."
+                    });
 
-    try {
+                }
 
-        await api(
-            `/api/admin/users/${encodeURIComponent(id)}`,
-            {
-                method: "DELETE"
+                fields.push(
+                    `holdings = $${index++}::jsonb`
+                );
+
+                values.push(
+                    JSON.stringify(holdings)
+                );
+
             }
-        );
-
-        alert(
-            "플레이어가 삭제되었습니다."
-        );
-
-        loadUsers();
-
-    } catch (error) {
-
-        alert(
-            error.message
-        );
-
-    }
-
-}
 
 
-/* ========================================
-   주식
-======================================== */
+            // 거래 내역
 
-async function loadStocks() {
+            if (
+                transactions !== undefined
+            ) {
 
-    const tbody =
-        document.getElementById(
-            "stocksTable"
-        );
+                if (
+                    !Array.isArray(transactions)
+                ) {
 
-    try {
+                    return res.status(400).json({
+                        ok: false,
+                        error:
+                            "거래 내역 데이터가 올바르지 않습니다."
+                    });
 
-        const data =
-            await api(
-                "/api/admin/stocks"
+                }
+
+                fields.push(
+                    `transactions = $${index++}::jsonb`
+                );
+
+                values.push(
+                    JSON.stringify(transactions)
+                );
+
+            }
+
+
+            if (!fields.length) {
+
+                return res.status(400).json({
+                    ok: false,
+                    error:
+                        "수정할 항목이 없습니다."
+                });
+
+            }
+
+
+            values.push(id);
+
+
+            const result =
+                await pool.query(
+                    `
+                    UPDATE users
+
+                    SET
+                        ${fields.join(", ")}
+
+                    WHERE id = $${index}
+
+                    RETURNING
+                        id,
+                        player_number,
+                        username,
+                        nickname,
+                        cash,
+                        holdings,
+                        transactions,
+                        banned_until,
+                        ban_reason,
+                        created_at
+                    `,
+                    values
+                );
+
+
+            if (!result.rows.length) {
+
+                return res.status(404).json({
+                    ok: false,
+                    error:
+                        "플레이어를 찾을 수 없습니다."
+                });
+
+            }
+
+
+            res.json({
+                ok: true,
+                user: result.rows[0]
+            });
+
+        } catch (error) {
+
+            console.error(
+                "ADMIN USER UPDATE ERROR:",
+                error
             );
 
-        tbody.innerHTML = "";
+            if (
+                error.code === "23505"
+            ) {
 
-
-        data.stocks.forEach(
-            stock => {
-
-                const tr =
-                    document.createElement(
-                        "tr"
-                    );
-
-
-                /*
-                 * 현재 DB가 단일 volatility를
-                 * 반환하는 동안은 해당 값을
-                 * 변동 범위의 최대치로 표시.
-                 *
-                 * min/max 필드가 적용되면
-                 * 아래 부분만 min/max로 연결.
-                 */
-
-                const volatility =
-                    Number(
-                        stock.volatility || 0
-                    );
-
-
-                const rangeText =
-                    `0% ~ ${volatility * 100}%`;
-
-
-                tr.innerHTML = `
-
-                    <td>
-                        <strong>
-                            ${escapeHtml(
-                                stock.id
-                            )}
-                        </strong>
-                    </td>
-
-                    <td>
-                        ${escapeHtml(
-                            stock.name
-                        )}
-                    </td>
-
-                    <td>
-                        ${formatMoney(
-                            stock.price
-                        )}원
-                    </td>
-
-                    <td>
-                        ${rangeText}
-                    </td>
-
-                    <td>
-                        ${
-                            stock.volume_limit_enabled
-                                ? `${formatMoney(stock.volume_limit)}주`
-                                : "없음"
-                        }
-                    </td>
-
-                    <td>
-
-                        <button
-                            class="btn btn-gray"
-                            onclick='openStockEdit(${JSON.stringify(stock)})'
-                        >
-                            수정
-                        </button>
-
-                        <button
-                            class="btn btn-blue"
-                            onclick="openControl('${escapeAttr(stock.id)}')"
-                        >
-                            주가 제어
-                        </button>
-
-                        <button
-                            class="btn btn-red"
-                            onclick="deleteStock('${escapeAttr(stock.id)}')"
-                        >
-                            삭제
-                        </button>
-
-                    </td>
-
-                `;
-
-
-                tbody.appendChild(tr);
+                return res.status(409).json({
+                    ok: false,
+                    error:
+                        "이미 사용 중인 닉네임 또는 플레이어 번호입니다."
+                });
 
             }
-        );
 
+            res.status(500).json({
+                ok: false,
+                error:
+                    "플레이어 수정에 실패했습니다."
+            });
 
-    } catch (error) {
-
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="6">
-                    ${escapeHtml(
-                        error.message
-                    )}
-                </td>
-            </tr>
-        `;
+        }
 
     }
+);
 
-}
+
+// =====================================================
+// 플레이어 밴
+// =====================================================
+
+router.post(
+    "/users/:id/ban",
+    adminAuth,
+    async (req, res) => {
+
+        try {
+
+            const id =
+                String(req.params.id);
+
+            const {
+                duration,
+                reason
+            } = req.body;
+
+            let bannedUntil = null;
 
 
-/* ========================================
-   주식 추가
-======================================== */
+            if (
+                duration !== "permanent"
+            ) {
 
-async function createStock() {
+                const minutes =
+                    Number(duration);
 
-    try {
+                if (
+                    !Number.isFinite(minutes) ||
+                    minutes <= 0
+                ) {
 
-        await api(
-            "/api/admin/stocks",
-            {
-                method: "POST",
+                    return res.status(400).json({
+                        ok: false,
+                        error:
+                            "잘못된 밴 기간입니다."
+                    });
 
-                body: {
+                }
 
-                    id:
-                        document
-                            .getElementById(
-                                "newStockId"
-                            )
-                            .value,
+                bannedUntil =
+                    Date.now() +
+                    minutes * 60 * 1000;
 
-                    name:
-                        document
-                            .getElementById(
-                                "newStockName"
-                            )
-                            .value,
+            }
 
-                    price:
-                        Number(
-                            document
-                                .getElementById(
-                                    "newStockPrice"
-                                )
-                                .value
+
+            const result =
+                await pool.query(
+                    `
+                    UPDATE users
+
+                    SET
+                        banned_until = $1,
+                        ban_reason = $2
+
+                    WHERE id = $3
+
+                    RETURNING
+                        id,
+                        player_number,
+                        nickname,
+                        banned_until,
+                        ban_reason
+                    `,
+                    [
+                        bannedUntil,
+                        String(
+                            reason || ""
+                        ).slice(0, 200),
+                        id
+                    ]
+                );
+
+
+            if (!result.rows.length) {
+
+                return res.status(404).json({
+                    ok: false,
+                    error:
+                        "플레이어를 찾을 수 없습니다."
+                });
+
+            }
+
+
+            await pool.query(
+                `
+                DELETE FROM sessions
+                WHERE user_id = $1
+                `,
+                [id]
+            );
+
+
+            res.json({
+                ok: true,
+                user: result.rows[0]
+            });
+
+        } catch (error) {
+
+            console.error(
+                "ADMIN BAN ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                ok: false,
+                error:
+                    "밴 처리에 실패했습니다."
+            });
+
+        }
+
+    }
+);
+
+
+// =====================================================
+// 밴 해제
+// =====================================================
+
+router.post(
+    "/users/:id/unban",
+    adminAuth,
+    async (req, res) => {
+
+        try {
+
+            const result =
+                await pool.query(
+                    `
+                    UPDATE users
+
+                    SET
+                        banned_until = NULL,
+                        ban_reason = NULL
+
+                    WHERE id = $1
+
+                    RETURNING
+                        id,
+                        player_number,
+                        nickname,
+                        banned_until,
+                        ban_reason
+                    `,
+                    [req.params.id]
+                );
+
+
+            if (!result.rows.length) {
+
+                return res.status(404).json({
+                    ok: false,
+                    error:
+                        "플레이어를 찾을 수 없습니다."
+                });
+
+            }
+
+
+            res.json({
+                ok: true,
+                user: result.rows[0]
+            });
+
+        } catch (error) {
+
+            console.error(
+                "ADMIN UNBAN ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                ok: false,
+                error:
+                    "밴 해제에 실패했습니다."
+            });
+
+        }
+
+    }
+);
+
+
+// =====================================================
+// 플레이어 삭제
+// =====================================================
+
+router.delete(
+    "/users/:id",
+    adminAuth,
+    async (req, res) => {
+
+        try {
+
+            const result =
+                await pool.query(
+                    `
+                    DELETE FROM users
+
+                    WHERE id = $1
+
+                    RETURNING
+                        id,
+                        player_number,
+                        username,
+                        nickname
+                    `,
+                    [req.params.id]
+                );
+
+
+            if (!result.rows.length) {
+
+                return res.status(404).json({
+                    ok: false,
+                    error:
+                        "플레이어를 찾을 수 없습니다."
+                });
+
+            }
+
+
+            res.json({
+                ok: true,
+                deleted: result.rows[0]
+            });
+
+        } catch (error) {
+
+            console.error(
+                "ADMIN USER DELETE ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                ok: false,
+                error:
+                    "플레이어 삭제에 실패했습니다."
+            });
+
+        }
+
+    }
+);
+
+
+// =====================================================
+// 주식 목록
+// =====================================================
+
+router.get(
+    "/stocks",
+    adminAuth,
+    async (req, res) => {
+
+        try {
+
+            const result =
+                await pool.query(`
+                    SELECT
+                        id,
+                        name,
+                        volatility,
+                        price,
+                        previous,
+                        open_price,
+                        high,
+                        low,
+                        volume,
+                        volume_limit_enabled,
+                        volume_limit
+                    FROM stocks
+                    ORDER BY id ASC
+                `);
+
+            res.json({
+                ok: true,
+                stocks: result.rows
+            });
+
+        } catch (error) {
+
+            console.error(
+                "ADMIN STOCK LIST ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                ok: false,
+                error:
+                    "주식 목록을 불러오지 못했습니다."
+            });
+
+        }
+
+    }
+);
+
+
+// =====================================================
+// 주식 추가
+// =====================================================
+
+router.post(
+    "/stocks",
+    adminAuth,
+    async (req, res) => {
+
+        const client =
+            await pool.connect();
+
+        try {
+
+            const {
+                id,
+                name,
+                price,
+                volatility,
+                volumeLimitEnabled,
+                volumeLimit
+            } = req.body;
+
+
+            const stockId =
+                String(id || "")
+                    .trim()
+                    .toLowerCase();
+
+            const stockName =
+                String(name || "")
+                    .trim();
+
+            const stockPrice =
+                Number(price);
+
+            const stockVolatility =
+                Number(volatility);
+
+
+            if (!stockId) {
+
+                return res.status(400).json({
+                    ok: false,
+                    error:
+                        "주식 ID를 입력하세요."
+                });
+
+            }
+
+
+            if (!stockName) {
+
+                return res.status(400).json({
+                    ok: false,
+                    error:
+                        "주식 이름을 입력하세요."
+                });
+
+            }
+
+
+            if (
+                !Number.isFinite(stockPrice) ||
+                stockPrice <= 0
+            ) {
+
+                return res.status(400).json({
+                    ok: false,
+                    error:
+                        "주가가 올바르지 않습니다."
+                });
+
+            }
+
+
+            if (
+                !Number.isFinite(stockVolatility) ||
+                stockVolatility < 0
+            ) {
+
+                return res.status(400).json({
+                    ok: false,
+                    error:
+                        "변동성이 올바르지 않습니다."
+                });
+
+            }
+
+
+            await client.query("BEGIN");
+
+
+            const result =
+                await client.query(
+                    `
+                    INSERT INTO stocks
+                    (
+                        id,
+                        name,
+                        volatility,
+                        price,
+                        previous,
+                        open_price,
+                        high,
+                        low,
+                        volume,
+                        volume_limit_enabled,
+                        volume_limit
+                    )
+
+                    VALUES
+                    (
+                        $1,
+                        $2,
+                        $3,
+                        $4,
+                        $4,
+                        $4,
+                        $4,
+                        $4,
+                        0,
+                        $5,
+                        $6
+                    )
+
+                    RETURNING *
+                    `,
+                    [
+                        stockId,
+                        stockName,
+                        stockVolatility,
+                        stockPrice,
+                        Boolean(
+                            volumeLimitEnabled
                         ),
-
-                    volatility:
-                        Number(
-                            document
-                                .getElementById(
-                                    "newStockVolatility"
-                                )
-                                .value
-                        ),
-
-                    volumeLimitEnabled:
-                        document
-                            .getElementById(
-                                "newStockLimitEnabled"
+                        Math.max(
+                            0,
+                            Number(
+                                volumeLimit || 0
                             )
-                            .value === "true",
-
-                    volumeLimit:
-                        Number(
-                            document
-                                .getElementById(
-                                    "newStockLimit"
-                                )
-                                .value
                         )
-
-                }
-
-            }
-        );
+                    ]
+                );
 
 
-        alert(
-            "주식이 등록되었습니다."
-        );
-
-        loadStocks();
-
-    } catch (error) {
-
-        alert(
-            error.message
-        );
-
-    }
-
-}
-
-
-/* ========================================
-   주식 수정
-======================================== */
-
-function openStockEdit(stock) {
-
-    document
-        .getElementById(
-            "editStockId"
-        )
-        .value =
-            stock.id;
-
-    document
-        .getElementById(
-            "editStockName"
-        )
-        .value =
-            stock.name || "";
-
-    document
-        .getElementById(
-            "editStockPrice"
-        )
-        .value =
-            stock.price || 0;
-
-    document
-        .getElementById(
-            "editStockVolatility"
-        )
-        .value =
-            stock.volatility || 0;
-
-    document
-        .getElementById(
-            "editStockLimitEnabled"
-        )
-        .value =
-            String(
-                Boolean(
-                    stock.volume_limit_enabled
+            await client.query(
+                `
+                INSERT INTO price_history
+                (
+                    stock_id,
+                    time,
+                    price
                 )
+
+                VALUES
+                (
+                    $1,
+                    $2,
+                    $3
+                )
+                `,
+                [
+                    stockId,
+                    Date.now(),
+                    stockPrice
+                ]
             );
 
-    document
-        .getElementById(
-            "editStockLimit"
-        )
-        .value =
-            stock.volume_limit || 0;
 
-    openModal(
-        "stockModal"
-    );
-
-}
-
-
-async function saveStock() {
-
-    const id =
-        document
-            .getElementById(
-                "editStockId"
-            )
-            .value;
-
-
-    try {
-
-        await api(
-            `/api/admin/stocks/${encodeURIComponent(id)}`,
-            {
-                method: "PATCH",
-
-                body: {
-
-                    name:
-                        document
-                            .getElementById(
-                                "editStockName"
-                            )
-                            .value,
-
-                    price:
-                        Number(
-                            document
-                                .getElementById(
-                                    "editStockPrice"
-                                )
-                                .value
-                        ),
-
-                    volatility:
-                        Number(
-                            document
-                                .getElementById(
-                                    "editStockVolatility"
-                                )
-                                .value
-                        ),
-
-                    volumeLimitEnabled:
-                        document
-                            .getElementById(
-                                "editStockLimitEnabled"
-                            )
-                            .value === "true",
-
-                    volumeLimit:
-                        Number(
-                            document
-                                .getElementById(
-                                    "editStockLimit"
-                                )
-                                .value
-                        )
-
-                }
-
-            }
-        );
-
-
-        closeModal(
-            "stockModal"
-        );
-
-        loadStocks();
-
-    } catch (error) {
-
-        alert(
-            error.message
-        );
-
-    }
-
-}
-
-
-/* ========================================
-   주가 제어
-======================================== */
-
-function openControl(id) {
-
-    document
-        .getElementById(
-            "controlStockId"
-        )
-        .value =
-            id;
-
-    openModal(
-        "controlModal"
-    );
-
-}
-
-
-async function saveControl() {
-
-    const id =
-        document
-            .getElementById(
-                "controlStockId"
-            )
-            .value;
-
-
-    try {
-
-        await api(
-            `/api/admin/stocks/${encodeURIComponent(id)}/control`,
-            {
-                method: "POST",
-
-                body: {
-
-                    direction:
-                        document
-                            .getElementById(
-                                "controlDirection"
-                            )
-                            .value,
-
-                    duration:
-                        Number(
-                            document
-                                .getElementById(
-                                    "controlDuration"
-                                )
-                                .value
-                        ),
-
-                    strength:
-                        Number(
-                            document
-                                .getElementById(
-                                    "controlStrength"
-                                )
-                                .value
-                        )
-
-                }
-
-            }
-        );
-
-
-        closeModal(
-            "controlModal"
-        );
-
-        alert(
-            "주가 제어가 적용되었습니다."
-        );
-
-    } catch (error) {
-
-        alert(
-            error.message
-        );
-
-    }
-
-}
-
-
-async function deleteStock(id) {
-
-    if (
-        !confirm(
-            "정말 이 주식을 삭제할까요?"
-        )
-    ) {
-        return;
-    }
-
-
-    try {
-
-        await api(
-            `/api/admin/stocks/${encodeURIComponent(id)}`,
-            {
-                method: "DELETE"
-            }
-        );
-
-        loadStocks();
-
-    } catch (error) {
-
-        alert(
-            error.message
-        );
-
-    }
-
-}
-
-
-/* ========================================
-   피드백
-======================================== */
-
-async function loadFeedback() {
-
-    const tbody =
-        document.getElementById(
-            "feedbackTable"
-        );
-
-    try {
-
-        const data =
-            await api(
-                "/api/admin/feedback"
+            await client.query(
+                `
+                INSERT INTO market_controls
+                (
+                    stock_id,
+                    direction,
+                    until_time,
+                    strength
+                )
+
+                VALUES
+                (
+                    $1,
+                    'normal',
+                    0,
+                    1
+                )
+                `,
+                [stockId]
             );
 
-        tbody.innerHTML = "";
 
+            await client.query("COMMIT");
 
-        data.feedback.forEach(
-            item => {
 
-                const tr =
-                    document.createElement(
-                        "tr"
-                    );
+            res.status(201).json({
+                ok: true,
+                stock: result.rows[0]
+            });
 
+        } catch (error) {
 
-                const status =
-                    item.status ||
-                    "pending";
-
-
-                const statusText = {
-
-                    pending:
-                        "보류중",
-
-                    review:
-                        "검토중",
-
-                    accepted:
-                        "수락",
-
-                    rejected:
-                        "거절"
-
-                }[status] || status;
-
-
-                tr.innerHTML = `
-
-                    <td>
-                        #${item.id}
-                    </td>
-
-                    <td>
-                        ${escapeHtml(
-                            item.nickname ||
-                            item.username ||
-                            "-"
-                        )}
-                    </td>
-
-                    <td>
-                        ${escapeHtml(
-                            item.title || "-"
-                        )}
-                    </td>
-
-                    <td>
-                        ${escapeHtml(
-                            item.content || "-"
-                        )}
-                    </td>
-
-                    <td>
-
-                        <span
-                            class="status status-${status}"
-                        >
-                            ${statusText}
-                        </span>
-
-                    </td>
-
-                    <td>
-                        ${formatDate(
-                            item.created_at
-                        )}
-                    </td>
-
-                    <td>
-
-                        ${
-                            status !== "accepted"
-                                ? `
-                                    <button
-                                        class="btn btn-green"
-                                        onclick="updateFeedback(${item.id}, 'accepted')"
-                                    >
-                                        수락
-                                    </button>
-                                  `
-                                : ""
-                        }
-
-                        ${
-                            status !== "rejected"
-                                ? `
-                                    <button
-                                        class="btn btn-red"
-                                        onclick="updateFeedback(${item.id}, 'rejected')"
-                                    >
-                                        거절
-                                    </button>
-                                  `
-                                : ""
-                        }
-
-                    </td>
-
-                `;
-
-
-                tbody.appendChild(tr);
-
-            }
-        );
-
-
-    } catch (error) {
-
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="7">
-                    ${escapeHtml(
-                        error.message
-                    )}
-                </td>
-            </tr>
-        `;
-
-    }
-
-}
-
-
-async function updateFeedback(
-    id,
-    status
-) {
-
-    const text =
-        status === "accepted"
-            ? "이 피드백을 수락할까요?"
-            : "이 피드백을 거절할까요?";
-
-
-    if (
-        !confirm(text)
-    ) {
-        return;
-    }
-
-
-    try {
-
-        await api(
-            `/api/admin/feedback/${id}`,
-            {
-                method: "PATCH",
-
-                body: {
-                    status
-                }
-
-            }
-        );
-
-
-        loadFeedback();
-
-    } catch (error) {
-
-        alert(
-            error.message
-        );
-
-    }
-
-}
-
-
-/* ========================================
-   공지사항
-======================================== */
-
-async function loadNotices() {
-
-    const tbody =
-        document.getElementById(
-            "noticesTable"
-        );
-
-    try {
-
-        const data =
-            await api(
-                "/api/admin/notices"
-            );
-
-        tbody.innerHTML = "";
-
-
-        data.notices.forEach(
-            notice => {
-
-                const tr =
-                    document.createElement(
-                        "tr"
-                    );
-
-
-                tr.innerHTML = `
-
-                    <td>
-                        #${notice.id}
-                    </td>
-
-                    <td>
-                        ${escapeHtml(
-                            notice.title
-                        )}
-                    </td>
-
-                    <td>
-                        ${escapeHtml(
-                            notice.content
-                        )}
-                    </td>
-
-                    <td>
-                        ${formatDate(
-                            notice.created_at
-                        )}
-                    </td>
-
-                    <td>
-
-                        <button
-                            class="btn btn-red"
-                            onclick="deleteNotice(${notice.id})"
-                        >
-                            삭제
-                        </button>
-
-                    </td>
-
-                `;
-
-
-                tbody.appendChild(tr);
-
-            }
-        );
-
-
-    } catch (error) {
-
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="5">
-                    ${escapeHtml(
-                        error.message
-                    )}
-                </td>
-            </tr>
-        `;
-
-    }
-
-}
-
-
-async function createNotice() {
-
-    const title =
-        document
-            .getElementById(
-                "noticeTitle"
-            )
-            .value
-            .trim();
-
-
-    const content =
-        document
-            .getElementById(
-                "noticeContent"
-            )
-            .value
-            .trim();
-
-
-    if (
-        !title ||
-        !content
-    ) {
-
-        alert(
-            "제목과 내용을 입력하세요."
-        );
-
-        return;
-
-    }
-
-
-    try {
-
-        await api(
-            "/api/admin/notices",
-            {
-                method: "POST",
-
-                body: {
-                    title,
-                    content
-                }
-
-            }
-        );
-
-
-        document
-            .getElementById(
-                "noticeTitle"
-            )
-            .value = "";
-
-        document
-            .getElementById(
-                "noticeContent"
-            )
-            .value = "";
-
-
-        alert(
-            "공지사항이 발행되었습니다."
-        );
-
-        loadNotices();
-
-    } catch (error) {
-
-        alert(
-            error.message
-        );
-
-    }
-
-}
-
-
-async function deleteNotice(id) {
-
-    if (
-        !confirm(
-            "이 공지사항을 삭제할까요?"
-        )
-    ) {
-        return;
-    }
-
-
-    try {
-
-        await api(
-            `/api/admin/notices/${id}`,
-            {
-                method: "DELETE"
-            }
-        );
-
-        loadNotices();
-
-    } catch (error) {
-
-        alert(
-            error.message
-        );
-
-    }
-
-}
-
-
-/* ========================================
-   점검
-======================================== */
-
-async function loadMaintenance() {
-
-    try {
-
-        const response =
-            await fetch(
-                "/api/admin/maintenance"
-            );
-
-        const data =
-            await response.json();
-
-        const maintenance =
-            data.maintenance;
-
-
-        const element =
-            document
-                .getElementById(
-                    "maintenanceState"
+            try {
+                await client.query(
+                    "ROLLBACK"
                 );
+            } catch (_) {}
 
 
-        if (
-            maintenance &&
-            maintenance.enabled
-        ) {
+            console.error(
+                "ADMIN STOCK CREATE ERROR:",
+                error
+            );
 
-            element.textContent =
-                "🔴 점검 중";
 
-            element.className =
-                "maintenance-state maintenance-on";
+            if (
+                error.code === "23505"
+            ) {
 
-        } else {
+                return res.status(409).json({
+                    ok: false,
+                    error:
+                        "이미 존재하는 주식 ID입니다."
+                });
 
-            element.textContent =
-                "🟢 정상 운영";
+            }
 
-            element.className =
-                "maintenance-state maintenance-off";
+
+            res.status(500).json({
+                ok: false,
+                error:
+                    "주식 추가에 실패했습니다."
+            });
+
+        } finally {
+
+            client.release();
 
         }
 
-    } catch (error) {
-
-        console.error(
-            error
-        );
-
     }
-
-}
-
-
-async function startMaintenance() {
-
-    if (
-        !confirm(
-            "지금 서버 점검을 시작할까요?"
-        )
-    ) {
-        return;
-    }
+);
 
 
-    try {
+// =====================================================
+// 주식 수정
+// =====================================================
 
-        await api(
-            "/api/admin/maintenance/start",
-            {
-                method: "POST",
+router.patch(
+    "/stocks/:id",
+    adminAuth,
+    async (req, res) => {
 
-                body: {
-                    startTime:
-                        Date.now(),
+        try {
 
-                    endTime:
-                        null
-                }
+            const {
+                name,
+                price,
+                volatility,
+                volumeLimitEnabled,
+                volumeLimit
+            } = req.body;
+
+
+            const fields = [];
+            const values = [];
+
+            let index = 1;
+
+
+            if (name !== undefined) {
+
+                fields.push(
+                    `name = $${index++}`
+                );
+
+                values.push(
+                    String(name).trim()
+                );
 
             }
-        );
 
 
-        loadMaintenance();
+            if (price !== undefined) {
 
-    } catch (error) {
+                const value =
+                    Number(price);
 
-        alert(
-            error.message
-        );
+                if (
+                    !Number.isFinite(value) ||
+                    value <= 0
+                ) {
+
+                    return res.status(400).json({
+                        ok: false,
+                        error:
+                            "잘못된 주가입니다."
+                    });
+
+                }
+
+                fields.push(
+                    `price = $${index++}`
+                );
+
+                values.push(value);
+
+            }
+
+
+            if (
+                volatility !== undefined
+            ) {
+
+                const value =
+                    Number(volatility);
+
+                if (
+                    !Number.isFinite(value) ||
+                    value < 0
+                ) {
+
+                    return res.status(400).json({
+                        ok: false,
+                        error:
+                            "잘못된 변동성입니다."
+                    });
+
+                }
+
+                fields.push(
+                    `volatility = $${index++}`
+                );
+
+                values.push(value);
+
+            }
+
+
+            if (
+                volumeLimitEnabled !== undefined
+            ) {
+
+                fields.push(
+                    `volume_limit_enabled = $${index++}`
+                );
+
+                values.push(
+                    Boolean(
+                        volumeLimitEnabled
+                    )
+                );
+
+            }
+
+
+            if (
+                volumeLimit !== undefined
+            ) {
+
+                const value =
+                    Number(volumeLimit);
+
+                if (
+                    !Number.isInteger(value) ||
+                    value < 0
+                ) {
+
+                    return res.status(400).json({
+                        ok: false,
+                        error:
+                            "잘못된 거래량 제한입니다."
+                    });
+
+                }
+
+                fields.push(
+                    `volume_limit = $${index++}`
+                );
+
+                values.push(value);
+
+            }
+
+
+            if (!fields.length) {
+
+                return res.status(400).json({
+                    ok: false,
+                    error:
+                        "수정할 항목이 없습니다."
+                });
+
+            }
+
+
+            values.push(
+                req.params.id
+            );
+
+
+            const result =
+                await pool.query(
+                    `
+                    UPDATE stocks
+
+                    SET
+                        ${fields.join(", ")}
+
+                    WHERE id = $${index}
+
+                    RETURNING *
+                    `,
+                    values
+                );
+
+
+            if (!result.rows.length) {
+
+                return res.status(404).json({
+                    ok: false,
+                    error:
+                        "주식을 찾을 수 없습니다."
+                });
+
+            }
+
+
+            res.json({
+                ok: true,
+                stock: result.rows[0]
+            });
+
+        } catch (error) {
+
+            console.error(
+                "ADMIN STOCK UPDATE ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                ok: false,
+                error:
+                    "주식 수정에 실패했습니다."
+            });
+
+        }
 
     }
+);
 
-}
+
+// =====================================================
+// 주식 삭제
+// =====================================================
+
+router.delete(
+    "/stocks/:id",
+    adminAuth,
+    async (req, res) => {
+
+        const client =
+            await pool.connect();
+
+        try {
+
+            await client.query(
+                "BEGIN"
+            );
 
 
-async function startMaintenanceWithTime() {
+            const result =
+                await client.query(
+                    `
+                    DELETE FROM stocks
 
-    const minutes =
-        Number(
-            document
-                .getElementById(
-                    "maintenanceMinutes"
+                    WHERE id = $1
+
+                    RETURNING *
+                    `,
+                    [req.params.id]
+                );
+
+
+            if (!result.rows.length) {
+
+                await client.query(
+                    "ROLLBACK"
+                );
+
+                return res.status(404).json({
+                    ok: false,
+                    error:
+                        "주식을 찾을 수 없습니다."
+                });
+
+            }
+
+
+            await client.query(
+                "COMMIT"
+            );
+
+
+            res.json({
+                ok: true,
+                deleted:
+                    result.rows[0]
+            });
+
+        } catch (error) {
+
+            try {
+                await client.query(
+                    "ROLLBACK"
+                );
+            } catch (_) {}
+
+
+            console.error(
+                "ADMIN STOCK DELETE ERROR:",
+                error
+            );
+
+
+            res.status(500).json({
+                ok: false,
+                error:
+                    "주식 삭제에 실패했습니다."
+            });
+
+        } finally {
+
+            client.release();
+
+        }
+
+    }
+);
+
+
+// =====================================================
+// 주가 방향 제어
+// =====================================================
+
+router.post(
+    "/stocks/:id/control",
+    adminAuth,
+    async (req, res) => {
+
+        try {
+
+            const {
+                direction,
+                duration,
+                strength
+            } = req.body;
+
+
+            const allowed = [
+                "normal",
+                "up",
+                "down"
+            ];
+
+
+            if (
+                !allowed.includes(
+                    direction
                 )
-                .value
-        );
+            ) {
+
+                return res.status(400).json({
+                    ok: false,
+                    error:
+                        "잘못된 주가 방향입니다."
+                });
+
+            }
 
 
-    if (
-        !Number.isFinite(minutes) ||
-        minutes <= 0
-    ) {
+            const minutes =
+                Number(
+                    duration || 0
+                );
 
-        alert(
-            "점검 시간을 입력하세요."
-        );
+            const controlStrength =
+                Number(
+                    strength || 1
+                );
 
-        return;
+
+            const untilTime =
+                direction === "normal"
+                    ? 0
+                    : Date.now() +
+                      Math.max(
+                          0,
+                          minutes
+                      ) *
+                      60 *
+                      1000;
+
+
+            const result =
+                await pool.query(
+                    `
+                    INSERT INTO market_controls
+                    (
+                        stock_id,
+                        direction,
+                        until_time,
+                        strength
+                    )
+
+                    VALUES
+                    (
+                        $1,
+                        $2,
+                        $3,
+                        $4
+                    )
+
+                    ON CONFLICT (stock_id)
+
+                    DO UPDATE SET
+                        direction =
+                            EXCLUDED.direction,
+                        until_time =
+                            EXCLUDED.until_time,
+                        strength =
+                            EXCLUDED.strength
+
+                    RETURNING *
+                    `,
+                    [
+                        req.params.id,
+                        direction,
+                        untilTime,
+                        controlStrength
+                    ]
+                );
+
+
+            res.json({
+                ok: true,
+                control:
+                    result.rows[0]
+            });
+
+        } catch (error) {
+
+            console.error(
+                "ADMIN STOCK CONTROL ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                ok: false,
+                error:
+                    "주가 제어에 실패했습니다."
+            });
+
+        }
 
     }
+);
 
 
-    try {
+// =====================================================
+// 피드백 목록
+// =====================================================
 
-        await api(
-            "/api/admin/maintenance/start",
-            {
-                method: "POST",
+router.get(
+    "/feedback",
+    adminAuth,
+    async (req, res) => {
 
-                body: {
+        try {
 
-                    startTime:
+            const result =
+                await pool.query(`
+                    SELECT
+                        f.*,
+                        u.player_number,
+                        u.nickname
+
+                    FROM feedback f
+
+                    LEFT JOIN users u
+                        ON u.id = f.user_id
+
+                    ORDER BY
+                        f.created_at DESC
+                `);
+
+
+            res.json({
+                ok: true,
+                feedback:
+                    result.rows
+            });
+
+        } catch (error) {
+
+            console.error(
+                "ADMIN FEEDBACK ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                ok: false,
+                error:
+                    "피드백을 불러오지 못했습니다."
+            });
+
+        }
+
+    }
+);
+
+
+// =====================================================
+// 피드백 상태 변경
+// =====================================================
+
+router.patch(
+    "/feedback/:id",
+    adminAuth,
+    async (req, res) => {
+
+        try {
+
+            const allowed = [
+                "pending",
+                "review",
+                "accepted",
+                "rejected"
+            ];
+
+
+            if (
+                !allowed.includes(
+                    req.body.status
+                )
+            ) {
+
+                return res.status(400).json({
+                    ok: false,
+                    error:
+                        "잘못된 상태입니다."
+                });
+
+            }
+
+
+            const result =
+                await pool.query(
+                    `
+                    UPDATE feedback
+
+                    SET
+                        status = $1,
+                        updated_at = $2
+
+                    WHERE id = $3
+
+                    RETURNING *
+                    `,
+                    [
+                        req.body.status,
                         Date.now(),
+                        req.params.id
+                    ]
+                );
 
-                    endTime:
-                        Date.now() +
-                        minutes *
-                        60 *
-                        1000
+
+            if (!result.rows.length) {
+
+                return res.status(404).json({
+                    ok: false,
+                    error:
+                        "피드백을 찾을 수 없습니다."
+                });
+
+            }
+
+
+            // 수락 / 거절 시 사용자 알림
+
+            if (
+                req.body.status === "accepted" ||
+                req.body.status === "rejected"
+            ) {
+
+                const feedback =
+                    result.rows[0];
+
+                if (
+                    feedback.user_id
+                ) {
+
+                    const message =
+                        req.body.status === "accepted"
+                            ? "당신의 피드백은 수락했습니다."
+                            : "당신의 피드백은 거절했습니다.";
+
+                    await pool.query(
+                        `
+                        INSERT INTO notifications
+                        (
+                            user_id,
+                            message,
+                            type,
+                            created_at
+                        )
+
+                        VALUES
+                        (
+                            $1,
+                            $2,
+                            $3,
+                            $4
+                        )
+                        `,
+                        [
+                            feedback.user_id,
+                            message,
+                            "feedback",
+                            Date.now()
+                        ]
+                    );
 
                 }
 
             }
-        );
 
 
-        loadMaintenance();
+            res.json({
+                ok: true,
+                feedback:
+                    result.rows[0]
+            });
 
-    } catch (error) {
+        } catch (error) {
 
-        alert(
-            error.message
-        );
+            console.error(
+                "ADMIN FEEDBACK UPDATE ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                ok: false,
+                error:
+                    "피드백 수정에 실패했습니다."
+            });
+
+        }
 
     }
+);
 
-}
 
+// =====================================================
+// 공지사항 목록
+// =====================================================
 
-async function endMaintenance() {
+router.get(
+    "/notices",
+    adminAuth,
+    async (req, res) => {
 
-    if (
-        !confirm(
-            "서버 점검을 종료할까요?"
-        )
-    ) {
-        return;
+        try {
+
+            const result =
+                await pool.query(`
+                    SELECT *
+                    FROM notices
+                    ORDER BY
+                        created_at DESC
+                `);
+
+            res.json({
+                ok: true,
+                notices:
+                    result.rows
+            });
+
+        } catch (error) {
+
+            console.error(
+                "ADMIN NOTICES ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                ok: false,
+                error:
+                    "공지사항을 불러오지 못했습니다."
+            });
+
+        }
+
     }
+);
 
 
-    try {
+// =====================================================
+// 공지 생성
+// =====================================================
 
-        await api(
-            "/api/admin/maintenance/end",
-            {
-                method: "POST"
+router.post(
+    "/notices",
+    adminAuth,
+    async (req, res) => {
+
+        try {
+
+            const title =
+                String(
+                    req.body.title || ""
+                ).trim();
+
+            const content =
+                String(
+                    req.body.content || ""
+                ).trim();
+
+
+            if (
+                !title ||
+                !content
+            ) {
+
+                return res.status(400).json({
+                    ok: false,
+                    error:
+                        "제목과 내용을 입력하세요."
+                });
+
             }
-        );
 
 
-        loadMaintenance();
+            const now =
+                Date.now();
 
-    } catch (error) {
 
-        alert(
-            error.message
-        );
+            const result =
+                await pool.query(
+                    `
+                    INSERT INTO notices
+                    (
+                        title,
+                        content,
+                        created_at,
+                        updated_at
+                    )
+
+                    VALUES
+                    (
+                        $1,
+                        $2,
+                        $3,
+                        $3
+                    )
+
+                    RETURNING *
+                    `,
+                    [
+                        title,
+                        content,
+                        now
+                    ]
+                );
+
+
+            res.status(201).json({
+                ok: true,
+                notice:
+                    result.rows[0]
+            });
+
+        } catch (error) {
+
+            console.error(
+                "ADMIN NOTICE CREATE ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                ok: false,
+                error:
+                    "공지사항 생성에 실패했습니다."
+            });
+
+        }
 
     }
-
-}
-
-
-/* ========================================
-   모달
-======================================== */
-
-function openModal(id) {
-
-    document
-        .getElementById(id)
-        .classList.add(
-            "show"
-        );
-
-}
+);
 
 
-function closeModal(id) {
+// =====================================================
+// 공지 삭제
+// =====================================================
 
-    document
-        .getElementById(id)
-        .classList.remove(
-            "show"
-        );
+router.delete(
+    "/notices/:id",
+    adminAuth,
+    async (req, res) => {
 
-}
+        try {
 
+            const result =
+                await pool.query(
+                    `
+                    DELETE FROM notices
 
-/* ========================================
-   유틸
-======================================== */
+                    WHERE id = $1
 
-function formatMoney(value) {
-
-    return Number(
-        value || 0
-    ).toLocaleString(
-        "ko-KR"
-    );
-
-}
+                    RETURNING *
+                    `,
+                    [req.params.id]
+                );
 
 
-function formatDate(value) {
+            if (!result.rows.length) {
 
-    if (!value) {
-        return "-";
+                return res.status(404).json({
+                    ok: false,
+                    error:
+                        "공지사항을 찾을 수 없습니다."
+                });
+
+            }
+
+
+            res.json({
+                ok: true,
+                deleted:
+                    result.rows[0]
+            });
+
+        } catch (error) {
+
+            console.error(
+                "ADMIN NOTICE DELETE ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                ok: false,
+                error:
+                    "공지사항 삭제에 실패했습니다."
+            });
+
+        }
+
     }
+);
 
-    const date =
-        new Date(
-            Number(value)
-        );
 
-    if (
-        Number.isNaN(
-            date.getTime()
-        )
-    ) {
-        return "-";
+// =====================================================
+// 서버 점검 상태
+// =====================================================
+
+router.get(
+    "/maintenance",
+    async (req, res) => {
+
+        try {
+
+            const result =
+                await pool.query(`
+                    SELECT *
+                    FROM maintenance
+                    WHERE id = 1
+                `);
+
+
+            res.json({
+                ok: true,
+                maintenance:
+                    result.rows[0] || null
+            });
+
+        } catch (error) {
+
+            console.error(
+                "ADMIN MAINTENANCE ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                ok: false,
+                error:
+                    "점검 상태를 불러오지 못했습니다."
+            });
+
+        }
+
     }
-
-    return date.toLocaleString(
-        "ko-KR"
-    );
-
-}
+);
 
 
-function escapeHtml(value) {
+// =====================================================
+// 서버 점검 시작
+// =====================================================
 
-    return String(
-        value ?? ""
-    )
-    .replaceAll(
-        "&",
-        "&amp;"
-    )
-    .replaceAll(
-        "<",
-        "&lt;"
-    )
-    .replaceAll(
-        ">",
-        "&gt;"
-    )
-    .replaceAll(
-        '"',
-        "&quot;"
-    )
-    .replaceAll(
-        "'",
-        "&#039;"
-    );
+router.post(
+    "/maintenance/start",
+    adminAuth,
+    async (req, res) => {
 
-}
+        try {
+
+            const startTime =
+                Number(
+                    req.body.startTime ||
+                    Date.now()
+                );
+
+            const endTime =
+                req.body.endTime
+                    ? Number(
+                        req.body.endTime
+                    )
+                    : null;
 
 
-function escapeAttr(value) {
+            const result =
+                await pool.query(
+                    `
+                    UPDATE maintenance
 
-    return String(
-        value ?? ""
-    )
-    .replaceAll(
-        "\\",
-        "\\\\"
-    )
-    .replaceAll(
-        "'",
-        "\\'"
-    );
+                    SET
+                        enabled = TRUE,
+                        start_time = $1,
+                        end_time = $2,
+                        updated_at = $3
 
-}
+                    WHERE id = 1
+
+                    RETURNING *
+                    `,
+                    [
+                        startTime,
+                        endTime,
+                        Date.now()
+                    ]
+                );
 
 
-/* ========================================
-   자동 로그인
-======================================== */
+            res.json({
+                ok: true,
+                maintenance:
+                    result.rows[0]
+            });
 
-if (
-    adminPassword
-) {
+        } catch (error) {
 
-    openAdmin();
+            console.error(
+                "ADMIN MAINTENANCE START ERROR:",
+                error
+            );
 
-}
+            res.status(500).json({
+                ok: false,
+                error:
+                    "점검 시작에 실패했습니다."
+            });
 
-</script>
+        }
 
-</body>
-</html>
+    }
+);
+
+
+// =====================================================
+// 서버 점검 종료
+// =====================================================
+
+router.post(
+    "/maintenance/end",
+    adminAuth,
+    async (req, res) => {
+
+        try {
+
+            const result =
+                await pool.query(
+                    `
+                    UPDATE maintenance
+
+                    SET
+                        enabled = FALSE,
+                        start_time = NULL,
+                        end_time = NULL,
+                        updated_at = $1
+
+                    WHERE id = 1
+
+                    RETURNING *
+                    `,
+                    [Date.now()]
+                );
+
+
+            res.json({
+                ok: true,
+                maintenance:
+                    result.rows[0]
+            });
+
+        } catch (error) {
+
+            console.error(
+                "ADMIN MAINTENANCE END ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                ok: false,
+                error:
+                    "점검 종료에 실패했습니다."
+            });
+
+        }
+
+    }
+);
+
+
+// =====================================================
+// Export
+// =====================================================
+
+module.exports = router;
