@@ -1,17 +1,50 @@
 
 const { Pool } = require("pg");
 
+
+// =====================================================
+// PostgreSQL 연결
+// =====================================================
+
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
+
     ssl: {
         rejectUnauthorized: false
     }
 });
 
 
-// ========================================
+// =====================================================
+// 기본 주식
+//
+// min_change / max_change
+// 실제 1회 주가 변동 범위
+//
+// 예:
+// 20 ~ 180
+// → 한 번의 변동에서 최소 20원 ~ 최대 180원
+// =====================================================
+
+const companies = [
+
+    ["SKNX", "스카닉스하이닉스", 4250, 20, 180],
+    ["SAMS", "샘숭전자", 7100, 20, 150],
+    ["TWAI", "티Wai", 1850, 10, 120],
+    ["NVR", "나이버", 3500, 15, 140],
+    ["NFLX", "니플릭스", 5200, 20, 170],
+    ["PASC", "파스코", 2800, 10, 100],
+    ["LG", "알쥐", 6400, 15, 130],
+    ["HYUN", "현재자동차", 8300, 20, 160],
+    ["NVDO", "N비디오", 9700, 30, 220],
+    ["MHD", "마이크로하드", 7600, 20, 170]
+
+];
+
+
+// =====================================================
 // 데이터베이스 초기화
-// ========================================
+// =====================================================
 
 async function initializeDatabase() {
 
@@ -23,9 +56,9 @@ async function initializeDatabase() {
         await client.query("BEGIN");
 
 
-        // ========================================
+        // =================================================
         // 사용자
-        // ========================================
+        // =================================================
 
         await client.query(`
             CREATE TABLE IF NOT EXISTS users (
@@ -35,9 +68,11 @@ async function initializeDatabase() {
                 player_number SERIAL UNIQUE,
 
                 username TEXT UNIQUE NOT NULL,
+
                 nickname TEXT UNIQUE NOT NULL,
 
                 salt TEXT NOT NULL,
+
                 password_hash TEXT NOT NULL,
 
                 cash NUMERIC NOT NULL DEFAULT 10000,
@@ -48,40 +83,50 @@ async function initializeDatabase() {
                 transactions JSONB NOT NULL
                     DEFAULT '[]'::jsonb,
 
-                banned_until BIGINT,
-                ban_reason TEXT,
+                created_at BIGINT NOT NULL,
 
-                created_at BIGINT NOT NULL
+                banned_until BIGINT,
+
+                ban_reason TEXT
+
             )
         `);
 
 
-        // 기존 DB 대응
+        // 기존 DB에 없는 컬럼 추가
+
         await client.query(`
             ALTER TABLE users
-            ADD COLUMN IF NOT EXISTS player_number SERIAL
+            ADD COLUMN IF NOT EXISTS
+            player_number SERIAL
         `);
 
         await client.query(`
             ALTER TABLE users
-            ADD COLUMN IF NOT EXISTS banned_until BIGINT
+            ADD COLUMN IF NOT EXISTS
+            banned_until BIGINT
         `);
 
         await client.query(`
             ALTER TABLE users
-            ADD COLUMN IF NOT EXISTS ban_reason TEXT
+            ADD COLUMN IF NOT EXISTS
+            ban_reason TEXT
         `);
+
+
+        // 플레이어 번호 UNIQUE
 
         await client.query(`
             CREATE UNIQUE INDEX IF NOT EXISTS
             users_player_number_unique
+
             ON users(player_number)
         `);
 
 
-        // ========================================
+        // =================================================
         // 로그인 세션
-        // ========================================
+        // =================================================
 
         await client.query(`
             CREATE TABLE IF NOT EXISTS sessions (
@@ -93,13 +138,14 @@ async function initializeDatabase() {
                     ON DELETE CASCADE,
 
                 created_at BIGINT NOT NULL
+
             )
         `);
 
 
-        // ========================================
+        // =================================================
         // 주식
-        // ========================================
+        // =================================================
 
         await client.query(`
             CREATE TABLE IF NOT EXISTS stocks (
@@ -108,7 +154,7 @@ async function initializeDatabase() {
 
                 name TEXT NOT NULL,
 
-                volatility NUMERIC NOT NULL DEFAULT 0.05,
+                volatility NUMERIC NOT NULL DEFAULT 0,
 
                 price NUMERIC NOT NULL,
 
@@ -122,54 +168,54 @@ async function initializeDatabase() {
 
                 volume BIGINT NOT NULL DEFAULT 0,
 
-                volume_limit_enabled BOOLEAN
-                    NOT NULL DEFAULT FALSE,
+                volume_limit_enabled
+                    BOOLEAN NOT NULL DEFAULT FALSE,
 
-                volume_limit BIGINT
-                    NOT NULL DEFAULT 0,
+                volume_limit BIGINT NOT NULL DEFAULT 0,
 
-                min_change NUMERIC
-                    NOT NULL DEFAULT 10,
+                min_change NUMERIC NOT NULL DEFAULT 10,
 
-                max_change NUMERIC
-                    NOT NULL DEFAULT 100
+                max_change NUMERIC NOT NULL DEFAULT 100
+
             )
         `);
 
 
-        // 기존 stocks 대응
+        // 기존 stocks 테이블 보완
+
         await client.query(`
             ALTER TABLE stocks
+
             ADD COLUMN IF NOT EXISTS
-            volume_limit_enabled BOOLEAN
-            NOT NULL DEFAULT FALSE
+            min_change NUMERIC NOT NULL DEFAULT 10
         `);
 
         await client.query(`
             ALTER TABLE stocks
+
             ADD COLUMN IF NOT EXISTS
-            volume_limit BIGINT
-            NOT NULL DEFAULT 0
+            max_change NUMERIC NOT NULL DEFAULT 100
         `);
 
         await client.query(`
             ALTER TABLE stocks
+
             ADD COLUMN IF NOT EXISTS
-            min_change NUMERIC
-            NOT NULL DEFAULT 10
+            volume_limit_enabled
+            BOOLEAN NOT NULL DEFAULT FALSE
         `);
 
         await client.query(`
             ALTER TABLE stocks
+
             ADD COLUMN IF NOT EXISTS
-            max_change NUMERIC
-            NOT NULL DEFAULT 100
+            volume_limit BIGINT NOT NULL DEFAULT 0
         `);
 
 
-        // ========================================
+        // =================================================
         // 주가 기록
-        // ========================================
+        // =================================================
 
         await client.query(`
             CREATE TABLE IF NOT EXISTS price_history (
@@ -183,13 +229,14 @@ async function initializeDatabase() {
                 time BIGINT NOT NULL,
 
                 price NUMERIC NOT NULL
+
             )
         `);
 
 
-        // ========================================
+        // =================================================
         // 관리자 주가 제어
-        // ========================================
+        // =================================================
 
         await client.query(`
             CREATE TABLE IF NOT EXISTS market_controls (
@@ -206,13 +253,14 @@ async function initializeDatabase() {
 
                 strength NUMERIC NOT NULL
                     DEFAULT 1
+
             )
         `);
 
 
-        // ========================================
+        // =================================================
         // 알림
-        // ========================================
+        // =================================================
 
         await client.query(`
             CREATE TABLE IF NOT EXISTS notifications (
@@ -232,13 +280,14 @@ async function initializeDatabase() {
                     DEFAULT FALSE,
 
                 created_at BIGINT NOT NULL
+
             )
         `);
 
 
-        // ========================================
-        // 은행 이체
-        // ========================================
+        // =================================================
+        // 은행 거래
+        // =================================================
 
         await client.query(`
             CREATE TABLE IF NOT EXISTS bank_transactions (
@@ -260,13 +309,14 @@ async function initializeDatabase() {
                 type TEXT NOT NULL,
 
                 created_at BIGINT NOT NULL
+
             )
         `);
 
 
-        // ========================================
+        // =================================================
         // 피드백
-        // ========================================
+        // =================================================
 
         await client.query(`
             CREATE TABLE IF NOT EXISTS feedback (
@@ -287,13 +337,14 @@ async function initializeDatabase() {
                 created_at BIGINT NOT NULL,
 
                 updated_at BIGINT NOT NULL
+
             )
         `);
 
 
-        // ========================================
+        // =================================================
         // 변경사항
-        // ========================================
+        // =================================================
 
         await client.query(`
             CREATE TABLE IF NOT EXISTS changes (
@@ -307,13 +358,14 @@ async function initializeDatabase() {
                 feedback_id BIGINT,
 
                 created_at BIGINT NOT NULL
+
             )
         `);
 
 
-        // ========================================
+        // =================================================
         // 공지사항
-        // ========================================
+        // =================================================
 
         await client.query(`
             CREATE TABLE IF NOT EXISTS notices (
@@ -327,13 +379,14 @@ async function initializeDatabase() {
                 created_at BIGINT NOT NULL,
 
                 updated_at BIGINT NOT NULL
+
             )
         `);
 
 
-        // ========================================
+        // =================================================
         // 서버 점검
-        // ========================================
+        // =================================================
 
         await client.query(`
             CREATE TABLE IF NOT EXISTS maintenance (
@@ -348,44 +401,20 @@ async function initializeDatabase() {
                 end_time BIGINT,
 
                 updated_at BIGINT NOT NULL
+
             )
         `);
 
 
-        // ========================================
-        // 기본 주식
-        // ========================================
-
-        const companies = [
-
-            ["SKNX", "스카닉스하이닉스", 4250, 0.08, 20, 180],
-
-            ["SAMS", "샘숭전자", 7100, 0.05, 20, 140],
-
-            ["TWAI", "티Wai", 1850, 0.10, 15, 120],
-
-            ["NVR", "나이버", 3500, 0.07, 20, 150],
-
-            ["NFLX", "니플릭스", 5200, 0.09, 20, 170],
-
-            ["PASC", "파스코", 2800, 0.06, 15, 110],
-
-            ["LG", "알쥐", 6400, 0.05, 20, 130],
-
-            ["HYUN", "현재자동차", 8300, 0.06, 20, 150],
-
-            ["NVDO", "N비디오", 9700, 0.12, 30, 250],
-
-            ["MHD", "마이크로하드", 7600, 0.07, 20, 160]
-        ];
-
+        // =================================================
+        // 기본 주식 생성 / 기존 주식 보완
+        // =================================================
 
         for (
             const [
                 id,
                 name,
                 price,
-                volatility,
                 minChange,
                 maxChange
             ]
@@ -428,23 +457,22 @@ async function initializeDatabase() {
                     (
                         $1,
                         $2,
+                        0,
                         $3,
-                        $4,
-                        $4,
-                        $4,
-                        $4,
-                        $4,
+                        $3,
+                        $3,
+                        $3,
+                        $3,
                         0,
                         FALSE,
                         0,
-                        $5,
-                        $6
+                        $4,
+                        $5
                     )
                     `,
                     [
                         id,
                         name,
-                        volatility,
                         price,
                         minChange,
                         maxChange
@@ -499,13 +527,66 @@ async function initializeDatabase() {
                     `,
                     [id]
                 );
+
+            } else {
+
+                // 기존 종목은
+                // min/max가 기본값 상태일 때
+                // 현재 설정값을 유지한다.
+
+                await client.query(
+                    `
+                    UPDATE stocks
+
+                    SET
+                        min_change =
+                            COALESCE(min_change, $2),
+
+                        max_change =
+                            COALESCE(max_change, $3)
+
+                    WHERE id = $1
+                    `,
+                    [
+                        id,
+                        minChange,
+                        maxChange
+                    ]
+                );
+
+
+                await client.query(
+                    `
+                    INSERT INTO market_controls
+                    (
+                        stock_id,
+                        direction,
+                        until_time,
+                        strength
+                    )
+
+                    VALUES
+                    (
+                        $1,
+                        'normal',
+                        0,
+                        1
+                    )
+
+                    ON CONFLICT (stock_id)
+                    DO NOTHING
+                    `,
+                    [id]
+                );
+
             }
+
         }
 
 
-        // ========================================
+        // =================================================
         // 점검 기본값
-        // ========================================
+        // =================================================
 
         await client.query(`
             INSERT INTO maintenance
@@ -533,6 +614,10 @@ async function initializeDatabase() {
         ]);
 
 
+        // =================================================
+        // 완료
+        // =================================================
+
         await client.query("COMMIT");
 
 
@@ -558,11 +643,21 @@ async function initializeDatabase() {
         client.release();
 
     }
+
 }
 
 
+// =====================================================
+// Export
+// =====================================================
+
 module.exports = {
+
     pool,
+
+    companies,
+
     initializeDatabase
+
 };
 
