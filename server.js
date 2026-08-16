@@ -1,3 +1,4 @@
+
 const express = require("express");
 const path = require("path");
 const crypto = require("crypto");
@@ -77,6 +78,9 @@ const adminRoutes =
 const notificationsRouter =
     require("./routes/notifications");
 
+const changesRoutes =
+    require("./routes/changes");
+
 
 // ========================================
 // API
@@ -115,6 +119,11 @@ app.use(
 app.use(
     "/api/admin",
     adminRoutes
+);
+
+app.use(
+    "/api/changes",
+    changesRoutes
 );
 
 
@@ -455,6 +464,10 @@ async function startServer() {
                 );
 
                 console.log(
+                    "✅ 변경사항 API"
+                );
+
+                console.log(
                     "포트:",
                     PORT
                 );
@@ -487,3 +500,4 @@ async function startServer() {
 
 
 startServer();
+
