@@ -2,6 +2,63 @@ const express = require("express");
 const crypto = require("crypto");
 const { pool } = require("../services/market");
 
+// =====================================================
+// 관리자 VSM 사이트 접근 토큰
+// =====================================================
+
+router.post(
+    "/site-token",
+    adminAuth,
+    (req, res) => {
+
+        try {
+
+            const timestamp =
+                Date.now();
+
+            const secret =
+                process.env.ADMIN_PASSWORD ||
+                "admin1234";
+
+            const signature =
+                crypto
+                    .createHmac(
+                        "sha256",
+                        secret
+                    )
+                    .update(
+                        String(timestamp)
+                    )
+                    .digest("hex");
+
+            const token =
+                `${timestamp}.${signature}`;
+
+            res.json({
+                ok: true,
+                token,
+                expiresIn:
+                    5 * 60 * 1000
+            });
+
+        } catch (error) {
+
+            console.error(
+                "ADMIN SITE TOKEN ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                ok: false,
+                error:
+                    "관리자 사이트 접근 토큰 생성에 실패했습니다."
+            });
+
+        }
+
+    }
+);
+
 const router = express.Router();
 
 // =====================================================
