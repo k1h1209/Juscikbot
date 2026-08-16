@@ -1013,12 +1013,12 @@ function renderTransactions(
     }
 
 
-    const myId =
-        document
-            .getElementById(
-                "accountNumber"
-            )
-            .textContent;
+    const myAccountNumber =
+    document
+        .getElementById(
+            "accountNumber"
+        )
+        .textContent;
 
 
     container.innerHTML = "";
@@ -1028,9 +1028,9 @@ function renderTransactions(
         .slice(0, 10)
         .forEach(transaction => {
 
-            const isDeposit =
-                transaction.receiver_id ===
-                myId;
+          const isDeposit =
+    transaction.receiver_id ===
+    myAccountNumber;
 
 
             const amount =
