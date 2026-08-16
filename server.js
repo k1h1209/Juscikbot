@@ -18,6 +18,7 @@ const bankRoutes=require("./routes/bank");
 const feedbackRoutes=require("./routes/feedback");
 const noticeRoutes=require("./routes/notices");
 const adminRoutes=require("./routes/admin");
+const adminGlobalRoutes=require("./routes/admin-global");
 const notificationsRoutes=require("./routes/notifications");
 const changesRoutes=require("./routes/changes");
 
@@ -27,6 +28,7 @@ app.use("/api/bank",bankRoutes);
 app.use("/api/feedback",feedbackRoutes);
 app.use("/api/notices",noticeRoutes);
 app.use("/api/admin",adminRoutes);
+app.use("/api/admin",adminGlobalRoutes);
 app.use("/api/notifications",notificationsRoutes);
 app.use("/api/changes",changesRoutes);
 
