@@ -1013,7 +1013,7 @@ function renderTransactions(
     }
 
 
-    const myId =
+    const myAccountNumber =
     document
         .getElementById(
             "accountNumber"
@@ -1028,8 +1028,8 @@ function renderTransactions(
         .forEach(transaction => {
 
          const isDeposit =
-    transaction.receiver_id ===
-    myId;
+    transaction.receiver_player_number ===
+    myAccountNumber;
 
             const amount =
                 Number(
