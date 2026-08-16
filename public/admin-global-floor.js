@@ -48,7 +48,6 @@
 
     $("saveGlobalFloor").addEventListener("click", saveGlobalFloor);
     $("disableGlobalFloor").addEventListener("click", () => saveGlobalFloor(true));
-    loadGlobalFloor();
   }
 
   async function globalApi(path, options = {}) {
@@ -77,7 +76,7 @@
         ? "마지막 변경: " + new Date(data.updatedAt).toLocaleString()
         : "아직 설정되지 않았습니다.";
     } catch (error) {
-      if ($("globalFloorPreview")) $("globalFloorPreview").textContent = error.message;
+      if ($("globalFloorPreview")) $("globalFloorPreview").textContent = "관리자 로그인 후 불러옵니다.";
     }
   }
 
@@ -108,8 +107,6 @@
       } else {
         alert(data.globalFloor === null ? "전체 커트라인을 해제했습니다." : "전체 커트라인이 적용되었습니다.");
       }
-
-      if (typeof window.loadStocks === "function") await window.loadStocks();
     } catch (error) {
       alert(error.message);
     }
@@ -121,7 +118,11 @@
 
     window.login = async function(...args) {
       window.__VSM_ADMIN_PASSWORD = $("pw")?.value || "";
-      return originalLogin.apply(this, args);
+      const result = await originalLogin.apply(this, args);
+      if (!( $("app")?.classList.contains("hidden") )) {
+        await loadGlobalFloor();
+      }
+      return result;
     };
   }
 
