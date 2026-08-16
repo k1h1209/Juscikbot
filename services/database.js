@@ -49,7 +49,9 @@ async function initializeDatabase() {
         min_change NUMERIC NOT NULL DEFAULT 1,
         max_change NUMERIC NOT NULL DEFAULT 10,
         price_floor NUMERIC,
-        floor_lock_until BIGINT NOT NULL DEFAULT 0
+        floor_lock_until BIGINT NOT NULL DEFAULT 0,
+        max_shares BIGINT NOT NULL DEFAULT 30,
+        available_shares BIGINT NOT NULL DEFAULT 30
       )
     `);
 
@@ -57,6 +59,8 @@ async function initializeDatabase() {
     await client.query(`ALTER TABLE stocks ADD COLUMN IF NOT EXISTS max_change NUMERIC NOT NULL DEFAULT 10`);
     await client.query(`ALTER TABLE stocks ADD COLUMN IF NOT EXISTS price_floor NUMERIC`);
     await client.query(`ALTER TABLE stocks ADD COLUMN IF NOT EXISTS floor_lock_until BIGINT NOT NULL DEFAULT 0`);
+    await client.query(`ALTER TABLE stocks ADD COLUMN IF NOT EXISTS max_shares BIGINT NOT NULL DEFAULT 30`);
+    await client.query(`ALTER TABLE stocks ADD COLUMN IF NOT EXISTS available_shares BIGINT NOT NULL DEFAULT 30`);
     await client.query(`ALTER TABLE stocks DROP COLUMN IF EXISTS volatility`);
 
     await client.query(`
@@ -154,15 +158,15 @@ async function initializeDatabase() {
     `);
 
     for (const [id, name, price, minChange, maxChange] of companies) {
-      const result = await client.query("SELECT id, price_floor FROM stocks WHERE id=$1", [id]);
+      const result = await client.query("SELECT id, price_floor, max_shares, available_shares FROM stocks WHERE id=$1", [id]);
 
       if (!result.rows.length) {
         const defaultFloor = Math.max(1, Math.floor(Number(price) * 0.5));
 
         await client.query(`
           INSERT INTO stocks
-          (id,name,price,previous,open_price,high,low,volume,min_change,max_change,price_floor,floor_lock_until)
-          VALUES ($1,$2,$3,$3,$3,$3,$3,0,$4,$5,$6,0)
+          (id,name,price,previous,open_price,high,low,volume,min_change,max_change,price_floor,floor_lock_until,max_shares,available_shares)
+          VALUES ($1,$2,$3,$3,$3,$3,$3,0,$4,$5,$6,0,30,30)
         `, [id, name, price, minChange, maxChange, defaultFloor]);
 
         await client.query(`
@@ -171,6 +175,10 @@ async function initializeDatabase() {
         `, [id, Date.now(), price]);
       } else {
         const existingFloor = result.rows[0].price_floor;
+        const currentMaxShares = Number(result.rows[0].max_shares || 30);
+        const currentAvailable = result.rows[0].available_shares === null
+          ? currentMaxShares
+          : Number(result.rows[0].available_shares);
         const defaultFloor = Math.max(1, Math.floor(Number(price) * 0.5));
 
         await client.query(`
@@ -178,10 +186,27 @@ async function initializeDatabase() {
           SET name=$2,
               min_change=$3,
               max_change=$4,
-              price_floor=COALESCE(price_floor,$5)
+              price_floor=COALESCE(price_floor,$5),
+              max_shares=GREATEST(0,$6),
+              available_shares=LEAST(GREATEST(0,$6),GREATEST(0,$7))
           WHERE id=$1
-        `, [id, name, minChange, maxChange, existingFloor === null ? defaultFloor : Number(existingFloor)]);
+        `, [id, name, minChange, maxChange, existingFloor === null ? defaultFloor : Number(existingFloor), currentMaxShares, currentAvailable]);
       }
+    }
+
+    // 기존 계정이 이미 보유한 주식이 있다면 공유 가능 수량에서 제외합니다.
+    const { rows: users } = await client.query("SELECT holdings FROM users");
+    for (const [id] of companies) {
+      let held = 0;
+      for (const user of users) {
+        const holdings = user.holdings || {};
+        held += Math.max(0, Math.floor(Number(holdings[id] || 0)));
+      }
+      await client.query(`
+        UPDATE stocks
+        SET available_shares=GREATEST(0,max_shares-$2)
+        WHERE id=$1
+      `, [id, held]);
     }
 
     await client.query(`
