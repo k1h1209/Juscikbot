@@ -631,19 +631,25 @@
            인증 토큰
         ======================================== */
 
-        function getToken() {
 
-            return (
-                localStorage.getItem(
-                    "vsm-token"
-                ) ||
-                localStorage.getItem(
-                    "token"
-                ) ||
-                ""
-            );
+function getToken() {
 
-        }
+    return (
+        localStorage.getItem(
+            "vsm_token"
+        ) ||
+        localStorage.getItem(
+            "vsm-token"
+        ) ||
+        localStorage.getItem(
+            "token"
+        ) ||
+        ""
+    );
+
+}
+
+
 
 
         /* ========================================
