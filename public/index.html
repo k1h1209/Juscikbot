@@ -1246,6 +1246,7 @@
 
 </nav>
 
+
 <script>
 
     // =====================================================
@@ -1270,6 +1271,34 @@
         );
 
     }
+
+
+    // =====================================================
+    // 피드백
+    // =====================================================
+
+    const feedbackMenuButton =
+        document.getElementById(
+            "feedbackMenuButton"
+        );
+
+    if (feedbackMenuButton) {
+
+        feedbackMenuButton.addEventListener(
+            "click",
+            function () {
+
+                window.location.href =
+                    "/feedback.html";
+
+            }
+        );
+
+    }
+
+</script>
+
+
 
 </script>
 
