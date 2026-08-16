@@ -1169,82 +1169,109 @@
 
 
     <!-- =====================================================
-         메뉴
-    ===================================================== -->
+     메뉴
+===================================================== -->
 
-    <nav
-        class="menu-panel"
-        id="menuPanel"
+<nav
+    class="menu-panel"
+    id="menuPanel"
+>
+
+    <div class="menu-title">
+        VSM MENU
+    </div>
+
+    <button
+        class="menu-item"
+        id="homeMenuButton"
+        type="button"
     >
+        🏠
+        <span>홈</span>
+    </button>
 
-        <div class="menu-title">
-            VSM MENU
-        </div>
+    <button
+        class="menu-item"
+        id="stocksMenuButton"
+        type="button"
+    >
+        📈
+        <span>주식</span>
+    </button>
 
-        <button
-            class="menu-item"
-            id="homeMenuButton"
-            type="button"
-        >
-            🏠
-            <span>홈</span>
-        </button>
+    <button
+        class="menu-item"
+        id="bankMenuButton"
+        type="button"
+    >
+        🏦
+        <span>안드로메다뱅크</span>
+    </button>
 
-        <button
-            class="menu-item"
-            id="stocksMenuButton"
-            type="button"
-        >
-            📈
-            <span>주식</span>
-        </button>
+    <button
+        class="menu-item"
+        id="companyMenuButton"
+        type="button"
+    >
+        🏢
+        <span>주식회사</span>
+    </button>
 
-        <button
-            class="menu-item"
-            id="bankMenuButton"
-            type="button"
-        >
-            🏦
-            <span>안드로메다뱅크</span>
-        </button>
+    <button
+        class="menu-item"
+        id="noticeMenuButton"
+        type="button"
+    >
+        📢
+        <span>공지사항</span>
+    </button>
 
-        <button
-            class="menu-item"
-            id="companyMenuButton"
-            type="button"
-        >
-            🏢
-            <span>주식회사</span>
-        </button>
+    <button
+        class="menu-item"
+        id="feedbackMenuButton"
+        type="button"
+    >
+        📮
+        <span>피드백</span>
+    </button>
 
-        <button
-            class="menu-item"
-            id="noticeMenuButton"
-            type="button"
-        >
-            📢
-            <span>공지사항</span>
-        </button>
+    <button
+        class="menu-item"
+        id="themeButton"
+        type="button"
+    >
+        🌙
+        <span>다크모드</span>
+    </button>
 
-        <button
-            class="menu-item"
-            id="feedbackMenuButton"
-            type="button"
-        >
-            📮
-            <span>피드백</span>
-        </button>
+</nav>
 
-        <button
-            class="menu-item"
-            id="themeButton"
-            type="button"
-        >
-            🌙
-            <span>다크모드</span>
-        </button>
+<script>
 
-    </nav>
+    // =====================================================
+    // 공지사항
+    // =====================================================
+
+    const noticeMenuButton =
+        document.getElementById(
+            "noticeMenuButton"
+        );
+
+    if (noticeMenuButton) {
+
+        noticeMenuButton.addEventListener(
+            "click",
+            function () {
+
+                window.location.href =
+                    "/notice.html";
+
+            }
+        );
+
+    }
+
+</script>
 
 
     <!-- =====================================================
