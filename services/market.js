@@ -1,5 +1,5 @@
-
 const { Pool } = require("pg");
+
 
 // =====================================================
 // PostgreSQL
@@ -16,25 +16,37 @@ const pool = new Pool({
 
 });
 
+
 // =====================================================
 // 기본 주식
-// [ID, 이름, 시작가격, 최소변동값, 최대변동값]
+//
+// [ID, 이름, 시작가격, 최소변동금액, 최대변동금액]
 // =====================================================
 
 const companies = [
 
-    ["SKNX", "스카닉스하이닉스", 4250, 10, 50],
-    ["SAMS", "샘숭전자", 7100, 10, 40],
-    ["TWAI", "티Wai", 1850, 5, 30],
-    ["NVR", "나이버", 3500, 10, 40],
-    ["NFLX", "니플릭스", 5200, 10, 50],
-    ["PASC", "파스코", 2800, 5, 30],
-    ["LG", "알쥐", 6400, 10, 40],
-    ["HYUN", "현재자동차", 8300, 10, 50],
-    ["NVDO", "N비디오", 9700, 20, 70],
-    ["MHD", "마이크로하드", 7600, 10, 50]
+    ["SKNX", "스카닉스하이닉스", 4250, 50, 250],
+
+    ["SAMS", "샘숭전자", 7100, 80, 350],
+
+    ["TWAI", "티Wai", 1850, 20, 120],
+
+    ["NVR", "나이버", 3500, 40, 220],
+
+    ["NFLX", "니플릭스", 5200, 60, 300],
+
+    ["PASC", "파스코", 2800, 30, 150],
+
+    ["LG", "알쥐", 6400, 70, 300],
+
+    ["HYUN", "현재자동차", 8300, 80, 350],
+
+    ["NVDO", "N비디오", 9700, 100, 500],
+
+    ["MHD", "마이크로하드", 7600, 70, 350]
 
 ];
+
 
 // =====================================================
 // 전체 주식
@@ -52,6 +64,7 @@ async function getStocks() {
     return result.rows;
 
 }
+
 
 // =====================================================
 // 특정 주식
@@ -72,6 +85,7 @@ async function getStock(id) {
     return result.rows[0] || null;
 
 }
+
 
 // =====================================================
 // 주가 기록
@@ -96,14 +110,17 @@ async function getHistory(
 
     };
 
+
     const selectedRange =
         ranges[range] ??
         ranges["1d"];
+
 
     const minTime =
         selectedRange === Infinity
             ? 0
             : Date.now() - selectedRange;
+
 
     const result =
         await pool.query(
@@ -115,6 +132,7 @@ async function getHistory(
             FROM price_history
 
             WHERE stock_id = $1
+
               AND time >= $2
 
             ORDER BY time ASC
@@ -126,6 +144,7 @@ async function getHistory(
                 minTime
             ]
         );
+
 
     return result.rows.map(
         row => ({
@@ -139,8 +158,9 @@ async function getHistory(
 
 }
 
+
 // =====================================================
-// 주가 설정
+// 주가 직접 설정
 // =====================================================
 
 async function setPrice(
@@ -153,6 +173,7 @@ async function setPrice(
             Number(price)
         );
 
+
     if (
         !Number.isFinite(value) ||
         value < 100
@@ -163,6 +184,7 @@ async function setPrice(
         );
 
     }
+
 
     await pool.query(
         `
@@ -187,6 +209,7 @@ async function setPrice(
         ]
     );
 
+
     await pool.query(
         `
         INSERT INTO price_history
@@ -210,17 +233,17 @@ async function setPrice(
         ]
     );
 
+
     return getStock(id);
 
 }
 
+
 // =====================================================
 // 다음 주가 계산
 //
-// volatility 사용 안 함
-//
-// 최소 변동값 ~ 최대 변동값의
-// 절대 금액만큼 랜덤하게 움직임
+// 최소변동금액 ~ 최대변동금액
+// 절대 금액 기준
 // =====================================================
 
 function calculateNextPrice(
@@ -231,60 +254,83 @@ function calculateNextPrice(
     const currentPrice =
         Number(stock.price);
 
+
     let minChange =
-        Math.abs(
-            Number(stock.min_change)
-        );
+        Number(stock.min_change);
+
 
     let maxChange =
-        Math.abs(
-            Number(stock.max_change)
-        );
+        Number(stock.max_change);
+
 
     if (
         !Number.isFinite(minChange)
     ) {
+
         minChange = 1;
+
     }
+
 
     if (
         !Number.isFinite(maxChange)
     ) {
-        maxChange = minChange;
+
+        maxChange =
+            minChange;
+
     }
 
-    if (
-        minChange > maxChange
-    ) {
 
-        [
+    minChange =
+        Math.max(
+            1,
+            Math.abs(minChange)
+        );
+
+
+    maxChange =
+        Math.max(
             minChange,
-            maxChange
-        ] = [
-            maxChange,
-            minChange
-        ];
+            Math.abs(maxChange)
+        );
 
-    }
+
+    // ================================================
+    // 최소 ~ 최대 사이 랜덤 변동
+    // ================================================
 
     const change =
-        minChange +
-        Math.random() *
-        (
-            maxChange -
-            minChange
+        Math.floor(
+            minChange +
+            Math.random() *
+            (
+                maxChange -
+                minChange +
+                1
+            )
         );
+
+
+    // ================================================
+    // 기본 방향 랜덤
+    // ================================================
 
     let direction =
         Math.random() < 0.5
             ? -1
             : 1;
 
+
+    // ================================================
     // 관리자 방향 제어
+    // ================================================
+
     if (control) {
 
         const now =
             Date.now();
+
 
         if (
             control.direction !== "normal" &&
@@ -297,7 +343,10 @@ function calculateNextPrice(
 
                 direction = 1;
 
-            } else if (
+            }
+
+
+            if (
                 control.direction === "down"
             ) {
 
@@ -309,21 +358,31 @@ function calculateNextPrice(
 
     }
 
+
+    // ================================================
+    // 다음 가격
+    // ================================================
+
     let nextPrice =
         currentPrice +
-        direction * change;
+        direction *
+        change;
 
+
+    // 최소 주가 100원
     nextPrice =
         Math.max(
             100,
             nextPrice
         );
 
+
     return Math.round(
         nextPrice
     );
 
 }
+
 
 // =====================================================
 // 시장 업데이트
@@ -335,6 +394,7 @@ async function updateMarket() {
 
         const stocks =
             await getStocks();
+
 
         for (
             const stock
@@ -356,9 +416,11 @@ async function updateMarket() {
                     [stock.id]
                 );
 
+
             const control =
                 controlResult.rows[0] ||
                 null;
+
 
             const nextPrice =
                 calculateNextPrice(
@@ -366,12 +428,14 @@ async function updateMarket() {
                     control
                 );
 
+
             await setPrice(
                 stock.id,
                 nextPrice
             );
 
         }
+
 
     } catch (error) {
 
@@ -384,6 +448,7 @@ async function updateMarket() {
 
 }
 
+
 // =====================================================
 // 주가 엔진
 // =====================================================
@@ -393,13 +458,17 @@ function startMarketEngine() {
     const interval =
         5000;
 
+
     console.log("");
+
 
     console.log(
         `📈 주가 엔진 시작 · ${interval / 1000}초 간격`
     );
 
+
     updateMarket();
+
 
     setInterval(
         updateMarket,
@@ -407,6 +476,7 @@ function startMarketEngine() {
     );
 
 }
+
 
 // =====================================================
 // Export
@@ -433,4 +503,3 @@ module.exports = {
     calculateNextPrice
 
 };
-
