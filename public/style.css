@@ -644,3 +644,78 @@ button {
     }
 
 }
+
+/* ========================================
+   공통 다크모드
+======================================== */
+
+body.dark {
+    --bg: #101214;
+    --panel: #181b1f;
+    --panel2: #20242a;
+    --border: #2d3238;
+    --text: #f1f3f5;
+    --muted: #9ca3af;
+}
+
+body.dark {
+    background:
+        radial-gradient(
+            circle at 20% 0%,
+            rgba(79, 140, 255, 0.08),
+            transparent 30%
+        ),
+        var(--bg);
+    color: var(--text);
+}
+
+body.dark .topbar {
+    background: rgba(16, 18, 20, 0.92);
+    border-bottom-color: var(--border);
+}
+
+body.dark .top-actions button {
+    color: var(--muted);
+}
+
+body.dark .top-actions button:hover {
+    background: var(--panel2);
+    color: white;
+}
+
+body.dark .hero,
+body.dark .card,
+body.dark .panel,
+body.dark .stat,
+body.dark .chart {
+    background: var(--panel);
+    border-color: var(--border);
+}
+
+body.dark .card button,
+body.dark #detail > button:first-child,
+body.dark #detail p button {
+    background: var(--panel2);
+    border-color: var(--border);
+    color: white;
+}
+
+body.dark .ticker {
+    background: #202a40;
+}
+
+body.dark .input-group input,
+body.dark .trade input {
+    background: #0d1117;
+    border-color: var(--border);
+    color: white;
+}
+
+body.dark .panel p {
+    border-bottom-color: var(--border);
+}
+
+body.dark .stat b,
+body.dark .panel p b {
+    color: white;
+}
