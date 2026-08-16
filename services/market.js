@@ -36,6 +36,19 @@ async function getStock(id) {
   return rows[0] || null;
 }
 
+async function getGlobalPriceFloor() {
+  try {
+    const { rows } = await pool.query("SELECT global_price_floor FROM game_settings WHERE id=1 LIMIT 1");
+    if (!rows.length || rows[0].global_price_floor === null) return null;
+    const value = Number(rows[0].global_price_floor);
+    return Number.isFinite(value) && value > 0 ? Math.round(value) : null;
+  } catch (error) {
+    // 데이터베이스 초기화 직후처럼 설정 테이블이 아직 없는 순간에는
+    // 종목별 커트라인을 그대로 사용합니다.
+    return null;
+  }
+}
+
 async function getHistory(id, range = "1d") {
   const ranges = { "1h": 3600000, "1d": 86400000, "1w": 604800000, "1m": 2592000000, "3m": 7776000000, all: Infinity };
   const duration = ranges[range] ?? ranges["1d"];
@@ -91,8 +104,11 @@ function calculateNextPrice(stock, control = null) {
 
 async function updateStockMarket(stock) {
   const now = Date.now();
-  const floor = Number(stock.price_floor);
-  const hasFloor = Number.isFinite(floor) && floor > 0;
+  const globalFloor = await getGlobalPriceFloor();
+  const stockFloor = Number(stock.price_floor);
+  const hasStockFloor = Number.isFinite(stockFloor) && stockFloor > 0;
+  const floor = globalFloor !== null ? globalFloor : (hasStockFloor ? stockFloor : null);
+  const hasFloor = floor !== null;
   const lockUntil = Number(stock.floor_lock_until || 0);
   const current = Math.max(1, Math.round(Number(stock.price) || 1));
 
@@ -185,6 +201,7 @@ module.exports = {
   getStocks,
   getStock,
   getHistory,
+  getGlobalPriceFloor,
   setPrice,
   calculateNextPrice,
   updateMarket,
