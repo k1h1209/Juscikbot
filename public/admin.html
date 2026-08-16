@@ -1188,17 +1188,31 @@ th {
 
 <div class="field">
 
-<label>
-변동성 / 변동 범위
-</label>
+<div class="field">
+    <label>
+        최소 변동
+    </label>
 
-<input
-    id="newStockVolatility"
-    type="number"
-    step="0.01"
-    min="0"
-    placeholder="0.05"
->
+    <input
+        id="newStockMinChange"
+        type="number"
+        min="0"
+        placeholder="10"
+    >
+</div>
+
+<div class="field">
+    <label>
+        최대 변동
+    </label>
+
+    <input
+        id="newStockMaxChange"
+        type="number"
+        min="0"
+        placeholder="100"
+    >
+</div>
 
 </div>
 
@@ -3973,14 +3987,6 @@ async function createStock() {
                                 .value
                         ),
 
-                    volatility:
-                        Number(
-                            document
-                                .getElementById(
-                                    "newStockVolatility"
-                                )
-                                .value
-                        ),
 
                     volumeLimitEnabled:
                         document
@@ -4115,14 +4121,6 @@ async function saveStock() {
                                 .value
                         ),
 
-                    volatility:
-                        Number(
-                            document
-                                .getElementById(
-                                    "editStockVolatility"
-                                )
-                                .value
-                        ),
 
                     volumeLimitEnabled:
                         document
