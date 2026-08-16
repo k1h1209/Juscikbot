@@ -255,13 +255,39 @@ router.patch(
             const id =
                 String(req.params.id);
 
-            const {
-                nickname,
-                cash,
-                playerNumber,
-                holdings,
-                transactions
-            } = req.body;
+           if (minChange !== undefined) {
+    const value = Number(minChange);
+
+    if (!Number.isFinite(value) || value < 0) {
+        return res.status(400).json({
+            ok: false,
+            error: "최소 변동금액이 올바르지 않습니다."
+        });
+    }
+
+    fields.push(
+        `min_change = $${index++}`
+    );
+
+    values.push(value);
+}
+
+if (maxChange !== undefined) {
+    const value = Number(maxChange);
+
+    if (!Number.isFinite(value) || value < 0) {
+        return res.status(400).json({
+            ok: false,
+            error: "최대 변동금액이 올바르지 않습니다."
+        });
+    }
+
+    fields.push(
+        `max_change = $${index++}`
+    );
+
+    values.push(value);
+}
 
             const fields = [];
             const values = [];
