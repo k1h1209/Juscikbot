@@ -950,9 +950,7 @@ router.post(
             const stockPrice =
                 Number(price);
 
-            const stockVolatility =
-                Number(volatility);
-
+            
             if (!stockId) {
 
                 return res.status(400).json({
@@ -986,10 +984,6 @@ router.post(
 
             }
 
-            if (
-                !Number.isFinite(stockVolatility) ||
-                stockVolatility < 0
-            ) {
 
                 return res.status(400).json({
                     ok: false,
@@ -1040,7 +1034,6 @@ router.post(
                     [
                         stockId,
                         stockName,
-                        stockVolatility,
                         stockPrice,
                         Boolean(
                             volumeLimitEnabled
