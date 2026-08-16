@@ -616,97 +616,78 @@ th {
    상세정보 UI
 ================================ */
 
-.detail-section {
-    margin-top: 18px;
-}
-
-.detail-list {
-    display: grid;
+.detail-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     gap: 10px;
+    margin-bottom: 10px;
 }
 
-.holding-card,
+.detail-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid #eef0f2;
+    border-radius: 10px;
+}
+
+.detail-table {
+    min-width: 650px;
+}
+
+.detail-table input,
+.detail-table select {
+    padding: 8px 9px;
+    border: 1px solid #dfe3e8;
+    border-radius: 8px;
+    width: 100%;
+}
+
+.holding-empty,
+.transaction-empty {
+    padding: 18px;
+    text-align: center;
+    color: #6b7280;
+}
+
 .transaction-card {
     border: 1px solid #e5e7eb;
     border-radius: 12px;
-    padding: 13px;
+    padding: 12px;
+    margin-bottom: 10px;
     background: #fafafa;
 }
 
-.holding-head,
-.transaction-head {
+.transaction-card:last-child {
+    margin-bottom: 0;
+}
+
+.transaction-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 10px;
+    margin-bottom: 10px;
 }
 
-.holding-symbol,
-.transaction-type {
-    font-weight: 900;
-}
-
-.holding-meta,
-.transaction-meta {
-    color: #6b7280;
-    font-size: 12px;
-    margin-top: 6px;
-}
-
-.holding-edit {
+.transaction-grid {
     display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 8px;
-    align-items: end;
-    margin-top: 10px;
+    grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: 10px;
 }
 
-.holding-edit input {
-    width: 100%;
-    padding: 9px 10px;
-    border: 1px solid #dfe3e8;
-    border-radius: 8px;
-}
-
-.transaction-table {
-    width: 100%;
-    min-width: 650px;
-    border-collapse: collapse;
-}
-
-.transaction-table th,
-.transaction-table td {
-    padding: 9px 8px;
-    border-bottom: 1px solid #eef0f2;
-    font-size: 12px;
-}
-
-.transaction-empty,
-.holding-empty {
-    padding: 16px;
-    text-align: center;
-    color: #6b7280;
+.password-box {
+    padding: 14px;
     background: #f7f8fa;
     border-radius: 10px;
 }
 
-.password-box {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 8px;
-    align-items: end;
+.password-box .form-grid {
+    margin-top: 10px;
 }
 
-.password-box input {
-    width: 100%;
-    padding: 10px 11px;
-    border: 1px solid #dfe3e8;
-    border-radius: 9px;
-}
-
-@media (max-width: 600px) {
-    .holding-edit,
-    .password-box {
+@media (max-width: 700px) {
+    .transaction-grid {
         grid-template-columns: 1fr;
     }
 }
@@ -1734,8 +1715,33 @@ th {
 📦 보유 주식
 </div>
 
-<div id="detailHoldings" class="detail-list">
-    <div class="holding-empty">불러오는 중...</div>
+<div class="detail-toolbar">
+    <span class="detail-label">보유 종목과 수량을 직접 수정합니다.</span>
+    <button
+        type="button"
+        class="btn btn-blue"
+        onclick="addHoldingRow()"
+    >
+        ➕ 주식 추가
+    </button>
+</div>
+
+<div class="detail-table-wrap">
+    <table class="detail-table">
+        <thead>
+            <tr>
+                <th>종목 ID</th>
+                <th>회사</th>
+                <th>보유 수량</th>
+                <th>관리</th>
+            </tr>
+        </thead>
+        <tbody id="holdingsTable">
+            <tr>
+                <td colspan="4" class="holding-empty">불러오는 중...</td>
+            </tr>
+        </tbody>
+    </table>
 </div>
 
 
@@ -1743,34 +1749,56 @@ th {
 📜 거래 내역
 </div>
 
-<div class="table-wrap">
-    <table class="transaction-table">
-        <thead>
-            <tr>
-                <th>구분</th>
-                <th>종목</th>
-                <th>수량</th>
-                <th>가격</th>
-                <th>금액</th>
-                <th>시간</th>
-            </tr>
-        </thead>
-        <tbody id="detailTransactions">
-            <tr><td colspan="6">불러오는 중...</td></tr>
-        </tbody>
-    </table>
+<div class="detail-toolbar">
+    <span class="detail-label">거래 내역도 화면에서 직접 수정할 수 있습니다.</span>
+    <button
+        type="button"
+        class="btn btn-blue"
+        onclick="addTransactionRow()"
+    >
+        ➕ 거래 추가
+    </button>
 </div>
 
-<div class="detail-section">
-    <div class="sub-title">🔑 비밀번호 재설정</div>
-    <div class="password-box">
+<div id="transactionsList">
+    <div class="transaction-empty">불러오는 중...</div>
+</div>
+
+<div class="sub-title">
+🔑 비밀번호 재설정
+</div>
+
+<div class="password-box">
+    <div class="detail-label">새 비밀번호를 입력하면 해당 플레이어의 비밀번호가 변경됩니다.</div>
+    <div class="form-grid">
         <div class="field">
             <label>새 비밀번호</label>
-            <input id="detailNewPassword" type="password" minlength="4" maxlength="128" placeholder="새 비밀번호 입력">
+            <input
+                id="detailNewPassword"
+                type="password"
+                minlength="4"
+                placeholder="새 비밀번호"
+            >
         </div>
-        <button class="btn btn-red" onclick="resetUserPassword()">비밀번호 재설정</button>
+        <div class="field">
+            <label>새 비밀번호 확인</label>
+            <input
+                id="detailNewPasswordConfirm"
+                type="password"
+                minlength="4"
+                placeholder="다시 입력"
+            >
+        </div>
     </div>
-    <div class="detail-label" style="margin-top:7px;">재설정하면 기존 로그인 세션이 모두 종료됩니다.</div>
+    <div style="margin-top:10px">
+        <button
+            type="button"
+            class="btn btn-gray"
+            onclick="resetUserPassword()"
+        >
+            🔑 비밀번호 변경
+        </button>
+    </div>
 </div>
 
 
@@ -1860,7 +1888,7 @@ th {
 <div class="field">
 
 <label>
-변동성 / 변동 범위
+변동성
 </label>
 
 <input
@@ -2046,9 +2074,11 @@ th {
 ======================================== */
 
 let adminPassword =
-    localStorage.getItem(
-        "vsm_admin_password"
-    ) || "";
+    "";
+
+let currentUserHoldings = {};
+let currentUserTransactions = [];
+let currentUserStocks = [];
 
 let currentSection =
     "dashboard";
@@ -2131,9 +2161,37 @@ async function api(
    사이트 이동
 ======================================== */
 
-function goToSite() {
+async function goToSite() {
 
-    window.location.href = "/";
+    try {
+
+        const data =
+            await api(
+                "/api/admin/site-token",
+                {
+                    method: "POST"
+                }
+            );
+
+        if (!data.token) {
+            throw new Error(
+                "관리자 사이트 접근 토큰을 받지 못했습니다."
+            );
+        }
+
+        window.location.href =
+            "/admin/vsm?token=" +
+            encodeURIComponent(
+                data.token
+            );
+
+    } catch (error) {
+
+        alert(
+            error.message
+        );
+
+    }
 
 }
 
@@ -2198,11 +2256,6 @@ async function login() {
 
         adminPassword =
             password;
-
-        localStorage.setItem(
-            "vsm_admin_password",
-            password
-        );
 
         openAdmin();
 
@@ -2278,10 +2331,6 @@ async function openAdmin() {
 
 
 function logout() {
-
-    localStorage.removeItem(
-        "vsm_admin_password"
-    );
 
     adminPassword = "";
 
@@ -2664,302 +2713,777 @@ async function openUserDetail(id) {
                 `/api/admin/users/${encodeURIComponent(id)}`
             );
 
-        const user = data.user;
+        const user =
+            data.user || {};
 
-        document.getElementById("detailUserId").value = user.id;
-        document.getElementById("detailId").textContent = user.id;
-        document.getElementById("detailCreated").textContent =
-            formatDate(user.created_at ?? user.createdAt);
-        document.getElementById("detailNickname").value =
-            user.nickname || "";
-        document.getElementById("detailPlayerNumber").value =
-            user.player_number ?? user.playerNumber ?? "";
-        document.getElementById("detailCash").value =
-            Number(user.cash || 0);
-        document.getElementById("detailNewPassword").value = "";
+        currentUserHoldings =
+            user.holdings || {};
 
-        renderHoldings(user.holdings || {});
-        renderTransactions(user.transactions || []);
+        currentUserTransactions =
+            Array.isArray(user.transactions)
+                ? user.transactions
+                : [];
+
+        try {
+
+            const stockData =
+                await api(
+                    "/api/admin/stocks"
+                );
+
+            currentUserStocks =
+                stockData.stocks || [];
+
+        } catch (_) {
+
+            currentUserStocks = [];
+
+        }
+
+        document
+            .getElementById("detailUserId")
+            .value =
+                user.id || "";
+
+        document
+            .getElementById("detailId")
+            .textContent =
+                user.id || "-";
+
+        document
+            .getElementById("detailCreated")
+            .textContent =
+                formatDate(
+                    user.createdAt ??
+                    user.created_at
+                );
+
+        document
+            .getElementById("detailNickname")
+            .value =
+                user.nickname || "";
+
+        document
+            .getElementById("detailPlayerNumber")
+            .value =
+                user.playerNumber ??
+                user.player_number ??
+                "";
+
+        document
+            .getElementById("detailCash")
+            .value =
+                user.cash ?? 0;
+
+        document
+            .getElementById("detailNewPassword")
+            .value = "";
+
+        document
+            .getElementById("detailNewPasswordConfirm")
+            .value = "";
+
+        renderHoldings();
+        renderTransactions();
 
         const banned =
-            user.banned_until
-                ? Number(user.banned_until) > Date.now()
-                : user.bannedUntil
-                    ? Number(user.bannedUntil) > Date.now()
-                    : false;
+            (user.bannedUntil ?? user.banned_until) &&
+            Number(
+                user.bannedUntil ?? user.banned_until
+            ) > Date.now();
 
-        const bannedUntil = user.banned_until ?? user.bannedUntil;
-        const banReason = user.ban_reason ?? user.banReason;
-
-        document.getElementById("detailBan").innerHTML =
-            banned
-                ? `
-                    <span class="status status-banned">밴 상태</span>
-                    <br><br>
-                    종료: ${formatDate(bannedUntil)}
-                    <br>
-                    사유: ${escapeHtml(banReason || "-")}
-                  `
-                : `
-                    <span class="status status-normal">정상</span>
-                  `;
+        document
+            .getElementById("detailBan")
+            .innerHTML =
+                banned
+                    ? `
+                        <span class="status status-banned">
+                            밴 상태
+                        </span>
+                        <br><br>
+                        종료:
+                        ${formatDate(
+                            user.bannedUntil ??
+                            user.banned_until
+                        )}
+                        <br>
+                        사유:
+                        ${escapeHtml(
+                            user.banReason ??
+                            user.ban_reason ??
+                            "-"
+                        )}
+                      `
+                    : `
+                        <span class="status status-normal">
+                            정상
+                        </span>
+                      `;
 
         openModal("userModal");
 
     } catch (error) {
-        alert(error.message);
+
+        alert(
+            error.message
+        );
+
     }
 
 }
 
 
-function normalizeHoldingEntries(holdings) {
+/* ========================================
+   보유 주식 UI
+======================================== */
 
-    if (!holdings || typeof holdings !== "object" || Array.isArray(holdings)) {
-        return [];
+function getHoldingQuantity(value) {
+
+    if (typeof value === "number") {
+        return value;
     }
 
-    return Object.entries(holdings).map(([stockId, raw]) => {
+    if (typeof value === "string") {
+        return Number(value) || 0;
+    }
 
-        let quantity = 0;
-        let extra = null;
+    if (value && typeof value === "object") {
+        return Number(
+            value.quantity ??
+            value.qty ??
+            value.amount ??
+            0
+        ) || 0;
+    }
 
-        if (typeof raw === "number" || typeof raw === "string") {
-            quantity = Number(raw);
-        } else if (raw && typeof raw === "object") {
-            quantity = Number(
-                raw.quantity ??
-                raw.shares ??
-                raw.amount ??
-                raw.count ??
-                0
-            );
-            extra = raw;
-        }
+    return 0;
 
-        return {
-            stockId,
-            quantity: Number.isFinite(quantity) ? quantity : 0,
-            extra
-        };
-    });
 }
 
 
-function renderHoldings(holdings) {
+function getStockName(stockId) {
 
-    const container =
-        document.getElementById("detailHoldings");
+    const stock =
+        currentUserStocks.find(
+            item =>
+                String(item.id) ===
+                String(stockId)
+        );
 
-    const entries = normalizeHoldingEntries(holdings)
-        .filter(item => item.quantity !== 0 || item.extra);
+    return stock
+        ? stock.name
+        : "알 수 없는 종목";
+
+}
+
+
+function renderHoldings() {
+
+    const tbody =
+        document.getElementById(
+            "holdingsTable"
+        );
+
+    if (!tbody) return;
+
+    const entries =
+        Object.entries(
+            currentUserHoldings || {}
+        );
 
     if (!entries.length) {
-        container.innerHTML = `
-            <div class="holding-empty">보유 중인 주식이 없습니다.</div>
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="4" class="holding-empty">
+                    보유 중인 주식이 없습니다.
+                </td>
+            </tr>
         `;
+
         return;
+
     }
 
-    container.innerHTML = entries.map(item => `
-        <div class="holding-card" data-stock-id="${escapeAttr(item.stockId)}">
-            <div class="holding-head">
-                <div class="holding-symbol">
-                    ${escapeHtml(item.stockId)}
-                </div>
-                <span class="status status-normal">보유</span>
-            </div>
+    tbody.innerHTML = "";
 
-            <div class="holding-meta">
-                ${item.extra ? "주식 상세 데이터 포함" : "보유 수량"}
-            </div>
+    entries.forEach(
+        ([stockId, value]) => {
 
-            <div class="holding-edit">
-                <div class="field">
-                    <label>보유 수량</label>
+            const tr =
+                document.createElement("tr");
+
+            tr.dataset.stockId =
+                stockId;
+
+            tr.innerHTML = `
+                <td>
+                    <input
+                        class="holding-stock-id"
+                        value="${escapeAttr(stockId)}"
+                    >
+                </td>
+                <td class="holding-stock-name">
+                    ${escapeHtml(
+                        getStockName(stockId)
+                    )}
+                </td>
+                <td>
                     <input
                         class="holding-quantity"
                         type="number"
                         min="0"
                         step="1"
-                        value="${Number(item.quantity) || 0}"
+                        value="${getHoldingQuantity(value)}"
                     >
-                </div>
-                <button
-                    class="btn btn-gray"
-                    type="button"
-                    onclick="removeHolding('${escapeAttr(item.stockId)}')"
-                >
-                    삭제
-                </button>
-            </div>
-        </div>
-    `).join("");
+                </td>
+                <td>
+                    <button
+                        type="button"
+                        class="btn btn-red"
+                        onclick="removeHoldingRow(this)"
+                    >
+                        삭제
+                    </button>
+                </td>
+            `;
+
+            const idInput =
+                tr.querySelector(
+                    ".holding-stock-id"
+                );
+
+            idInput.addEventListener(
+                "input",
+                () => {
+                    tr.querySelector(
+                        ".holding-stock-name"
+                    ).textContent =
+                        getStockName(
+                            idInput.value.trim()
+                        );
+                }
+            );
+
+            tbody.appendChild(tr);
+
+        }
+    );
+
 }
 
 
-function removeHolding(stockId) {
+function addHoldingRow() {
 
-    const card =
-        document.querySelector(
-            `.holding-card[data-stock-id="${CSS.escape(stockId)}"]`
+    const tbody =
+        document.getElementById(
+            "holdingsTable"
         );
 
-    if (!card) return;
+    if (!tbody) return;
 
-    const input = card.querySelector(".holding-quantity");
-    if (input) input.value = "0";
+    const empty =
+        tbody.querySelector(
+            ".holding-empty"
+        );
+
+    if (empty) {
+        tbody.innerHTML = "";
+    }
+
+    const tr =
+        document.createElement("tr");
+
+    tr.innerHTML = `
+        <td>
+            <input
+                class="holding-stock-id"
+                placeholder="SKNX"
+            >
+        </td>
+        <td class="holding-stock-name">
+            종목을 입력하세요
+        </td>
+        <td>
+            <input
+                class="holding-quantity"
+                type="number"
+                min="0"
+                step="1"
+                value="0"
+            >
+        </td>
+        <td>
+            <button
+                type="button"
+                class="btn btn-red"
+                onclick="removeHoldingRow(this)"
+            >
+                삭제
+            </button>
+        </td>
+    `;
+
+    const idInput =
+        tr.querySelector(
+            ".holding-stock-id"
+        );
+
+    idInput.addEventListener(
+        "input",
+        () => {
+            tr.querySelector(
+                ".holding-stock-name"
+            ).textContent =
+                getStockName(
+                    idInput.value.trim()
+                );
+        }
+    );
+
+    tbody.appendChild(tr);
+
+}
+
+
+function removeHoldingRow(button) {
+
+    const row =
+        button.closest("tr");
+
+    if (row) {
+        row.remove();
+    }
+
+    const tbody =
+        document.getElementById(
+            "holdingsTable"
+        );
+
+    if (
+        tbody &&
+        !tbody.querySelector("tr")
+    ) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="4" class="holding-empty">
+                    보유 주식이 없습니다.
+                </td>
+            </tr>
+        `;
+    }
+
 }
 
 
 function collectHoldings() {
 
-    const holdings = {};
+    const result = {};
 
     document
-        .querySelectorAll("#detailHoldings .holding-card")
-        .forEach(card => {
+        .querySelectorAll(
+            "#holdingsTable tr"
+        )
+        .forEach(row => {
 
-            const stockId =
-                card.dataset.stockId;
+            const idInput =
+                row.querySelector(
+                    ".holding-stock-id"
+                );
 
-            const input =
-                card.querySelector(".holding-quantity");
-
-            const quantity =
-                Number(input?.value || 0);
-
-            if (!stockId) return;
+            const quantityInput =
+                row.querySelector(
+                    ".holding-quantity"
+                );
 
             if (
-                Number.isFinite(quantity) &&
-                quantity > 0
+                !idInput ||
+                !quantityInput
             ) {
-                holdings[stockId] = quantity;
+                return;
             }
+
+            const stockId =
+                idInput.value.trim();
+
+            const quantity =
+                Number(
+                    quantityInput.value
+                );
+
+            if (
+                !stockId ||
+                !Number.isFinite(quantity) ||
+                quantity < 0
+            ) {
+                return;
+            }
+
+            if (quantity > 0) {
+                result[stockId] =
+                    Math.floor(quantity);
+            }
+
         });
 
-    return holdings;
+    return result;
+
 }
 
 
-function normalizeTransaction(transaction) {
+/* ========================================
+   거래 내역 UI
+======================================== */
 
-    const type =
-        transaction?.type ??
-        transaction?.action ??
-        transaction?.side ??
-        transaction?.tradeType ??
-        "거래";
+function transactionValue(transaction, keys, fallback = "") {
 
-    const stockId =
-        transaction?.stockId ??
-        transaction?.stock_id ??
-        transaction?.stock ??
-        transaction?.symbol ??
-        transaction?.id ??
-        "-";
-
-    const quantity = Number(
-        transaction?.quantity ??
-        transaction?.shares ??
-        transaction?.amount ??
-        transaction?.count ??
-        0
-    );
-
-    const price = Number(
-        transaction?.price ??
-        transaction?.unitPrice ??
-        transaction?.unit_price ??
-        0
-    );
-
-    const total = Number(
-        transaction?.total ??
-        transaction?.totalPrice ??
-        transaction?.total_price ??
-        transaction?.money ??
-        (Number.isFinite(quantity) && Number.isFinite(price)
-            ? quantity * price
-            : 0)
-    );
-
-    const time =
-        transaction?.time ??
-        transaction?.createdAt ??
-        transaction?.created_at ??
-        transaction?.timestamp ??
-        transaction?.date;
-
-    return {
-        type: String(type),
-        stockId: String(stockId),
-        quantity: Number.isFinite(quantity) ? quantity : 0,
-        price: Number.isFinite(price) ? price : 0,
-        total: Number.isFinite(total) ? total : 0,
-        time
-    };
-}
-
-
-function renderTransactions(transactions) {
-
-    const tbody =
-        document.getElementById("detailTransactions");
-
-    if (!Array.isArray(transactions) || !transactions.length) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="6" class="transaction-empty">
-                    거래 내역이 없습니다.
-                </td>
-            </tr>
-        `;
-        return;
+    for (const key of keys) {
+        if (
+            transaction &&
+            transaction[key] !== undefined &&
+            transaction[key] !== null
+        ) {
+            return transaction[key];
+        }
     }
 
-    tbody.innerHTML = transactions.map(raw => {
+    return fallback;
 
-        const transaction =
-            normalizeTransaction(raw);
-
-        const typeText =
-            /sell|매도/i.test(transaction.type)
-                ? "매도"
-                : /buy|매수/i.test(transaction.type)
-                    ? "매수"
-                    : transaction.type;
-
-        return `
-            <tr>
-                <td>
-                    <span class="status ${
-                        typeText === "매도"
-                            ? "status-rejected"
-                            : "status-accepted"
-                    }">
-                        ${escapeHtml(typeText)}
-                    </span>
-                </td>
-                <td><strong>${escapeHtml(transaction.stockId)}</strong></td>
-                <td>${formatMoney(transaction.quantity)}주</td>
-                <td>${formatMoney(transaction.price)}원</td>
-                <td>${formatMoney(transaction.total)}원</td>
-                <td>${formatDate(transaction.time)}</td>
-            </tr>
-        `;
-
-    }).join("");
 }
 
+
+function setTransactionValue(transaction, keys, value, fallbackKey) {
+
+    const existingKey =
+        keys.find(
+            key =>
+                Object.prototype.hasOwnProperty.call(
+                    transaction,
+                    key
+                )
+        );
+
+    transaction[
+        existingKey || fallbackKey
+    ] = value;
+
+}
+
+
+function renderTransactions() {
+
+    const container =
+        document.getElementById(
+            "transactionsList"
+        );
+
+    if (!container) return;
+
+    if (!currentUserTransactions.length) {
+
+        container.innerHTML = `
+            <div class="transaction-empty">
+                거래 내역이 없습니다.
+            </div>
+        `;
+
+        return;
+
+    }
+
+    container.innerHTML = "";
+
+    currentUserTransactions.forEach(
+        (transaction, index) => {
+
+            const card =
+                document.createElement("div");
+
+            card.className =
+                "transaction-card";
+
+            const type =
+                String(
+                    transactionValue(
+                        transaction,
+                        ["type", "action", "side"],
+                        "buy"
+                    )
+                ).toLowerCase();
+
+            const stockId =
+                transactionValue(
+                    transaction,
+                    ["stockId", "stock_id", "stock", "id"],
+                    ""
+                );
+
+            const quantity =
+                transactionValue(
+                    transaction,
+                    ["quantity", "qty", "amount"],
+                    0
+                );
+
+            const price =
+                transactionValue(
+                    transaction,
+                    ["price", "unitPrice", "unit_price"],
+                    0
+                );
+
+            const total =
+                transactionValue(
+                    transaction,
+                    ["total", "totalPrice", "total_price"],
+                    Number(quantity) * Number(price)
+                );
+
+            const time =
+                transactionValue(
+                    transaction,
+                    ["time", "timestamp", "createdAt", "created_at"],
+                    Date.now()
+                );
+
+            card.innerHTML = `
+                <div class="transaction-header">
+                    <strong>거래 #${index + 1}</strong>
+                    <button
+                        type="button"
+                        class="btn btn-red"
+                        onclick="removeTransactionRow(${index})"
+                    >
+                        🗑️ 삭제
+                    </button>
+                </div>
+
+                <div class="transaction-grid">
+                    <div class="field">
+                        <label>거래 종류</label>
+                        <select class="transaction-type">
+                            <option value="buy" ${type === "buy" ? "selected" : ""}>매수</option>
+                            <option value="sell" ${type === "sell" ? "selected" : ""}>매도</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label>종목 ID</label>
+                        <input
+                            class="transaction-stock"
+                            value="${escapeAttr(stockId)}"
+                        >
+                    </div>
+
+                    <div class="field">
+                        <label>수량</label>
+                        <input
+                            class="transaction-quantity"
+                            type="number"
+                            min="0"
+                            step="1"
+                            value="${Number(quantity) || 0}"
+                        >
+                    </div>
+
+                    <div class="field">
+                        <label>주당 가격</label>
+                        <input
+                            class="transaction-price"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value="${Number(price) || 0}"
+                        >
+                    </div>
+
+                    <div class="field">
+                        <label>총액</label>
+                        <input
+                            class="transaction-total"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value="${Number(total) || 0}"
+                        >
+                    </div>
+
+                    <div class="field">
+                        <label>거래 시간</label>
+                        <input
+                            class="transaction-time"
+                            type="number"
+                            value="${Number(time) || Date.now()}"
+                        >
+                    </div>
+                </div>
+            `;
+
+            container.appendChild(card);
+
+        }
+    );
+
+}
+
+
+function addTransactionRow() {
+
+    if (
+        !Array.isArray(
+            currentUserTransactions
+        )
+    ) {
+        currentUserTransactions = [];
+    }
+
+    currentUserTransactions.push({
+        type: "buy",
+        stockId: "",
+        quantity: 0,
+        price: 0,
+        total: 0,
+        time: Date.now()
+    });
+
+    renderTransactions();
+
+}
+
+
+function removeTransactionRow(index) {
+
+    currentUserTransactions.splice(
+        index,
+        1
+    );
+
+    renderTransactions();
+
+}
+
+
+function collectTransactions() {
+
+    const cards =
+        document.querySelectorAll(
+            "#transactionsList .transaction-card"
+        );
+
+    return Array.from(cards).map(
+        (card, index) => {
+
+            const original =
+                {
+                    ...(currentUserTransactions[index] || {})
+                };
+
+            const type =
+                card.querySelector(
+                    ".transaction-type"
+                )?.value || "buy";
+
+            const stockId =
+                card.querySelector(
+                    ".transaction-stock"
+                )?.value.trim() || "";
+
+            const quantity =
+                Number(
+                    card.querySelector(
+                        ".transaction-quantity"
+                    )?.value || 0
+                );
+
+            const price =
+                Number(
+                    card.querySelector(
+                        ".transaction-price"
+                    )?.value || 0
+                );
+
+            const total =
+                Number(
+                    card.querySelector(
+                        ".transaction-total"
+                    )?.value || 0
+                );
+
+            const time =
+                Number(
+                    card.querySelector(
+                        ".transaction-time"
+                    )?.value || Date.now()
+                );
+
+            setTransactionValue(
+                original,
+                ["type", "action", "side"],
+                type,
+                "type"
+            );
+
+            setTransactionValue(
+                original,
+                ["stockId", "stock_id", "stock"],
+                stockId,
+                "stockId"
+            );
+
+            setTransactionValue(
+                original,
+                ["quantity", "qty", "amount"],
+                quantity,
+                "quantity"
+            );
+
+            setTransactionValue(
+                original,
+                ["price", "unitPrice", "unit_price"],
+                price,
+                "price"
+            );
+
+            setTransactionValue(
+                original,
+                ["total", "totalPrice", "total_price"],
+                total,
+                "total"
+            );
+
+            setTransactionValue(
+                original,
+                ["time", "timestamp", "createdAt", "created_at"],
+                time,
+                "time"
+            );
+
+            return original;
+
+        }
+    );
+
+}
+
+
+/* ========================================
+   플레이어 저장
+======================================== */
 
 async function saveUserDetail() {
 
     const id =
-        document.getElementById("detailUserId").value;
+        document
+            .getElementById(
+                "detailUserId"
+            )
+            .value;
 
-    const holdings = collectHoldings();
+    const holdings =
+        collectHoldings();
+
+    const transactions =
+        collectTransactions();
 
     try {
 
@@ -2969,52 +3493,106 @@ async function saveUserDetail() {
                 method: "PATCH",
                 body: {
                     nickname:
-                        document.getElementById("detailNickname").value,
+                        document
+                            .getElementById(
+                                "detailNickname"
+                            )
+                            .value,
                     playerNumber:
-                        Number(document.getElementById("detailPlayerNumber").value),
+                        Number(
+                            document
+                                .getElementById(
+                                    "detailPlayerNumber"
+                                )
+                                .value
+                        ),
                     cash:
-                        Number(document.getElementById("detailCash").value),
-                    holdings
+                        Number(
+                            document
+                                .getElementById(
+                                    "detailCash"
+                                )
+                                .value
+                        ),
+                    holdings,
+                    transactions
                 }
             }
         );
 
-        closeModal("userModal");
+        currentUserHoldings =
+            holdings;
 
-        alert("플레이어 상세정보가 저장되었습니다.");
+        currentUserTransactions =
+            transactions;
+
+        closeModal(
+            "userModal"
+        );
+
+        alert(
+            "플레이어 상세정보가 저장되었습니다."
+        );
 
         loadUsers();
 
     } catch (error) {
-        alert(error.message);
+
+        alert(
+            error.message
+        );
+
     }
+
 }
 
+
+/* ========================================
+   비밀번호 재설정
+======================================== */
 
 async function resetUserPassword() {
 
     const id =
-        document.getElementById("detailUserId").value;
-
-    const input =
-        document.getElementById("detailNewPassword");
+        document
+            .getElementById(
+                "detailUserId"
+            )
+            .value;
 
     const password =
-        String(input.value || "");
+        document
+            .getElementById(
+                "detailNewPassword"
+            )
+            .value;
+
+    const confirmPassword =
+        document
+            .getElementById(
+                "detailNewPasswordConfirm"
+            )
+            .value;
 
     if (password.length < 4) {
-        alert("비밀번호는 4자 이상이어야 합니다.");
-        input.focus();
+        alert(
+            "비밀번호는 4자 이상이어야 합니다."
+        );
         return;
     }
 
-    if (password.length > 128) {
-        alert("비밀번호가 너무 깁니다.");
-        input.focus();
+    if (password !== confirmPassword) {
+        alert(
+            "새 비밀번호가 서로 다릅니다."
+        );
         return;
     }
 
-    if (!confirm("이 플레이어의 비밀번호를 새 비밀번호로 재설정할까요?")) {
+    if (
+        !confirm(
+            "이 플레이어의 비밀번호를 변경할까요?"
+        )
+    ) {
         return;
     }
 
@@ -3024,19 +3602,36 @@ async function resetUserPassword() {
             `/api/admin/users/${encodeURIComponent(id)}/password`,
             {
                 method: "POST",
-                body: { password }
+                body: {
+                    password
+                }
             }
         );
 
-        input.value = "";
+        document
+            .getElementById(
+                "detailNewPassword"
+            )
+            .value = "";
+
+        document
+            .getElementById(
+                "detailNewPasswordConfirm"
+            )
+            .value = "";
 
         alert(
-            "비밀번호가 재설정되었습니다. 기존 로그인 세션은 모두 종료되었습니다."
+            "플레이어 비밀번호가 변경되었습니다."
         );
 
     } catch (error) {
-        alert(error.message);
+
+        alert(
+            error.message
+        );
+
     }
+
 }
 
 
@@ -3200,23 +3795,33 @@ async function loadStocks() {
                     );
 
 
-                const currentPrice =
-                    Number(stock.price || 0);
+                /*
+                 * 현재 DB가 단일 volatility를
+                 * 반환하는 동안은 해당 값을
+                 * 변동 범위의 최대치로 표시.
+                 *
+                 * min/max 필드가 적용되면
+                 * 아래 부분만 min/max로 연결.
+                 */
+
+                const volatility =
+                    Number(
+                        stock.volatility || 0
+                    );
 
                 const minChange =
-                    stock.min_change !== undefined
-                        ? Number(stock.min_change || 0)
-                        : null;
+                    stock.min_change ??
+                    stock.minChange;
 
                 const maxChange =
-                    stock.max_change !== undefined
-                        ? Number(stock.max_change || 0)
-                        : null;
+                    stock.max_change ??
+                    stock.maxChange;
 
                 const rangeText =
-                    minChange !== null && maxChange !== null
-                        ? `${formatMoney(Math.max(0, currentPrice - minChange))}원 ~ ${formatMoney(currentPrice + maxChange)}원`
-                        : `${Number(stock.volatility || 0) * 100}%`;
+                    minChange !== undefined &&
+                    maxChange !== undefined
+                        ? `${Number(minChange) * 100}% ~ ${Number(maxChange) * 100}%`
+                        : `0% ~ ${volatility * 100}%`;
 
 
                 tr.innerHTML = `
