@@ -1694,67 +1694,90 @@
             );
 
 
-        // =====================================================
-        // 다크모드
-        // =====================================================
+       // =====================================================
+// 다크모드
+// =====================================================
 
-        const themeButton =
-            document.getElementById(
-                "themeButton"
-            );
+const themeButton =
+    document.getElementById(
+        "themeButton"
+    );
 
 
-        themeButton.addEventListener(
-            "click",
-            function () {
+// =====================================================
+// 테마 적용
+// =====================================================
 
-                document.body.classList.toggle(
+function applyTheme(theme) {
+
+    const isDark =
+        theme === "dark";
+
+    document.body.classList.toggle(
+        "dark",
+        isDark
+    );
+
+    localStorage.setItem(
+        "vsm-theme",
+        isDark
+            ? "dark"
+            : "light"
+    );
+
+    if (themeButton) {
+
+        themeButton.innerHTML =
+            isDark
+                ? "☀️ <span>화이트모드</span>"
+                : "🌙 <span>다크모드</span>";
+
+    }
+
+}
+
+
+// =====================================================
+// 테마 버튼
+// =====================================================
+
+if (themeButton) {
+
+    themeButton.addEventListener(
+        "click",
+        function () {
+
+            const isDark =
+                document.body.classList.contains(
                     "dark"
                 );
 
-
-                const dark =
-                    document.body.classList.contains(
-                        "dark"
-                    );
-
-
-                localStorage.setItem(
-                    "vsm-theme",
-                    dark
-                        ? "dark"
-                        : "light"
-                );
-
-
-                themeButton.innerHTML =
-                    dark
-                        ? "☀️ <span>화이트모드</span>"
-                        : "🌙 <span>다크모드</span>";
-
-            }
-        );
-
-
-        const savedTheme =
-            localStorage.getItem(
-                "vsm-theme"
+            applyTheme(
+                isDark
+                    ? "light"
+                    : "dark"
             );
-
-
-        if (
-            savedTheme === "dark"
-        ) {
-
-            document.body.classList.add(
-                "dark"
-            );
-
-
-            themeButton.innerHTML =
-                "☀️ <span>화이트모드</span>";
 
         }
+    );
+
+}
+
+
+// =====================================================
+// 저장된 테마 불러오기
+// =====================================================
+
+const savedTheme =
+    localStorage.getItem(
+        "vsm-theme"
+    );
+
+applyTheme(
+    savedTheme === "dark"
+        ? "dark"
+        : "light"
+);
 
 
         // =====================================================
