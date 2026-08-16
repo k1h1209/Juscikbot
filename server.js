@@ -1,5 +1,6 @@
 const express=require("express");
 const path=require("path");
+const fs=require("fs");
 const crypto=require("crypto");
 const app=express();
 const PORT=Number(process.env.PORT||3000);
@@ -47,7 +48,17 @@ function verifyAdminSiteToken(token){
   }catch{return false;}
 }
 
-app.get("/admin",(req,res)=>res.sendFile(path.join(publicDir,"admin.html")));
+app.get("/admin",(req,res)=>{
+  try{
+    const file=fs.readFileSync(path.join(publicDir,"admin.html"),"utf8");
+    const injected=file.replace("</body>",'<script src="/admin-global-floor.js"></script></body>');
+    res.type("html").send(injected);
+  }catch(error){
+    console.error("ADMIN PAGE ERROR:",error);
+    res.status(500).send("관리자 페이지를 불러오지 못했습니다.");
+  }
+});
+
 app.get("/admin/vsm",(req,res)=>{
   if(!verifyAdminSiteToken(req.query.token))return res.status(403).send("관리자 인증 토큰이 없거나 만료되었습니다.");
   res.sendFile(path.join(publicDir,"index.html"));
