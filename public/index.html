@@ -2969,7 +2969,28 @@
 
        async function checkMaintenance() {
 
+    // 관리자 전용 VSM 접근은 점검 화면을 표시하지 않음
+    const adminVsmToken =
+        new URLSearchParams(
+            window.location.search
+        ).get("token");
+
+    if (
+        window.location.pathname === "/admin/vsm" &&
+        adminVsmToken
+    ) {
+
+        maintenanceActive = false;
+
+        maintenanceOverlay.style.display =
+            "none";
+
+        return;
+
+    }
+
     try {
+        // 기존 코드 그대로...
 
         const response =
             await fetch(
