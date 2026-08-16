@@ -335,11 +335,11 @@ async function detail(id) {
         <p>
 
             시가 ${won(stock.open)}
-           　
+            　
             고가 ${won(stock.high)}
-           　
+            　
             저가 ${won(stock.low)}
-           　
+            　
             거래량
             ${stock.volume.toLocaleString()}주
 
@@ -839,3 +839,328 @@ if (token) {
 
         });
 }
+
+
+// ========================================
+// VSM UI 1.2
+// 기존 기능은 유지하고 화면 스타일만 개선
+// ========================================
+
+(function setupVsmUi() {
+
+    const savedTheme =
+        localStorage.getItem("vsm-theme");
+
+    const systemDark =
+        window.matchMedia &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+    const theme =
+        savedTheme ||
+        (systemDark ? "dark" : "light");
+
+    document.documentElement.dataset.theme = theme;
+
+    const style = document.createElement("style");
+
+    style.id = "vsm-ui-12-style";
+
+    style.textContent = `
+        :root {
+            --vsm-bg: #f5f7fb;
+            --vsm-surface: #ffffff;
+            --vsm-surface-2: #f8fafc;
+            --vsm-border: #e4e8ef;
+            --vsm-text: #172033;
+            --vsm-muted: #6b7280;
+            --vsm-accent: #2563eb;
+            --vsm-accent-soft: #eaf1ff;
+            --vsm-green: #16a34a;
+            --vsm-green-soft: #eaf8ef;
+            --vsm-red: #dc2626;
+            --vsm-red-soft: #fff0f0;
+            --vsm-shadow: 0 12px 35px rgba(15,23,42,.07);
+        }
+
+        html[data-theme="dark"] {
+            --vsm-bg: #0b1020;
+            --vsm-surface: #121a2b;
+            --vsm-surface-2: #182236;
+            --vsm-border: #26324a;
+            --vsm-text: #edf2ff;
+            --vsm-muted: #9aa8c2;
+            --vsm-accent: #79a8ff;
+            --vsm-accent-soft: #172b50;
+            --vsm-green: #4ade80;
+            --vsm-green-soft: #123524;
+            --vsm-red: #fb7185;
+            --vsm-red-soft: #3a1820;
+            --vsm-shadow: 0 18px 45px rgba(0,0,0,.28);
+        }
+
+        html, body {
+            background: var(--vsm-bg) !important;
+            color: var(--vsm-text) !important;
+        }
+
+        body {
+            min-height: 100vh;
+            transition: background .25s ease, color .25s ease;
+        }
+
+        .topbar {
+            background: color-mix(in srgb, var(--vsm-surface) 90%, transparent) !important;
+            border-bottom-color: var(--vsm-border) !important;
+            box-shadow: 0 5px 25px rgba(0,0,0,.04);
+        }
+
+        .money, .menu-panel, .notification-panel,
+        .card, #authBox, #profileBox {
+            background: var(--vsm-surface) !important;
+            border-color: var(--vsm-border) !important;
+            color: var(--vsm-text) !important;
+            box-shadow: var(--vsm-shadow) !important;
+        }
+
+        .money {
+            color: var(--vsm-text) !important;
+            background: var(--vsm-surface-2) !important;
+        }
+
+        .card {
+            position: relative;
+            overflow: hidden;
+            padding: 24px !important;
+            border-radius: 20px !important;
+            transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            border-color: color-mix(in srgb, var(--vsm-accent) 35%, var(--vsm-border)) !important;
+        }
+
+        .ticker {
+            display: inline-flex;
+            align-items: center;
+            min-height: 26px;
+            padding: 4px 9px;
+            border-radius: 999px;
+            background: var(--vsm-accent-soft);
+            color: var(--vsm-accent);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: .04em;
+        }
+
+        .card h2 {
+            margin-top: 12px !important;
+            margin-bottom: 8px !important;
+            color: var(--vsm-text) !important;
+        }
+
+        .price {
+            font-size: clamp(25px, 3vw, 34px) !important;
+            letter-spacing: -.03em;
+            color: var(--vsm-text) !important;
+        }
+
+        .up {
+            color: var(--vsm-green) !important;
+        }
+
+        .down {
+            color: var(--vsm-red) !important;
+        }
+
+        .card p, .welcome p, .notification-count,
+        .notification-time, .detail p, .menu-title {
+            color: var(--vsm-muted) !important;
+        }
+
+        button {
+            border: 1px solid var(--vsm-border);
+            border-radius: 11px;
+            background: var(--vsm-surface-2);
+            color: var(--vsm-text);
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform .15s ease, background .15s ease, border-color .15s ease;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            border-color: color-mix(in srgb, var(--vsm-accent) 35%, var(--vsm-border));
+            background: var(--vsm-accent-soft);
+        }
+
+        .menu-item:hover, .icon-button:hover, .menu-button:hover {
+            background: var(--vsm-surface-2) !important;
+        }
+
+        .notification-header {
+            background: var(--vsm-surface) !important;
+            border-bottom-color: var(--vsm-border) !important;
+        }
+
+        .notification-item {
+            border-bottom-color: var(--vsm-border) !important;
+        }
+
+        .notification-message, .notification-title,
+        .logo, .welcome h1, .card h2,
+        #authTitle, #profileBox, #authBox {
+            color: var(--vsm-text) !important;
+        }
+
+        .notification-icon {
+            background: var(--vsm-surface-2) !important;
+        }
+
+        .notification-confirm,
+        .auth-submit {
+            background: var(--vsm-accent) !important;
+            color: #fff !important;
+            border-color: transparent !important;
+        }
+
+        .auth-input, input, select, textarea {
+            background: var(--vsm-surface-2) !important;
+            color: var(--vsm-text) !important;
+            border-color: var(--vsm-border) !important;
+            outline: none;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--vsm-accent) !important;
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--vsm-accent) 18%, transparent);
+        }
+
+        .buy {
+            background: var(--vsm-green-soft) !important;
+            color: var(--vsm-green) !important;
+            border-color: color-mix(in srgb, var(--vsm-green) 25%, var(--vsm-border)) !important;
+        }
+
+        .sell {
+            background: var(--vsm-red-soft) !important;
+            color: var(--vsm-red) !important;
+            border-color: color-mix(in srgb, var(--vsm-red) 25%, var(--vsm-border)) !important;
+        }
+
+        .stats {
+            gap: 12px !important;
+        }
+
+        .stat {
+            background: var(--vsm-surface-2) !important;
+            border: 1px solid var(--vsm-border) !important;
+            color: var(--vsm-muted) !important;
+            border-radius: 14px !important;
+        }
+
+        .stat b {
+            color: var(--vsm-text) !important;
+        }
+
+        .chart {
+            background: var(--vsm-surface-2) !important;
+            border: 1px solid var(--vsm-border) !important;
+            border-radius: 18px !important;
+            overflow: hidden;
+        }
+
+        #vsmThemeToggle {
+            position: fixed;
+            right: 18px;
+            bottom: 46px;
+            z-index: 8000;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 1px solid var(--vsm-border);
+            background: var(--vsm-surface);
+            color: var(--vsm-text);
+            box-shadow: var(--vsm-shadow);
+            font-size: 18px;
+            display: grid;
+            place-items: center;
+        }
+
+        #vsmVersion {
+            position: fixed;
+            right: 18px;
+            bottom: 12px;
+            z-index: 7999;
+            color: var(--vsm-muted);
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: .04em;
+            opacity: .72;
+            pointer-events: none;
+        }
+
+        @media (max-width: 760px) {
+            .content {
+                width: min(100% - 20px, 1200px) !important;
+                padding-top: 24px !important;
+            }
+
+            .grid {
+                grid-template-columns: 1fr !important;
+            }
+
+            .welcome h1 {
+                font-size: 25px !important;
+            }
+
+            .topbar {
+                padding: 0 10px !important;
+            }
+
+            .logo {
+                font-size: 17px !important;
+            }
+
+            #vsmThemeToggle {
+                right: 12px;
+                bottom: 42px;
+            }
+
+            #vsmVersion {
+                right: 12px;
+                bottom: 10px;
+            }
+        }
+    `;
+
+    document.head.appendChild(style);
+
+    const themeButton = document.createElement("button");
+    themeButton.id = "vsmThemeToggle";
+    themeButton.type = "button";
+    themeButton.setAttribute("aria-label", "테마 변경");
+    document.body.appendChild(themeButton);
+
+    const version = document.createElement("div");
+    version.id = "vsmVersion";
+    version.textContent = "v.1.2";
+    document.body.appendChild(version);
+
+    function applyTheme(next) {
+        document.documentElement.dataset.theme = next;
+        localStorage.setItem("vsm-theme", next);
+        themeButton.textContent = next === "dark" ? "☀️" : "🌙";
+        themeButton.title = next === "dark" ? "라이트 모드" : "다크 모드";
+    }
+
+    themeButton.addEventListener("click", () => {
+        applyTheme(
+            document.documentElement.dataset.theme === "dark"
+                ? "light"
+                : "dark"
+        );
+    });
+
+    applyTheme(theme);
+})();
