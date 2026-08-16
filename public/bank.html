@@ -1027,10 +1027,9 @@ function renderTransactions(
         .slice(0, 10)
         .forEach(transaction => {
 
-          const isDeposit =
+         const isDeposit =
     transaction.receiver_id ===
-    myAccountNumber;
-
+    myId;
 
             const amount =
                 Number(
