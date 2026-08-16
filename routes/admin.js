@@ -1,10 +1,8 @@
-
 const express = require("express");
-
+const crypto = require("crypto");
 const { pool } = require("../services/market");
 
 const router = express.Router();
-
 
 // =====================================================
 // 관리자 인증
@@ -13,7 +11,6 @@ const router = express.Router();
 function getAdminPassword() {
     return process.env.ADMIN_PASSWORD || "admin1234";
 }
-
 
 function adminAuth(req, res, next) {
 
@@ -35,6 +32,20 @@ function adminAuth(req, res, next) {
     next();
 }
 
+// =====================================================
+// 비밀번호 암호화
+// =====================================================
+
+function hashPassword(password, salt) {
+
+    return crypto
+        .scryptSync(
+            String(password),
+            String(salt),
+            64
+        )
+        .toString("hex");
+}
 
 // =====================================================
 // 관리자 인증 확인
@@ -52,7 +63,6 @@ router.get(
 
     }
 );
-
 
 // =====================================================
 // 플레이어 목록
@@ -105,7 +115,6 @@ router.get(
     }
 );
 
-
 // =====================================================
 // 플레이어 상세정보
 // =====================================================
@@ -116,6 +125,9 @@ router.get(
     async (req, res) => {
 
         try {
+
+            const id =
+                String(req.params.id);
 
             const result =
                 await pool.query(`
@@ -132,9 +144,8 @@ router.get(
                         created_at
                     FROM users
                     WHERE id = $1
-                `, [
-                    req.params.id
-                ]);
+                    LIMIT 1
+                `, [id]);
 
             if (!result.rows.length) {
 
@@ -169,16 +180,8 @@ router.get(
     }
 );
 
-
 // =====================================================
 // 플레이어 수정
-//
-// 수정 가능:
-// - 닉네임
-// - 현금
-// - 플레이어 번호
-// - 보유 주식
-// - 거래 내역
 // =====================================================
 
 router.patch(
@@ -204,24 +207,22 @@ router.patch(
 
             let index = 1;
 
-
-            // -------------------------------------------------
             // 닉네임
-            // -------------------------------------------------
-
             if (
                 nickname !== undefined
             ) {
 
-                const value =
+                const cleanNickname =
                     String(nickname).trim();
 
-                if (!value) {
+                if (
+                    cleanNickname.length < 2
+                ) {
 
                     return res.status(400).json({
                         ok: false,
                         error:
-                            "닉네임을 입력하세요."
+                            "닉네임은 2자 이상이어야 합니다."
                     });
 
                 }
@@ -230,15 +231,13 @@ router.patch(
                     `nickname = $${index++}`
                 );
 
-                values.push(value);
+                values.push(
+                    cleanNickname
+                );
 
             }
 
-
-            // -------------------------------------------------
             // 현금
-            // -------------------------------------------------
-
             if (
                 cash !== undefined
             ) {
@@ -254,7 +253,7 @@ router.patch(
                     return res.status(400).json({
                         ok: false,
                         error:
-                            "잘못된 현금 값입니다."
+                            "잘못된 잔액입니다."
                     });
 
                 }
@@ -263,15 +262,13 @@ router.patch(
                     `cash = $${index++}`
                 );
 
-                values.push(money);
+                values.push(
+                    money
+                );
 
             }
 
-
-            // -------------------------------------------------
             // 플레이어 번호
-            // -------------------------------------------------
-
             if (
                 playerNumber !== undefined
             ) {
@@ -296,15 +293,13 @@ router.patch(
                     `player_number = $${index++}`
                 );
 
-                values.push(number);
+                values.push(
+                    number
+                );
 
             }
 
-
-            // -------------------------------------------------
             // 보유 주식
-            // -------------------------------------------------
-
             if (
                 holdings !== undefined
             ) {
@@ -333,11 +328,7 @@ router.patch(
 
             }
 
-
-            // -------------------------------------------------
             // 거래 내역
-            // -------------------------------------------------
-
             if (
                 transactions !== undefined
             ) {
@@ -364,7 +355,6 @@ router.patch(
 
             }
 
-
             if (!fields.length) {
 
                 return res.status(400).json({
@@ -375,20 +365,14 @@ router.patch(
 
             }
 
-
             values.push(id);
-
 
             const result =
                 await pool.query(
                     `
                     UPDATE users
-
-                    SET
-                        ${fields.join(", ")}
-
+                    SET ${fields.join(", ")}
                     WHERE id = $${index}
-
                     RETURNING
                         id,
                         player_number,
@@ -404,7 +388,6 @@ router.patch(
                     values
                 );
 
-
             if (!result.rows.length) {
 
                 return res.status(404).json({
@@ -414,7 +397,6 @@ router.patch(
                 });
 
             }
-
 
             res.json({
                 ok: true,
@@ -428,7 +410,6 @@ router.patch(
                 error
             );
 
-
             if (
                 error.code === "23505"
             ) {
@@ -441,7 +422,6 @@ router.patch(
 
             }
 
-
             res.status(500).json({
                 ok: false,
                 error:
@@ -453,6 +433,133 @@ router.patch(
     }
 );
 
+// =====================================================
+// 플레이어 비밀번호 재설정
+// =====================================================
+
+router.post(
+    "/users/:id/password",
+    adminAuth,
+    async (req, res) => {
+
+        try {
+
+            const id =
+                String(req.params.id);
+
+            const password =
+                String(
+                    req.body.password || ""
+                );
+
+            if (
+                password.length < 4
+            ) {
+
+                return res.status(400).json({
+                    ok: false,
+                    error:
+                        "비밀번호는 4자 이상이어야 합니다."
+                });
+
+            }
+
+            if (
+                password.length > 128
+            ) {
+
+                return res.status(400).json({
+                    ok: false,
+                    error:
+                        "비밀번호가 너무 깁니다."
+                });
+
+            }
+
+            const userResult =
+                await pool.query(
+                    `
+                    SELECT
+                        id
+                    FROM users
+                    WHERE id = $1
+                    LIMIT 1
+                    `,
+                    [id]
+                );
+
+            if (
+                !userResult.rows.length
+            ) {
+
+                return res.status(404).json({
+                    ok: false,
+                    error:
+                        "플레이어를 찾을 수 없습니다."
+                });
+
+            }
+
+            const salt =
+                crypto
+                    .randomBytes(16)
+                    .toString("hex");
+
+            const passwordHash =
+                hashPassword(
+                    password,
+                    salt
+                );
+
+            await pool.query(
+                `
+                UPDATE users
+                SET
+                    salt = $1,
+                    password_hash = $2
+                WHERE id = $3
+                `,
+                [
+                    salt,
+                    passwordHash,
+                    id
+                ]
+            );
+
+            // 기존 로그인 세션 제거
+            // 비밀번호가 변경되었으므로
+            // 기존 로그인 상태를 모두 종료
+            await pool.query(
+                `
+                DELETE FROM sessions
+                WHERE user_id = $1
+                `,
+                [id]
+            );
+
+            res.json({
+                ok: true,
+                message:
+                    "비밀번호가 재설정되었습니다."
+            });
+
+        } catch (error) {
+
+            console.error(
+                "ADMIN PASSWORD RESET ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                ok: false,
+                error:
+                    "비밀번호 재설정에 실패했습니다."
+            });
+
+        }
+
+    }
+);
 
 // =====================================================
 // 플레이어 밴
@@ -474,7 +581,6 @@ router.post(
             } = req.body;
 
             let bannedUntil = null;
-
 
             if (
                 duration !== "permanent"
@@ -498,22 +604,20 @@ router.post(
 
                 bannedUntil =
                     Date.now() +
-                    minutes * 60 * 1000;
+                    minutes *
+                    60 *
+                    1000;
 
             }
-
 
             const result =
                 await pool.query(
                     `
                     UPDATE users
-
                     SET
                         banned_until = $1,
                         ban_reason = $2
-
                     WHERE id = $3
-
                     RETURNING
                         id,
                         player_number,
@@ -530,8 +634,9 @@ router.post(
                     ]
                 );
 
-
-            if (!result.rows.length) {
+            if (
+                !result.rows.length
+            ) {
 
                 return res.status(404).json({
                     ok: false,
@@ -541,8 +646,6 @@ router.post(
 
             }
 
-
-            // 기존 로그인 세션 제거
             await pool.query(
                 `
                 DELETE FROM sessions
@@ -550,7 +653,6 @@ router.post(
                 `,
                 [id]
             );
-
 
             res.json({
                 ok: true,
@@ -575,7 +677,6 @@ router.post(
     }
 );
 
-
 // =====================================================
 // 밴 해제
 // =====================================================
@@ -591,13 +692,10 @@ router.post(
                 await pool.query(
                     `
                     UPDATE users
-
                     SET
                         banned_until = NULL,
                         ban_reason = NULL
-
                     WHERE id = $1
-
                     RETURNING
                         id,
                         player_number,
@@ -608,8 +706,9 @@ router.post(
                     [req.params.id]
                 );
 
-
-            if (!result.rows.length) {
+            if (
+                !result.rows.length
+            ) {
 
                 return res.status(404).json({
                     ok: false,
@@ -618,7 +717,6 @@ router.post(
                 });
 
             }
-
 
             res.json({
                 ok: true,
@@ -643,7 +741,6 @@ router.post(
     }
 );
 
-
 // =====================================================
 // 플레이어 삭제
 // =====================================================
@@ -659,9 +756,7 @@ router.delete(
                 await pool.query(
                     `
                     DELETE FROM users
-
                     WHERE id = $1
-
                     RETURNING
                         id,
                         player_number,
@@ -671,8 +766,9 @@ router.delete(
                     [req.params.id]
                 );
 
-
-            if (!result.rows.length) {
+            if (
+                !result.rows.length
+            ) {
 
                 return res.status(404).json({
                     ok: false,
@@ -682,10 +778,10 @@ router.delete(
 
             }
 
-
             res.json({
                 ok: true,
-                deleted: result.rows[0]
+                deleted:
+                    result.rows[0]
             });
 
         } catch (error) {
@@ -706,19 +802,8 @@ router.delete(
     }
 );
 
-
 // =====================================================
 // 주식 목록
-// =====================================================
-//
-// volatility % 방식이 아니라
-// min_change ~ max_change 방식 사용
-//
-// 예:
-// min_change = 20
-// max_change = 100
-//
-// → 한 번 변동할 때 20~100원 범위
 // =====================================================
 
 router.get(
@@ -733,14 +818,13 @@ router.get(
                     SELECT
                         id,
                         name,
+                        volatility,
                         price,
                         previous,
                         open_price,
                         high,
                         low,
                         volume,
-                        min_change,
-                        max_change,
                         volume_limit_enabled,
                         volume_limit
                     FROM stocks
@@ -770,7 +854,6 @@ router.get(
     }
 );
 
-
 // =====================================================
 // 주식 추가
 // =====================================================
@@ -789,17 +872,15 @@ router.post(
                 id,
                 name,
                 price,
-                minChange,
-                maxChange,
+                volatility,
                 volumeLimitEnabled,
                 volumeLimit
             } = req.body;
 
-
             const stockId =
                 String(id || "")
                     .trim()
-                    .toUpperCase();
+                    .toLowerCase();
 
             const stockName =
                 String(name || "")
@@ -808,12 +889,8 @@ router.post(
             const stockPrice =
                 Number(price);
 
-            const minimum =
-                Number(minChange);
-
-            const maximum =
-                Number(maxChange);
-
+            const stockVolatility =
+                Number(volatility);
 
             if (!stockId) {
 
@@ -825,7 +902,6 @@ router.post(
 
             }
 
-
             if (!stockName) {
 
                 return res.status(400).json({
@@ -836,49 +912,35 @@ router.post(
 
             }
 
-
             if (
                 !Number.isFinite(stockPrice) ||
-                stockPrice < 100
+                stockPrice <= 0
             ) {
 
                 return res.status(400).json({
                     ok: false,
                     error:
-                        "주가는 100원 이상이어야 합니다."
+                        "주가가 올바르지 않습니다."
                 });
 
             }
-
 
             if (
-                !Number.isFinite(minimum) ||
-                !Number.isFinite(maximum) ||
-                minimum < 0 ||
-                maximum < minimum
+                !Number.isFinite(stockVolatility) ||
+                stockVolatility < 0
             ) {
 
                 return res.status(400).json({
                     ok: false,
                     error:
-                        "최소 변동값과 최대 변동값을 확인하세요."
+                        "변동성이 올바르지 않습니다."
                 });
 
             }
 
-
-            const limitEnabled =
-                Boolean(volumeLimitEnabled);
-
-            const limit =
-                Math.max(
-                    0,
-                    Number(volumeLimit || 0)
-                );
-
-
-            await client.query("BEGIN");
-
+            await client.query(
+                "BEGIN"
+            );
 
             const result =
                 await client.query(
@@ -888,8 +950,6 @@ router.post(
                         id,
                         name,
                         volatility,
-                        min_change,
-                        max_change,
                         price,
                         previous,
                         open_price,
@@ -899,37 +959,38 @@ router.post(
                         volume_limit_enabled,
                         volume_limit
                     )
-
                     VALUES
                     (
                         $1,
                         $2,
-                        0,
                         $3,
                         $4,
-                        $5,
-                        $5,
-                        $5,
-                        $5,
-                        $5,
+                        $4,
+                        $4,
+                        $4,
+                        $4,
                         0,
-                        $6,
-                        $7
+                        $5,
+                        $6
                     )
-
                     RETURNING *
                     `,
                     [
                         stockId,
                         stockName,
-                        minimum,
-                        maximum,
-                        Math.round(stockPrice),
-                        limitEnabled,
-                        limit
+                        stockVolatility,
+                        stockPrice,
+                        Boolean(
+                            volumeLimitEnabled
+                        ),
+                        Math.max(
+                            0,
+                            Number(
+                                volumeLimit || 0
+                            )
+                        )
                     ]
                 );
-
 
             await client.query(
                 `
@@ -939,7 +1000,6 @@ router.post(
                     time,
                     price
                 )
-
                 VALUES
                 (
                     $1,
@@ -950,10 +1010,9 @@ router.post(
                 [
                     stockId,
                     Date.now(),
-                    Math.round(stockPrice)
+                    stockPrice
                 ]
             );
-
 
             await client.query(
                 `
@@ -964,7 +1023,6 @@ router.post(
                     until_time,
                     strength
                 )
-
                 VALUES
                 (
                     $1,
@@ -972,31 +1030,32 @@ router.post(
                     0,
                     1
                 )
-
-                ON CONFLICT (stock_id)
-                DO NOTHING
                 `,
                 [stockId]
             );
 
-
-            await client.query("COMMIT");
-
+            await client.query(
+                "COMMIT"
+            );
 
             res.status(201).json({
                 ok: true,
-                stock: result.rows[0]
+                stock:
+                    result.rows[0]
             });
 
         } catch (error) {
 
-            await client.query("ROLLBACK");
+            try {
+                await client.query(
+                    "ROLLBACK"
+                );
+            } catch (_) {}
 
             console.error(
                 "ADMIN STOCK CREATE ERROR:",
                 error
             );
-
 
             if (
                 error.code === "23505"
@@ -1009,7 +1068,6 @@ router.post(
                 });
 
             }
-
 
             res.status(500).json({
                 ok: false,
@@ -1026,7 +1084,6 @@ router.post(
     }
 );
 
-
 // =====================================================
 // 주식 수정
 // =====================================================
@@ -1041,8 +1098,7 @@ router.patch(
             const {
                 name,
                 price,
-                minChange,
-                maxChange,
+                volatility,
                 volumeLimitEnabled,
                 volumeLimit
             } = req.body;
@@ -1052,94 +1108,54 @@ router.patch(
 
             let index = 1;
 
-
-            // -------------------------------------------------
-            // 이름
-            // -------------------------------------------------
-
             if (
                 name !== undefined
             ) {
-
-                const value =
-                    String(name).trim();
-
-                if (!value) {
-
-                    return res.status(400).json({
-                        ok: false,
-                        error:
-                            "주식 이름을 입력하세요."
-                    });
-
-                }
 
                 fields.push(
                     `name = $${index++}`
                 );
 
-                values.push(value);
+                values.push(
+                    String(name).trim()
+                );
 
             }
-
-
-            // -------------------------------------------------
-            // 가격
-            // -------------------------------------------------
 
             if (
                 price !== undefined
             ) {
 
                 const value =
-                    Math.round(
-                        Number(price)
-                    );
+                    Number(price);
 
                 if (
                     !Number.isFinite(value) ||
-                    value < 100
+                    value <= 0
                 ) {
 
                     return res.status(400).json({
                         ok: false,
                         error:
-                            "주가는 100원 이상이어야 합니다."
+                            "잘못된 주가입니다."
                     });
 
                 }
-
-                fields.push(
-                    `previous = price`
-                );
 
                 fields.push(
                     `price = $${index++}`
                 );
 
-                fields.push(
-                    `high = GREATEST(high, $${index - 1})`
-                );
-
-                fields.push(
-                    `low = LEAST(low, $${index - 1})`
-                );
-
                 values.push(value);
 
             }
 
-
-            // -------------------------------------------------
-            // 최소 변동값
-            // -------------------------------------------------
-
             if (
-                minChange !== undefined
+                volatility !== undefined
             ) {
 
                 const value =
-                    Number(minChange);
+                    Number(volatility);
 
                 if (
                     !Number.isFinite(value) ||
@@ -1149,56 +1165,18 @@ router.patch(
                     return res.status(400).json({
                         ok: false,
                         error:
-                            "최소 변동값이 올바르지 않습니다."
+                            "잘못된 변동성입니다."
                     });
 
                 }
 
                 fields.push(
-                    `min_change = $${index++}`
+                    `volatility = $${index++}`
                 );
 
                 values.push(value);
 
             }
-
-
-            // -------------------------------------------------
-            // 최대 변동값
-            // -------------------------------------------------
-
-            if (
-                maxChange !== undefined
-            ) {
-
-                const value =
-                    Number(maxChange);
-
-                if (
-                    !Number.isFinite(value) ||
-                    value < 0
-                ) {
-
-                    return res.status(400).json({
-                        ok: false,
-                        error:
-                            "최대 변동값이 올바르지 않습니다."
-                    });
-
-                }
-
-                fields.push(
-                    `max_change = $${index++}`
-                );
-
-                values.push(value);
-
-            }
-
-
-            // -------------------------------------------------
-            // 거래량 제한
-            // -------------------------------------------------
 
             if (
                 volumeLimitEnabled !== undefined
@@ -1209,11 +1187,12 @@ router.patch(
                 );
 
                 values.push(
-                    Boolean(volumeLimitEnabled)
+                    Boolean(
+                        volumeLimitEnabled
+                    )
                 );
 
             }
-
 
             if (
                 volumeLimit !== undefined
@@ -1223,14 +1202,14 @@ router.patch(
                     Number(volumeLimit);
 
                 if (
-                    !Number.isFinite(value) ||
+                    !Number.isInteger(value) ||
                     value < 0
                 ) {
 
                     return res.status(400).json({
                         ok: false,
                         error:
-                            "거래량 제한값이 올바르지 않습니다."
+                            "잘못된 거래량 제한입니다."
                     });
 
                 }
@@ -1243,7 +1222,6 @@ router.patch(
 
             }
 
-
             if (!fields.length) {
 
                 return res.status(400).json({
@@ -1254,99 +1232,24 @@ router.patch(
 
             }
 
-
-            // 최소/최대값이 역전되는 것을 방지
-            const current =
-                await pool.query(
-                    `
-                    SELECT
-                        min_change,
-                        max_change
-                    FROM stocks
-                    WHERE id = $1
-                    `,
-                    [req.params.id]
-                );
-
-
-            if (!current.rows.length) {
-
-                return res.status(404).json({
-                    ok: false,
-                    error:
-                        "주식을 찾을 수 없습니다."
-                });
-
-            }
-
-
-            const currentMin =
-                Number(
-                    current.rows[0].min_change
-                );
-
-            const currentMax =
-                Number(
-                    current.rows[0].max_change
-                );
-
-
-            const finalMin =
-                minChange !== undefined
-                    ? Number(minChange)
-                    : currentMin;
-
-            const finalMax =
-                maxChange !== undefined
-                    ? Number(maxChange)
-                    : currentMax;
-
-
-            if (
-                finalMax < finalMin
-            ) {
-
-                return res.status(400).json({
-                    ok: false,
-                    error:
-                        "최대 변동값은 최소 변동값보다 작을 수 없습니다."
-                });
-
-            }
-
-
-            values.push(req.params.id);
-
+            values.push(
+                req.params.id
+            );
 
             const result =
                 await pool.query(
                     `
                     UPDATE stocks
-
-                    SET
-                        ${fields.join(", ")}
-
+                    SET ${fields.join(", ")}
                     WHERE id = $${index}
-
-                    RETURNING
-                        id,
-                        name,
-                        price,
-                        previous,
-                        open_price,
-                        high,
-                        low,
-                        volume,
-                        min_change,
-                        max_change,
-                        volume_limit_enabled,
-                        volume_limit
+                    RETURNING *
                     `,
                     values
                 );
 
-
-            if (!result.rows.length) {
+            if (
+                !result.rows.length
+            ) {
 
                 return res.status(404).json({
                     ok: false,
@@ -1356,43 +1259,10 @@ router.patch(
 
             }
 
-
-            // 가격을 직접 수정했으면 기록
-            if (
-                price !== undefined
-            ) {
-
-                await pool.query(
-                    `
-                    INSERT INTO price_history
-                    (
-                        stock_id,
-                        time,
-                        price
-                    )
-
-                    VALUES
-                    (
-                        $1,
-                        $2,
-                        $3
-                    )
-                    `,
-                    [
-                        req.params.id,
-                        Date.now(),
-                        Math.round(
-                            Number(price)
-                        )
-                    ]
-                );
-
-            }
-
-
             res.json({
                 ok: true,
-                stock: result.rows[0]
+                stock:
+                    result.rows[0]
             });
 
         } catch (error) {
@@ -1413,7 +1283,6 @@ router.patch(
     }
 );
 
-
 // =====================================================
 // 주식 삭제
 // =====================================================
@@ -1428,27 +1297,27 @@ router.delete(
 
         try {
 
-            await client.query("BEGIN");
-
+            await client.query(
+                "BEGIN"
+            );
 
             const result =
                 await client.query(
                     `
                     DELETE FROM stocks
-
                     WHERE id = $1
-
-                    RETURNING
-                        id,
-                        name
+                    RETURNING *
                     `,
                     [req.params.id]
                 );
 
+            if (
+                !result.rows.length
+            ) {
 
-            if (!result.rows.length) {
-
-                await client.query("ROLLBACK");
+                await client.query(
+                    "ROLLBACK"
+                );
 
                 return res.status(404).json({
                     ok: false,
@@ -1458,18 +1327,23 @@ router.delete(
 
             }
 
-
-            await client.query("COMMIT");
-
+            await client.query(
+                "COMMIT"
+            );
 
             res.json({
                 ok: true,
-                deleted: result.rows[0]
+                deleted:
+                    result.rows[0]
             });
 
         } catch (error) {
 
-            await client.query("ROLLBACK");
+            try {
+                await client.query(
+                    "ROLLBACK"
+                );
+            } catch (_) {}
 
             console.error(
                 "ADMIN STOCK DELETE ERROR:",
@@ -1491,6 +1365,122 @@ router.delete(
     }
 );
 
+// =====================================================
+// 주가 방향 제어
+// =====================================================
+
+router.post(
+    "/stocks/:id/control",
+    adminAuth,
+    async (req, res) => {
+
+        try {
+
+            const {
+                direction,
+                duration,
+                strength
+            } = req.body;
+
+            const allowed = [
+                "normal",
+                "up",
+                "down"
+            ];
+
+            if (
+                !allowed.includes(
+                    direction
+                )
+            ) {
+
+                return res.status(400).json({
+                    ok: false,
+                    error:
+                        "잘못된 주가 방향입니다."
+                });
+
+            }
+
+            const minutes =
+                Number(
+                    duration || 0
+                );
+
+            const controlStrength =
+                Number(
+                    strength || 1
+                );
+
+            const untilTime =
+                direction === "normal"
+                    ? 0
+                    : Date.now() +
+                      Math.max(
+                          0,
+                          minutes
+                      ) *
+                      60 *
+                      1000;
+
+            const result =
+                await pool.query(
+                    `
+                    INSERT INTO market_controls
+                    (
+                        stock_id,
+                        direction,
+                        until_time,
+                        strength
+                    )
+                    VALUES
+                    (
+                        $1,
+                        $2,
+                        $3,
+                        $4
+                    )
+                    ON CONFLICT (stock_id)
+                    DO UPDATE SET
+                        direction =
+                            EXCLUDED.direction,
+                        until_time =
+                            EXCLUDED.until_time,
+                        strength =
+                            EXCLUDED.strength
+                    RETURNING *
+                    `,
+                    [
+                        req.params.id,
+                        direction,
+                        untilTime,
+                        controlStrength
+                    ]
+                );
+
+            res.json({
+                ok: true,
+                control:
+                    result.rows[0]
+            });
+
+        } catch (error) {
+
+            console.error(
+                "ADMIN STOCK CONTROL ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                ok: false,
+                error:
+                    "주가 제어에 실패했습니다."
+            });
+
+        }
+
+    }
+);
 
 // =====================================================
 // 피드백 목록
@@ -1506,42 +1496,33 @@ router.get(
             const result =
                 await pool.query(`
                     SELECT
-                        f.id,
-                        f.user_id,
+                        f.*,
                         u.player_number,
-                        u.nickname,
-                        u.username,
-                        f.title,
-                        f.content,
-                        f.status,
-                        f.created_at,
-                        f.updated_at
+                        u.nickname
                     FROM feedback f
-
                     LEFT JOIN users u
                         ON u.id = f.user_id
-
                     ORDER BY
                         f.created_at DESC
                 `);
 
-
             res.json({
                 ok: true,
-                feedback: result.rows
+                feedback:
+                    result.rows
             });
 
         } catch (error) {
 
             console.error(
-                "ADMIN FEEDBACK LIST ERROR:",
+                "ADMIN FEEDBACK ERROR:",
                 error
             );
 
             res.status(500).json({
                 ok: false,
                 error:
-                    "피드백 목록을 불러오지 못했습니다."
+                    "피드백을 불러오지 못했습니다."
             });
 
         }
@@ -1549,14 +1530,8 @@ router.get(
     }
 );
 
-
 // =====================================================
-// 피드백 처리
-//
-// action:
-// approve
-// reject
-// pending
+// 피드백 상태 변경
 // =====================================================
 
 router.patch(
@@ -1564,89 +1539,49 @@ router.patch(
     adminAuth,
     async (req, res) => {
 
-        const client =
-            await pool.connect();
-
         try {
 
-            const {
-                action,
-                status
-            } = req.body;
-
-            const requestedStatus =
-                status ||
-                action;
-
-
-            let finalStatus;
-
+            const allowed = [
+                "pending",
+                "review",
+                "accepted",
+                "rejected"
+            ];
 
             if (
-                requestedStatus === "approve" ||
-                requestedStatus === "approved"
+                !allowed.includes(
+                    req.body.status
+                )
             ) {
-
-                finalStatus = "approved";
-
-            } else if (
-                requestedStatus === "reject" ||
-                requestedStatus === "rejected"
-            ) {
-
-                finalStatus = "rejected";
-
-            } else if (
-                requestedStatus === "pending"
-            ) {
-
-                finalStatus = "pending";
-
-            } else {
 
                 return res.status(400).json({
                     ok: false,
                     error:
-                        "잘못된 피드백 처리 상태입니다."
+                        "잘못된 상태입니다."
                 });
 
             }
 
-
-            await client.query("BEGIN");
-
-
             const result =
-                await client.query(
+                await pool.query(
                     `
                     UPDATE feedback
-
                     SET
                         status = $1,
                         updated_at = $2
-
                     WHERE id = $3
-
-                    RETURNING
-                        id,
-                        user_id,
-                        title,
-                        content,
-                        status,
-                        created_at,
-                        updated_at
+                    RETURNING *
                     `,
                     [
-                        finalStatus,
+                        req.body.status,
                         Date.now(),
                         req.params.id
                     ]
                 );
 
-
-            if (!result.rows.length) {
-
-                await client.query("ROLLBACK");
+            if (
+                !result.rows.length
+            ) {
 
                 return res.status(404).json({
                     ok: false,
@@ -1656,44 +1591,38 @@ router.patch(
 
             }
 
-
-            const feedback =
-                result.rows[0];
-
-
-            // 승인 / 거절 시 사용자에게 알림
+            // 수락 / 거절 시 사용자 알림
             if (
-                finalStatus === "approved" ||
-                finalStatus === "rejected"
+                req.body.status === "accepted" ||
+                req.body.status === "rejected"
             ) {
+
+                const feedback =
+                    result.rows[0];
 
                 if (
                     feedback.user_id
                 ) {
 
                     const message =
-                        finalStatus === "approved"
+                        req.body.status === "accepted"
                             ? "당신의 피드백은 수락했습니다."
                             : "당신의 피드백은 거절했습니다.";
 
-
-                    await client.query(
+                    await pool.query(
                         `
                         INSERT INTO notifications
                         (
                             user_id,
                             message,
                             type,
-                            is_read,
                             created_at
                         )
-
                         VALUES
                         (
                             $1,
                             $2,
                             $3,
-                            FALSE,
                             $4
                         )
                         `,
@@ -1709,18 +1638,13 @@ router.patch(
 
             }
 
-
-            await client.query("COMMIT");
-
-
             res.json({
                 ok: true,
-                feedback
+                feedback:
+                    result.rows[0]
             });
 
         } catch (error) {
-
-            await client.query("ROLLBACK");
 
             console.error(
                 "ADMIN FEEDBACK UPDATE ERROR:",
@@ -1730,18 +1654,13 @@ router.patch(
             res.status(500).json({
                 ok: false,
                 error:
-                    "피드백 처리에 실패했습니다."
+                    "피드백 수정에 실패했습니다."
             });
-
-        } finally {
-
-            client.release();
 
         }
 
     }
 );
-
 
 // =====================================================
 // 공지사항 목록
@@ -1756,27 +1675,22 @@ router.get(
 
             const result =
                 await pool.query(`
-                    SELECT
-                        id,
-                        title,
-                        content,
-                        created_at,
-                        updated_at
+                    SELECT *
                     FROM notices
                     ORDER BY
                         created_at DESC
                 `);
 
-
             res.json({
                 ok: true,
-                notices: result.rows
+                notices:
+                    result.rows
             });
 
         } catch (error) {
 
             console.error(
-                "ADMIN NOTICES LIST ERROR:",
+                "ADMIN NOTICES ERROR:",
                 error
             );
 
@@ -1791,9 +1705,8 @@ router.get(
     }
 );
 
-
 // =====================================================
-// 공지사항 등록
+// 공지 생성
 // =====================================================
 
 router.post(
@@ -1803,44 +1716,31 @@ router.post(
 
         try {
 
-            const {
-                title,
-                content
-            } = req.body;
+            const title =
+                String(
+                    req.body.title || ""
+                ).trim();
 
+            const content =
+                String(
+                    req.body.content || ""
+                ).trim();
 
-            const cleanTitle =
-                String(title || "").trim();
-
-            const cleanContent =
-                String(content || "").trim();
-
-
-            if (!cleanTitle) {
-
-                return res.status(400).json({
-                    ok: false,
-                    error:
-                        "공지사항 제목을 입력하세요."
-                });
-
-            }
-
-
-            if (!cleanContent) {
+            if (
+                !title ||
+                !content
+            ) {
 
                 return res.status(400).json({
                     ok: false,
                     error:
-                        "공지사항 내용을 입력하세요."
+                        "제목과 내용을 입력하세요."
                 });
 
             }
-
 
             const now =
                 Date.now();
-
 
             const result =
                 await pool.query(
@@ -1852,7 +1752,6 @@ router.post(
                         created_at,
                         updated_at
                     )
-
                     VALUES
                     (
                         $1,
@@ -1860,20 +1759,19 @@ router.post(
                         $3,
                         $3
                     )
-
                     RETURNING *
                     `,
                     [
-                        cleanTitle,
-                        cleanContent,
+                        title,
+                        content,
                         now
                     ]
                 );
 
-
             res.status(201).json({
                 ok: true,
-                notice: result.rows[0]
+                notice:
+                    result.rows[0]
             });
 
         } catch (error) {
@@ -1886,7 +1784,7 @@ router.post(
             res.status(500).json({
                 ok: false,
                 error:
-                    "공지사항 등록에 실패했습니다."
+                    "공지사항 생성에 실패했습니다."
             });
 
         }
@@ -1894,127 +1792,8 @@ router.post(
     }
 );
 
-
 // =====================================================
-// 공지사항 수정
-// =====================================================
-
-router.patch(
-    "/notices/:id",
-    adminAuth,
-    async (req, res) => {
-
-        try {
-
-            const {
-                title,
-                content
-            } = req.body;
-
-
-            const fields = [];
-            const values = [];
-
-            let index = 1;
-
-
-            if (
-                title !== undefined
-            ) {
-
-                fields.push(
-                    `title = $${index++}`
-                );
-
-                values.push(
-                    String(title).trim()
-                );
-
-            }
-
-
-            if (
-                content !== undefined
-            ) {
-
-                fields.push(
-                    `content = $${index++}`
-                );
-
-                values.push(
-                    String(content).trim()
-                );
-
-            }
-
-
-            fields.push(
-                `updated_at = $${index++}`
-            );
-
-            values.push(
-                Date.now()
-            );
-
-
-            values.push(
-                req.params.id
-            );
-
-
-            const result =
-                await pool.query(
-                    `
-                    UPDATE notices
-
-                    SET
-                        ${fields.join(", ")}
-
-                    WHERE id = $${index}
-
-                    RETURNING *
-                    `,
-                    values
-                );
-
-
-            if (!result.rows.length) {
-
-                return res.status(404).json({
-                    ok: false,
-                    error:
-                        "공지사항을 찾을 수 없습니다."
-                });
-
-            }
-
-
-            res.json({
-                ok: true,
-                notice: result.rows[0]
-            });
-
-        } catch (error) {
-
-            console.error(
-                "ADMIN NOTICE UPDATE ERROR:",
-                error
-            );
-
-            res.status(500).json({
-                ok: false,
-                error:
-                    "공지사항 수정에 실패했습니다."
-            });
-
-        }
-
-    }
-);
-
-
-// =====================================================
-// 공지사항 삭제
+// 공지 삭제
 // =====================================================
 
 router.delete(
@@ -2028,16 +1807,15 @@ router.delete(
                 await pool.query(
                     `
                     DELETE FROM notices
-
                     WHERE id = $1
-
                     RETURNING *
                     `,
                     [req.params.id]
                 );
 
-
-            if (!result.rows.length) {
+            if (
+                !result.rows.length
+            ) {
 
                 return res.status(404).json({
                     ok: false,
@@ -2047,10 +1825,10 @@ router.delete(
 
             }
 
-
             res.json({
                 ok: true,
-                deleted: result.rows[0]
+                deleted:
+                    result.rows[0]
             });
 
         } catch (error) {
@@ -2071,57 +1849,33 @@ router.delete(
     }
 );
 
-
 // =====================================================
-// 서버 점검 상태 조회
+// 서버 점검 상태
 // =====================================================
 
 router.get(
     "/maintenance",
-    adminAuth,
     async (req, res) => {
 
         try {
 
             const result =
                 await pool.query(`
-                    SELECT
-                        id,
-                        enabled,
-                        start_time,
-                        end_time,
-                        updated_at
+                    SELECT *
                     FROM maintenance
                     WHERE id = 1
                 `);
 
-
-            if (!result.rows.length) {
-
-                return res.json({
-                    ok: true,
-                    maintenance: {
-                        id: 1,
-                        enabled: false,
-                        start_time: null,
-                        end_time: null,
-                        updated_at: Date.now()
-                    }
-                });
-
-            }
-
-
             res.json({
                 ok: true,
                 maintenance:
-                    result.rows[0]
+                    result.rows[0] || null
             });
 
         } catch (error) {
 
             console.error(
-                "ADMIN MAINTENANCE GET ERROR:",
+                "ADMIN MAINTENANCE ERROR:",
                 error
             );
 
@@ -2136,111 +1890,48 @@ router.get(
     }
 );
 
-
 // =====================================================
-// 서버 점검 상태 변경
+// 서버 점검 시작
 // =====================================================
 
-router.patch(
-    "/maintenance",
+router.post(
+    "/maintenance/start",
     adminAuth,
     async (req, res) => {
 
         try {
 
-            const {
-                enabled,
-                startTime,
-                endTime
-            } = req.body;
+            const startTime =
+                Number(
+                    req.body.startTime ||
+                    Date.now()
+                );
 
-
-            const isEnabled =
-                Boolean(enabled);
-
-
-            const start =
-                startTime === null ||
-                startTime === undefined ||
-                startTime === ""
-                    ? null
-                    : Number(startTime);
-
-
-            const end =
-                endTime === null ||
-                endTime === undefined ||
-                endTime === ""
-                    ? null
-                    : Number(endTime);
-
-
-            if (
-                start !== null &&
-                !Number.isFinite(start)
-            ) {
-
-                return res.status(400).json({
-                    ok: false,
-                    error:
-                        "점검 시작 시간이 올바르지 않습니다."
-                });
-
-            }
-
-
-            if (
-                end !== null &&
-                !Number.isFinite(end)
-            ) {
-
-                return res.status(400).json({
-                    ok: false,
-                    error:
-                        "점검 종료 시간이 올바르지 않습니다."
-                });
-
-            }
-
+            const endTime =
+                req.body.endTime
+                    ? Number(
+                        req.body.endTime
+                    )
+                    : null;
 
             const result =
                 await pool.query(
                     `
-                    INSERT INTO maintenance
-                    (
-                        id,
-                        enabled,
-                        start_time,
-                        end_time,
-                        updated_at
-                    )
-
-                    VALUES
-                    (
-                        1,
-                        $1,
-                        $2,
-                        $3,
-                        $4
-                    )
-
-                    ON CONFLICT (id)
-                    DO UPDATE SET
-                        enabled = EXCLUDED.enabled,
-                        start_time = EXCLUDED.start_time,
-                        end_time = EXCLUDED.end_time,
-                        updated_at = EXCLUDED.updated_at
-
+                    UPDATE maintenance
+                    SET
+                        enabled = TRUE,
+                        start_time = $1,
+                        end_time = $2,
+                        updated_at = $3
+                    WHERE id = 1
                     RETURNING *
                     `,
                     [
-                        isEnabled,
-                        start,
-                        end,
+                        startTime,
+                        endTime,
                         Date.now()
                     ]
                 );
-
 
             res.json({
                 ok: true,
@@ -2251,14 +1942,14 @@ router.patch(
         } catch (error) {
 
             console.error(
-                "ADMIN MAINTENANCE UPDATE ERROR:",
+                "ADMIN MAINTENANCE START ERROR:",
                 error
             );
 
             res.status(500).json({
                 ok: false,
                 error:
-                    "점검 상태 변경에 실패했습니다."
+                    "점검 시작에 실패했습니다."
             });
 
         }
@@ -2266,18 +1957,58 @@ router.patch(
     }
 );
 
+// =====================================================
+// 서버 점검 종료
+// =====================================================
+
+router.post(
+    "/maintenance/end",
+    adminAuth,
+    async (req, res) => {
+
+        try {
+
+            const result =
+                await pool.query(
+                    `
+                    UPDATE maintenance
+                    SET
+                        enabled = FALSE,
+                        start_time = NULL,
+                        end_time = NULL,
+                        updated_at = $1
+                    WHERE id = 1
+                    RETURNING *
+                    `,
+                    [Date.now()]
+                );
+
+            res.json({
+                ok: true,
+                maintenance:
+                    result.rows[0]
+            });
+
+        } catch (error) {
+
+            console.error(
+                "ADMIN MAINTENANCE END ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                ok: false,
+                error:
+                    "점검 종료에 실패했습니다."
+            });
+
+        }
+
+    }
+);
 
 // =====================================================
-// 외부에서 사용할 관리자 인증 미들웨어
-// =====================================================
-
-router.adminAuth =
-    adminAuth;
-
-
-// =====================================================
-// export
+// Export
 // =====================================================
 
 module.exports = router;
-
