@@ -66,7 +66,7 @@ async function initializeDatabase() {
     await client.query(`ALTER TABLE stocks ADD COLUMN IF NOT EXISTS available_shares BIGINT NOT NULL DEFAULT 30`);
     await client.query(`ALTER TABLE stocks DROP COLUMN IF EXISTS volatility`);
 
-    // 이전 버전의 잘못 남은 커트라인 회복 상태를 초기화합니다.
+    // 이전 버전의 잘못 남은 회복 상태를 초기화합니다.
     await client.query(`UPDATE stocks SET floor_lock_until=0, floor_rise_remaining=0`);
 
     await client.query(`
@@ -183,6 +183,21 @@ async function initializeDatabase() {
       await client.query(
         `INSERT INTO schema_migrations(version, applied_at) VALUES($1,$2)`,
         ["remove-hardcoded-stocks-v1", Date.now()]
+      );
+    }
+
+    // 예전 관리자 화면이 종목 추가 시 자동으로 넣었던 "시작가의 50%" 커트라인을
+    // 이번 구조에서는 사용하지 않습니다. 기존 종목에 한 번만 NULL을 적용합니다.
+    const floorMigration = await client.query(
+      `SELECT 1 FROM schema_migrations WHERE version=$1 LIMIT 1`,
+      ["remove-default-stock-floors-v2"]
+    );
+
+    if (!floorMigration.rows.length) {
+      await client.query(`UPDATE stocks SET price_floor=NULL, floor_lock_until=0, floor_rise_remaining=0`);
+      await client.query(
+        `INSERT INTO schema_migrations(version, applied_at) VALUES($1,$2)`,
+        ["remove-default-stock-floors-v2", Date.now()]
       );
     }
 
