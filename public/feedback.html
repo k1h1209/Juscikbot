@@ -627,6 +627,15 @@ body.dark .meta {
 
     <script>
 
+        /* 다크모드 불러오기 */
+
+const savedTheme =
+    localStorage.getItem("vsm-theme");
+
+if (savedTheme === "dark") {
+    document.body.classList.add("dark");
+}
+
         /* ========================================
            테마
         ======================================== */
