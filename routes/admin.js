@@ -1545,6 +1545,465 @@ router.post(
 
 
 // =====================================================
+// 피드백 목록
+// =====================================================
+
+router.get(
+    "/feedback",
+    adminAuth,
+    async (req, res) => {
+
+        try {
+
+            const result =
+                await pool.query(`
+                    SELECT
+                        f.*,
+                        u.player_number,
+                        u.nickname
+                    FROM feedback f
+
+                    LEFT JOIN users u
+                        ON u.id = f.user_id
+
+                    ORDER BY
+                        f.created_at DESC
+                `);
+
+            res.json({
+                ok: true,
+                feedback: result.rows
+            });
+
+        } catch (error) {
+
+            console.error(
+                "ADMIN FEEDBACK ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                ok: false,
+                error:
+                    "피드백을 불러오지 못했습니다."
+            });
+
+        }
+
+    }
+);
+
+
+// =====================================================
+// 피드백 상태 변경
+//
+// pending / review
+//     → 피드백에 계속 존재
+//
+// accepted
+//     → changes 등록
+//     → feedback 삭제
+//     → 사용자 알림
+//
+// rejected
+//     → feedback 삭제
+//     → 사용자 알림
+//
+// =====================================================
+
+router.patch(
+    "/feedback/:id",
+    adminAuth,
+    async (req, res) => {
+
+        const client =
+            await pool.connect();
+
+        try {
+
+            const feedbackId =
+                Number(req.params.id);
+
+            const status =
+                String(
+                    req.body.status || ""
+                );
+
+
+            // -----------------------------------------
+            // 상태 확인
+            // -----------------------------------------
+
+            const allowed = [
+                "pending",
+                "review",
+                "accepted",
+                "rejected"
+            ];
+
+            if (
+                !allowed.includes(status)
+            ) {
+
+                return res.status(400).json({
+                    ok: false,
+                    error:
+                        "잘못된 상태입니다."
+                });
+
+            }
+
+
+            if (
+                !Number.isInteger(feedbackId) ||
+                feedbackId <= 0
+            ) {
+
+                return res.status(400).json({
+                    ok: false,
+                    error:
+                        "잘못된 피드백 ID입니다."
+                });
+
+            }
+
+
+            // -----------------------------------------
+            // 일반 상태 변경
+            // pending / review
+            // -----------------------------------------
+
+            if (
+                status === "pending" ||
+                status === "review"
+            ) {
+
+                const result =
+                    await pool.query(
+                        `
+                        UPDATE feedback
+
+                        SET
+                            status = $1,
+                            updated_at = $2
+
+                        WHERE id = $3
+
+                        RETURNING *
+                        `,
+                        [
+                            status,
+                            Date.now(),
+                            feedbackId
+                        ]
+                    );
+
+
+                if (
+                    !result.rows.length
+                ) {
+
+                    return res.status(404).json({
+                        ok: false,
+                        error:
+                            "피드백을 찾을 수 없습니다."
+                    });
+
+                }
+
+
+                return res.json({
+                    ok: true,
+                    feedback:
+                        result.rows[0]
+                });
+
+            }
+
+
+            // -----------------------------------------
+            // 수락 / 거절
+            // -----------------------------------------
+
+            await client.query(
+                "BEGIN"
+            );
+
+
+            // 먼저 피드백 조회
+            const feedbackResult =
+                await client.query(
+                    `
+                    SELECT
+                        id,
+                        user_id,
+                        title,
+                        content,
+                        status,
+                        created_at,
+                        updated_at
+
+                    FROM feedback
+
+                    WHERE id = $1
+
+                    FOR UPDATE
+                    `,
+                    [
+                        feedbackId
+                    ]
+                );
+
+
+            if (
+                !feedbackResult.rows.length
+            ) {
+
+                await client.query(
+                    "ROLLBACK"
+                );
+
+                return res.status(404).json({
+                    ok: false,
+                    error:
+                        "피드백을 찾을 수 없습니다."
+                });
+
+            }
+
+
+            const feedback =
+                feedbackResult.rows[0];
+
+
+            // -----------------------------------------
+            // 수락
+            // -----------------------------------------
+
+            if (
+                status === "accepted"
+            ) {
+
+                // 변경사항 등록
+                await client.query(
+                    `
+                    INSERT INTO changes
+                    (
+                        title,
+                        content,
+                        feedback_id,
+                        created_at
+                    )
+
+                    VALUES
+                    (
+                        $1,
+                        $2,
+                        $3,
+                        $4
+                    )
+                    `,
+                    [
+                        feedback.title,
+                        feedback.content,
+                        feedback.id,
+                        Date.now()
+                    ]
+                );
+
+
+                // 피드백 삭제
+                await client.query(
+                    `
+                    DELETE FROM feedback
+
+                    WHERE id = $1
+                    `,
+                    [
+                        feedback.id
+                    ]
+                );
+
+
+                // 사용자 알림
+                if (
+                    feedback.user_id
+                ) {
+
+                    await client.query(
+                        `
+                        INSERT INTO notifications
+                        (
+                            user_id,
+                            message,
+                            type,
+                            created_at
+                        )
+
+                        VALUES
+                        (
+                            $1,
+                            $2,
+                            $3,
+                            $4
+                        )
+                        `,
+                        [
+                            feedback.user_id,
+                            "당신의 피드백이 수락되어 변경사항에 반영되었습니다.",
+                            "feedback",
+                            Date.now()
+                        ]
+                    );
+
+                }
+
+
+                await client.query(
+                    "COMMIT"
+                );
+
+
+                return res.json({
+                    ok: true,
+
+                    action:
+                        "accepted",
+
+                    message:
+                        "피드백이 수락되어 변경사항에 등록되었습니다.",
+
+                    feedbackId:
+                        feedback.id
+                });
+
+            }
+
+
+            // -----------------------------------------
+            // 거절
+            // -----------------------------------------
+
+            if (
+                status === "rejected"
+            ) {
+
+                // 피드백 삭제
+                await client.query(
+                    `
+                    DELETE FROM feedback
+
+                    WHERE id = $1
+                    `,
+                    [
+                        feedback.id
+                    ]
+                );
+
+
+                // 사용자 알림
+                if (
+                    feedback.user_id
+                ) {
+
+                    await client.query(
+                        `
+                        INSERT INTO notifications
+                        (
+                            user_id,
+                            message,
+                            type,
+                            created_at
+                        )
+
+                        VALUES
+                        (
+                            $1,
+                            $2,
+                            $3,
+                            $4
+                        )
+                        `,
+                        [
+                            feedback.user_id,
+                            "당신의 피드백이 거절되었습니다.",
+                            "feedback",
+                            Date.now()
+                        ]
+                    );
+
+                }
+
+
+                await client.query(
+                    "COMMIT"
+                );
+
+
+                return res.json({
+                    ok: true,
+
+                    action:
+                        "rejected",
+
+                    message:
+                        "피드백이 거절되어 삭제되었습니다.",
+
+                    feedbackId:
+                        feedback.id
+                });
+
+            }
+
+
+            // 혹시 모르는 경우
+            await client.query(
+                "ROLLBACK"
+            );
+
+            return res.status(400).json({
+                ok: false,
+                error:
+                    "처리할 수 없는 상태입니다."
+            });
+
+
+        } catch (error) {
+
+            try {
+
+                await client.query(
+                    "ROLLBACK"
+                );
+
+            } catch (_) {}
+
+
+            console.error(
+                "ADMIN FEEDBACK UPDATE ERROR:",
+                error
+            );
+
+
+            res.status(500).json({
+                ok: false,
+                error:
+                    "피드백 처리에 실패했습니다."
+            });
+
+
+        } finally {
+
+            client.release();
+
+        }
+
+    }
+);
+
+
+
+// =====================================================
 // 피드백 상태 변경
 // =====================================================
 
