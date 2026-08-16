@@ -1541,53 +1541,6 @@ router.post(
     }
 );
 
-// =====================================================
-// 피드백 목록
-// =====================================================
-
-router.get(
-    "/feedback",
-    adminAuth,
-    async (req, res) => {
-
-        try {
-
-            const result =
-                await pool.query(`
-                    SELECT
-                        f.*,
-                        u.player_number,
-                        u.nickname
-                    FROM feedback f
-                    LEFT JOIN users u
-                        ON u.id = f.user_id
-                    ORDER BY
-                        f.created_at DESC
-                `);
-
-            res.json({
-                ok: true,
-                feedback:
-                    result.rows
-            });
-
-        } catch (error) {
-
-            console.error(
-                "ADMIN FEEDBACK ERROR:",
-                error
-            );
-
-            res.status(500).json({
-                ok: false,
-                error:
-                    "피드백을 불러오지 못했습니다."
-            });
-
-        }
-
-    }
-);
 
 // =====================================================
 // 피드백 상태 변경
@@ -1598,7 +1551,15 @@ router.patch(
     adminAuth,
     async (req, res) => {
 
+        const client =
+            await pool.connect();
+
         try {
+
+            const status =
+                String(
+                    req.body.status || ""
+                );
 
             const allowed = [
                 "pending",
@@ -1608,9 +1569,7 @@ router.patch(
             ];
 
             if (
-                !allowed.includes(
-                    req.body.status
-                )
+                !allowed.includes(status)
             ) {
 
                 return res.status(400).json({
@@ -1621,25 +1580,32 @@ router.patch(
 
             }
 
-            const result =
-                await pool.query(
+
+            // ========================================
+            // 피드백 조회
+            // ========================================
+
+            const feedbackResult =
+                await client.query(
                     `
-                    UPDATE feedback
-                    SET
-                        status = $1,
-                        updated_at = $2
-                    WHERE id = $3
-                    RETURNING *
+                    SELECT
+                        f.*,
+                        u.player_number,
+                        u.nickname
+                    FROM feedback f
+                    LEFT JOIN users u
+                        ON u.id = f.user_id
+                    WHERE f.id = $1
+                    LIMIT 1
                     `,
                     [
-                        req.body.status,
-                        Date.now(),
                         req.params.id
                     ]
                 );
 
+
             if (
-                !result.rows.length
+                !feedbackResult.rows.length
             ) {
 
                 return res.status(404).json({
@@ -1650,25 +1616,123 @@ router.patch(
 
             }
 
-            // 수락 / 거절 시 사용자 알림
+
+            const feedback =
+                feedbackResult.rows[0];
+
+
+            // ========================================
+            // 일반 상태 변경
+            // ========================================
+
             if (
-                req.body.status === "accepted" ||
-                req.body.status === "rejected"
+                status === "pending" ||
+                status === "review"
             ) {
 
-                const feedback =
-                    result.rows[0];
+                const result =
+                    await client.query(
+                        `
+                        UPDATE feedback
+                        SET
+                            status = $1,
+                            updated_at = $2
+                        WHERE id = $3
+                        RETURNING *
+                        `,
+                        [
+                            status,
+                            Date.now(),
+                            req.params.id
+                        ]
+                    );
+
+
+                return res.json({
+                    ok: true,
+
+                    feedback:
+                        result.rows[0]
+                });
+
+            }
+
+
+            // ========================================
+            // 수락
+            // ========================================
+
+            if (
+                status === "accepted"
+            ) {
+
+                await client.query(
+                    "BEGIN"
+                );
+
+
+                // ------------------------------------
+                // 변경사항에 등록
+                // ------------------------------------
+
+                const changeResult =
+                    await client.query(
+                        `
+                        INSERT INTO changes
+                        (
+                            title,
+                            content,
+                            feedback_id,
+                            created_at
+                        )
+                        VALUES
+                        (
+                            $1,
+                            $2,
+                            $3,
+                            $4
+                        )
+                        RETURNING *
+                        `,
+                        [
+                            feedback.title,
+                            feedback.content,
+                            feedback.id,
+                            Date.now()
+                        ]
+                    );
+
+
+                // ------------------------------------
+                // 피드백 상태 변경
+                // ------------------------------------
+
+                const updatedFeedback =
+                    await client.query(
+                        `
+                        UPDATE feedback
+                        SET
+                            status = 'accepted',
+                            updated_at = $1
+                        WHERE id = $2
+                        RETURNING *
+                        `,
+                        [
+                            Date.now(),
+                            feedback.id
+                        ]
+                    );
+
+
+                // ------------------------------------
+                // 사용자 알림
+                // ------------------------------------
 
                 if (
                     feedback.user_id
                 ) {
 
-                    const message =
-                        req.body.status === "accepted"
-                            ? "당신의 피드백은 수락했습니다."
-                            : "당신의 피드백은 거절했습니다.";
-
-                    await pool.query(
+                    await client.query(
                         `
                         INSERT INTO notifications
                         (
@@ -1687,39 +1751,198 @@ router.patch(
                         `,
                         [
                             feedback.user_id,
-                            message,
+
+                            "당신의 피드백이 수락되었습니다. 변경사항에 반영되었습니다.",
+
                             "feedback",
+
                             Date.now()
                         ]
                     );
 
                 }
 
+
+                await client.query(
+                    "COMMIT"
+                );
+
+
+                return res.json({
+                    ok: true,
+
+                    feedback:
+                        updatedFeedback.rows[0],
+
+                    change:
+                        changeResult.rows[0]
+                });
+
             }
 
-            res.json({
-                ok: true,
-                feedback:
-                    result.rows[0]
-            });
+
+            // ========================================
+            // 거절
+            // ========================================
+
+            if (
+                status === "rejected"
+            ) {
+
+                await client.query(
+                    "BEGIN"
+                );
+
+
+                // ------------------------------------
+                // 사용자 알림
+                // ------------------------------------
+
+                if (
+                    feedback.user_id
+                ) {
+
+                    await client.query(
+                        `
+                        INSERT INTO notifications
+                        (
+                            user_id,
+                            message,
+                            type,
+                            created_at
+                        )
+                        VALUES
+                        (
+                            $1,
+                            $2,
+                            $3,
+                            $4
+                        )
+                        `,
+                        [
+                            feedback.user_id,
+
+                            "당신의 피드백이 거절되었습니다.",
+
+                            "feedback",
+
+                            Date.now()
+                        ]
+                    );
+
+                }
+
+
+                // ------------------------------------
+                // 피드백 삭제
+                // ------------------------------------
+
+                const deleted =
+                    await client.query(
+                        `
+                        DELETE FROM feedback
+                        WHERE id = $1
+                        RETURNING *
+                        `,
+                        [
+                            feedback.id
+                        ]
+                    );
+
+
+                await client.query(
+                    "COMMIT"
+                );
+
+
+                return res.json({
+                    ok: true,
+
+                    deleted:
+                        deleted.rows[0]
+                });
+
+            }
+
 
         } catch (error) {
+
+            try {
+
+                await client.query(
+                    "ROLLBACK"
+                );
+
+            } catch (_) {}
+
 
             console.error(
                 "ADMIN FEEDBACK UPDATE ERROR:",
                 error
             );
 
+
             res.status(500).json({
                 ok: false,
                 error:
-                    "피드백 수정에 실패했습니다."
+                    "피드백 처리에 실패했습니다."
+            });
+
+        } finally {
+
+            client.release();
+
+        }
+
+    }
+);
+
+
+// =====================================================
+// 공지사항 목록
+// =====================================================
+
+router.get(
+    "/notices",
+    adminAuth,
+    async (req, res) => {
+
+        try {
+
+            const result =
+                await pool.query(`
+                    SELECT *
+                    FROM notices
+                    ORDER BY
+                        created_at DESC
+                `);
+
+            res.json({
+                ok: true,
+
+                notices:
+                    result.rows
+            });
+
+        } catch (error) {
+
+            console.error(
+                "ADMIN NOTICES ERROR:",
+                error
+            );
+
+            res.status(500).json({
+                ok: false,
+
+                error:
+                    "공지사항을 불러오지 못했습니다."
             });
 
         }
 
     }
 );
+
 
 // =====================================================
 // 공지사항 목록
