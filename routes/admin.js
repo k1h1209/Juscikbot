@@ -1010,7 +1010,8 @@ router.post(
                     (
                         id,
                         name,
-                        volatility,
+                        minChange,
+                        maxChange,
                         price,
                         previous,
                         open_price,
@@ -1157,11 +1158,13 @@ router.patch(
         try {
 
             const {
-                name,
-                price,
-                volatility,
-                volumeLimitEnabled,
-                volumeLimit
+            id,
+            name,
+            price,
+            minChange,
+            maxChange,
+            volumeLimitEnabled,
+            volumeLimit
             } = req.body;
 
             const fields = [];
