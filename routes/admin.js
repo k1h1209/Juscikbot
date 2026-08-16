@@ -2,6 +2,8 @@ const express = require("express");
 const crypto = require("crypto");
 const { pool } = require("../services/market");
 
+
+const router = express.Router();
 // =====================================================
 // 관리자 VSM 사이트 접근 토큰
 // =====================================================
@@ -59,7 +61,7 @@ router.post(
     }
 );
 
-const router = express.Router();
+
 
 // =====================================================
 // 관리자 인증
