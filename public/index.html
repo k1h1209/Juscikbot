@@ -1769,6 +1769,11 @@ function applyTheme(theme) {
     const isDark =
         theme === "dark";
 
+    document.documentElement.classList.toggle(
+        "dark",
+        isDark
+    );
+
     document.body.classList.toggle(
         "dark",
         isDark
@@ -1791,7 +1796,6 @@ function applyTheme(theme) {
     }
 
 }
-
 
 // =====================================================
 // 테마 버튼
