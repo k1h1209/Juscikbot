@@ -37,7 +37,6 @@ app.use("/api/changes",changesRoutes);
 
 app.get("/api/status",(req,res)=>res.json({ok:true,name:"VSM Virtual Stock Market",time:Date.now()}));
 
-// 공개 점검 상태. 관리자 인증 없이 플레이어 화면에서 확인합니다.
 app.get("/api/maintenance/status",async(req,res)=>{
   try{
     const {rows}=await pool.query("SELECT enabled,start_time,end_time,updated_at FROM maintenance WHERE id=1 LIMIT 1");
@@ -65,7 +64,7 @@ function verifyAdminSiteToken(token){
 
 function renderAdmin(){
   const file=fs.readFileSync(path.join(publicDir,"admin.html"),"utf8");
-  return file.replace("</body>",'<script src="/admin-global-floor.js"></script><script src="/admin-enhancements.js"></script></body>');
+  return file.replace("</body>",'<script src="/admin-global-floor.js"></script><script src="/admin-fix.js"></script></body>');
 }
 
 function renderPlayerPage(){
@@ -89,7 +88,6 @@ app.get("/",(req,res)=>{
   catch(error){console.error("PLAYER PAGE ERROR:",error);res.status(500).send("VSM 화면을 불러오지 못했습니다.");}
 });
 
-// 정적 리소스는 HTML 라우트보다 뒤에서 처리합니다.
 app.use(express.static(publicDir));
 
 app.use("/api",(req,res)=>res.status(404).json({ok:false,error:"존재하지 않는 API입니다."}));
