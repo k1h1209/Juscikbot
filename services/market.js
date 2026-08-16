@@ -7,8 +7,8 @@ const pool = new Pool({
     : false
 });
 
-// 주식 기본 데이터는 더 이상 코드에 존재하지 않습니다.
-// 모든 종목은 관리자 패널에서 stocks 테이블에 추가/수정/삭제합니다.
+// 주식 기본 데이터는 코드에 존재하지 않습니다.
+// 모든 종목은 관리자 패널에서 stocks 테이블에 추가합니다.
 
 async function getStocks() {
   const { rows } = await pool.query(
@@ -138,22 +138,23 @@ async function setPrice(id, price) {
 }
 
 function randomChange(stock) {
-  const min = Math.max(
-    1,
-    Math.round(Math.abs(Number(stock.min_change) || 1))
-  );
+  let min = Math.abs(Number(stock.min_change));
+  let max = Math.abs(Number(stock.max_change));
 
-  const max = Math.max(
-    min,
-    Math.round(Math.abs(Number(stock.max_change) || min))
-  );
+  if (!Number.isFinite(min) || min < 1) min = 1;
+  if (!Number.isFinite(max) || max < min) max = min;
+
+  min = Math.round(min);
+  max = Math.round(max);
 
   return min + Math.floor(
     Math.random() * (max - min + 1)
   );
 }
 
-function biasedDirection(control) {
+function getDirection(control) {
+  // normal = 완전 중립. 상승/하락 어느 쪽도 고정하지 않고
+  // 매 틱마다 반드시 + 또는 - 중 하나를 선택합니다.
   if (
     !control ||
     !["up", "down"].includes(control.direction) ||
@@ -167,109 +168,150 @@ function biasedDirection(control) {
     Math.max(1, Math.round(Number(control.strength) || 1))
   );
 
-  // 강도 1~5는 지정 방향의 확률을 높일 뿐,
-  // 반대 방향 움직임도 항상 나올 수 있습니다.
-  const wanted = 0.55 + (strength - 1) * 0.08;
+  // 강도 1~5는 방향 편향 확률입니다.
+  // 반대 방향도 계속 나올 수 있어 자연스럽게 움직입니다.
+  const wantedProbability =
+    0.55 + (strength - 1) * 0.08;
 
-  if (Math.random() < wanted) {
-    return control.direction === "up" ? 1 : -1;
-  }
+  const wantedDirection =
+    control.direction === "up" ? 1 : -1;
 
-  return control.direction === "up" ? -1 : 1;
+  return Math.random() < wantedProbability
+    ? wantedDirection
+    : -wantedDirection;
+}
+
+async function getMarketControl(stockId) {
+  const { rows } = await pool.query(`
+    SELECT direction, until_time, strength
+    FROM market_controls
+    WHERE stock_id=$1
+    LIMIT 1
+  `, [stockId]);
+
+  return rows[0] || null;
+}
+
+async function startFloorRecovery(stock, floor, now, lockMinutes) {
+  const lockUntil =
+    now + Math.max(1, lockMinutes) * 60000;
+
+  await pool.query(`
+    UPDATE stocks
+    SET
+      previous=price,
+      price=$1,
+      high=GREATEST(high,$1),
+      low=LEAST(low,$1),
+      floor_lock_until=$2,
+      floor_rise_remaining=2
+    WHERE id=$3
+  `, [floor, lockUntil, stock.id]);
+
+  await pool.query(`
+    INSERT INTO price_history(stock_id,time,price)
+    VALUES($1,$2,$3)
+  `, [stock.id, now, floor]);
 }
 
 async function updateStockMarket(stock) {
   const now = Date.now();
   const settings = await getGlobalSettings();
 
-  const rawFloor = Number(stock.price_floor);
+  const stockFloor = Number(stock.price_floor);
   const floor =
-    settings.floor !== null
+    settings.floor !== null &&
+    Number.isFinite(settings.floor) &&
+    settings.floor > 0
       ? settings.floor
-      : Number.isFinite(rawFloor) && rawFloor > 0
-        ? rawFloor
+      : Number.isFinite(stockFloor) && stockFloor > 0
+        ? stockFloor
         : null;
 
-  const hasFloor = floor !== null;
-  let lockUntil = Number(stock.floor_lock_until || 0);
-  const recovery = Number(stock.floor_rise_remaining || 0);
   const current = Math.max(
     1,
     Math.round(Number(stock.price) || 1)
   );
 
-  // 커트라인 도달 후 잠금 시간 동안 가격 유지
-  if (hasFloor && lockUntil > now) {
+  const lockUntil = Number(stock.floor_lock_until || 0);
+  const recoveryRemaining = Number(
+    stock.floor_rise_remaining || 0
+  );
+
+  // -----------------------------------------------------
+  // 1. 커트라인 잠금 중
+  // -----------------------------------------------------
+  if (floor !== null && lockUntil > now) {
+    // 잠금 중에는 가격을 커트라인에 유지합니다.
     if (current !== floor) {
       await setPrice(stock.id, floor);
     }
-    return;
+    return floor;
   }
 
-  // 잠금 종료 후에는 반드시 2회의 업데이트를 상승으로 처리
+  // -----------------------------------------------------
+  // 2. 커트라인 잠금 종료 후 2회 강제 상승
+  // -----------------------------------------------------
   if (
-    hasFloor &&
+    floor !== null &&
     lockUntil > 0 &&
     lockUntil <= now &&
-    recovery > 0
+    recoveryRemaining > 0
   ) {
-    const next = current + randomChange(stock);
-
-    await pool.query(`
-      UPDATE stocks
-      SET floor_rise_remaining=$1
-      WHERE id=$2
-    `, [Math.max(0, recovery - 1), stock.id]);
-
-    await setPrice(
-      stock.id,
-      Math.max(floor + 1, next)
+    const next = Math.max(
+      floor + 1,
+      current + randomChange(stock)
     );
-
-    return;
-  }
-
-  const { rows } = await pool.query(`
-    SELECT direction, until_time, strength
-    FROM market_controls
-    WHERE stock_id=$1
-  `, [stock.id]);
-
-  const control = rows[0] || null;
-
-  const next = Math.max(
-    1,
-    current +
-      biasedDirection(control) *
-      randomChange(stock)
-  );
-
-  // 다음 가격이 커트라인 이하라면 커트라인으로 고정하고 잠금 시작
-  if (hasFloor && next <= floor) {
-    const newLockUntil =
-      now + settings.lockMinutes * 60000;
 
     await pool.query(`
       UPDATE stocks
       SET
-        previous=price,
-        price=$1,
-        high=GREATEST(high,$1),
-        low=LEAST(low,$1),
-        floor_lock_until=$2,
-        floor_rise_remaining=2
-      WHERE id=$3
-    `, [floor, newLockUntil, stock.id]);
+        floor_rise_remaining=$1,
+        floor_lock_until=0
+      WHERE id=$2
+    `, [
+      Math.max(0, recoveryRemaining - 1),
+      stock.id
+    ]);
 
-    await pool.query(`
-      INSERT INTO price_history(stock_id,time,price)
-      VALUES($1,$2,$3)
-    `, [stock.id, now, floor]);
-
-    return;
+    const updated = await setPrice(stock.id, next);
+    return updated.price;
   }
 
-  await setPrice(stock.id, next);
+  // -----------------------------------------------------
+  // 3. 일반 시장 변동
+  // -----------------------------------------------------
+  const control = await getMarketControl(stock.id);
+  const direction = getDirection(control);
+  const change = randomChange(stock);
+
+  // min/max가 정상적으로 설정되어 있으면 change는 항상 1 이상입니다.
+  // 따라서 normal 상태에서도 매 5초마다 가격이 실제로 변합니다.
+  let next = current + direction * change;
+  next = Math.max(1, Math.round(next));
+
+  // -----------------------------------------------------
+  // 4. 커트라인 도달
+  // -----------------------------------------------------
+  if (floor !== null && next <= floor) {
+    await startFloorRecovery(
+      stock,
+      floor,
+      now,
+      settings.lockMinutes
+    );
+
+    return floor;
+  }
+
+  const updated = await setPrice(stock.id, next);
+
+  // 서버 로그에서 엔진이 실제로 가격을 변경했는지 확인할 수 있도록 기록합니다.
+  console.log(
+    `[MARKET] ${updated.id} ${Number(stock.price).toLocaleString()} -> ${Number(updated.price).toLocaleString()} (${direction > 0 ? "+" : "-"}${change})`
+  );
+
+  return updated.price;
 }
 
 let marketTimer = null;
@@ -282,6 +324,11 @@ async function updateMarket() {
 
   try {
     const stocks = await getStocks();
+
+    if (!stocks.length) {
+      console.log("[MARKET] 등록된 주식이 없습니다.");
+      return;
+    }
 
     for (const stock of stocks) {
       try {
@@ -305,6 +352,7 @@ function startMarketEngine(interval = 5000) {
     `📈 주가 엔진 시작 · ${interval / 1000}초 간격`
   );
 
+  // 서버 시작 직후에도 한 번 즉시 가격을 갱신합니다.
   updateMarket().catch(error =>
     console.error("[MARKET] 초기 업데이트:", error)
   );
