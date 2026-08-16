@@ -82,9 +82,11 @@ async function initializeDatabase() {
       CREATE TABLE IF NOT EXISTS game_settings (
         id INTEGER PRIMARY KEY,
         starting_cash NUMERIC NOT NULL DEFAULT 10000,
+        global_price_floor NUMERIC,
         updated_at BIGINT NOT NULL
       )
     `);
+    await client.query(`ALTER TABLE game_settings ADD COLUMN IF NOT EXISTS global_price_floor NUMERIC`);
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS notifications (
@@ -183,8 +185,8 @@ async function initializeDatabase() {
     }
 
     await client.query(`
-      INSERT INTO game_settings(id,starting_cash,updated_at)
-      VALUES(1,10000,$1)
+      INSERT INTO game_settings(id,starting_cash,global_price_floor,updated_at)
+      VALUES(1,10000,NULL,$1)
       ON CONFLICT(id) DO NOTHING
     `, [Date.now()]);
 
