@@ -11,25 +11,14 @@ async function getStocks() {
 }
 
 async function getStock(id) {
-  const { rows } = await pool.query(
-    "SELECT * FROM stocks WHERE id=$1 LIMIT 1",
-    [id]
-  );
+  const { rows } = await pool.query("SELECT * FROM stocks WHERE id=$1 LIMIT 1", [id]);
   return rows[0] || null;
 }
 
 async function getHistory(id, range = "1d") {
-  const ranges = {
-    "1h": 3600000,
-    "1d": 86400000,
-    "1w": 604800000,
-    "1m": 2592000000,
-    "3m": 7776000000,
-    all: Infinity
-  };
+  const ranges = { "1h": 3600000, "1d": 86400000, "1w": 604800000, "1m": 2592000000, "3m": 7776000000, all: Infinity };
   const duration = ranges[range] ?? ranges["1d"];
   const since = duration === Infinity ? 0 : Date.now() - duration;
-
   const { rows } = await pool.query(`
     SELECT time AS t, price AS p
     FROM price_history
@@ -37,35 +26,23 @@ async function getHistory(id, range = "1d") {
     ORDER BY time ASC
     LIMIT 5000
   `, [id, since]);
-
   return rows.map(row => ({ t: Number(row.t), p: Number(row.p) }));
 }
 
 async function setPrice(id, price) {
   const value = Math.max(1, Math.round(Number(price)));
   if (!Number.isFinite(value)) throw new Error("가격이 올바르지 않습니다.");
-
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
-
     const result = await client.query(`
       UPDATE stocks
-      SET previous=price,
-          price=$1,
-          high=GREATEST(high,$1),
-          low=LEAST(low,$1)
+      SET previous=price, price=$1, high=GREATEST(high,$1), low=LEAST(low,$1)
       WHERE id=$2
       RETURNING *
     `, [value, id]);
-
     if (!result.rows.length) throw new Error("주식을 찾을 수 없습니다.");
-
-    await client.query(`
-      INSERT INTO price_history(stock_id,time,price)
-      VALUES($1,$2,$3)
-    `, [id, Date.now(), value]);
-
+    await client.query(`INSERT INTO price_history(stock_id,time,price) VALUES($1,$2,$3)`, [id, Date.now(), value]);
     await client.query("COMMIT");
     return result.rows[0];
   } catch (error) {
@@ -77,15 +54,10 @@ async function setPrice(id, price) {
 }
 
 function randomChange(stock) {
-  let min = Math.abs(Number(stock.min_change));
-  let max = Math.abs(Number(stock.max_change));
-
+  let min = Math.round(Math.abs(Number(stock.min_change)));
+  let max = Math.round(Math.abs(Number(stock.max_change)));
   if (!Number.isFinite(min) || min < 1) min = 1;
   if (!Number.isFinite(max) || max < min) max = min;
-
-  min = Math.round(min);
-  max = Math.round(max);
-
   return min + Math.floor(Math.random() * (max - min + 1));
 }
 
@@ -93,11 +65,10 @@ function getDirection(control) {
   if (!control || !["up", "down"].includes(control.direction) || Number(control.until_time) <= Date.now()) {
     return Math.random() < 0.5 ? 1 : -1;
   }
-
   const strength = Math.min(5, Math.max(1, Math.round(Number(control.strength) || 1)));
+  // 1 = 55%, 2 = 63%, 3 = 71%, 4 = 79%, 5 = 87% toward the selected trend.
   const wantedProbability = 0.55 + (strength - 1) * 0.08;
   const wantedDirection = control.direction === "up" ? 1 : -1;
-
   return Math.random() < wantedProbability ? wantedDirection : -wantedDirection;
 }
 
@@ -117,43 +88,24 @@ function getStockFloor(stock) {
 }
 
 async function startFloorRecovery(stock, floor, now) {
-  const lockMinutes = Math.max(1, Math.round(Number(stock.floor_lock_minutes) || 10));
+  const lockMinutes = Math.max(1, Math.min(1440, Math.round(Number(stock.floor_lock_minutes) || 10)));
   const lockUntil = now + lockMinutes * 60000;
-
   await pool.query(`
     UPDATE stocks
-    SET previous=price,
-        price=$1,
-        high=GREATEST(high,$1),
-        low=LEAST(low,$1),
-        floor_lock_until=$2,
-        floor_rise_remaining=2
+    SET previous=price, price=$1, high=GREATEST(high,$1), low=LEAST(low,$1),
+        floor_lock_until=$2, floor_rise_remaining=2
     WHERE id=$3
   `, [floor, lockUntil, stock.id]);
-
-  await pool.query(`
-    INSERT INTO price_history(stock_id,time,price)
-    VALUES($1,$2,$3)
-  `, [stock.id, now, floor]);
-
-  console.log(`[MARKET] ${stock.id} 커트라인 ${floor.toLocaleString()}원 도달 · ${lockMinutes}분 잠금 · 종료 후 강제 상승 2회`);
+  await pool.query(`INSERT INTO price_history(stock_id,time,price) VALUES($1,$2,$3)`, [stock.id, now, floor]);
 }
 
 async function forceRecoveryRise(stock, floor, remaining) {
-  const change = randomChange(stock);
   const current = Math.max(floor, Math.round(Number(stock.price) || floor));
-  const next = Math.max(floor + 1, current + change);
+  const change = randomChange(stock);
+  const next = current + change;
   const nextRemaining = Math.max(0, remaining - 1);
-
-  await pool.query(`
-    UPDATE stocks
-    SET floor_rise_remaining=$1,
-        floor_lock_until=0
-    WHERE id=$2
-  `, [nextRemaining, stock.id]);
-
+  await pool.query(`UPDATE stocks SET floor_rise_remaining=$1 WHERE id=$2`, [nextRemaining, stock.id]);
   const updated = await setPrice(stock.id, next);
-  console.log(`[MARKET] ${updated.id} 커트라인 회복 ${current.toLocaleString()} -> ${Number(updated.price).toLocaleString()} (+${change}) · 남은 강제 상승 ${nextRemaining}회`);
   return updated.price;
 }
 
@@ -164,12 +116,13 @@ async function updateStockMarket(stock) {
   const lockUntil = Number(stock.floor_lock_until || 0);
   const recoveryRemaining = Math.max(0, Math.floor(Number(stock.floor_rise_remaining) || 0));
 
+  // 종목별 커트라인만 사용합니다. 전체 커트라인(game_settings)은 사용하지 않습니다.
   if (floor !== null && lockUntil > now) {
     if (current !== floor) await setPrice(stock.id, floor);
     return floor;
   }
 
-  // 잠금 종료 후에는 remaining 값만으로 2회 강제 상승 상태를 유지합니다.
+  // 잠금이 끝나면 다음 두 번의 시장 틱은 무조건 상승합니다.
   if (floor !== null && recoveryRemaining > 0) {
     return forceRecoveryRise(stock, floor, recoveryRemaining);
   }
@@ -177,15 +130,14 @@ async function updateStockMarket(stock) {
   const control = await getMarketControl(stock.id);
   const direction = getDirection(control);
   const change = randomChange(stock);
-  const next = Math.max(1, Math.round(current + direction * change));
+  const next = current + direction * change;
 
   if (floor !== null && next <= floor) {
     await startFloorRecovery(stock, floor, now);
     return floor;
   }
 
-  const updated = await setPrice(stock.id, next);
-  console.log(`[MARKET] ${updated.id} ${current.toLocaleString()} -> ${Number(updated.price).toLocaleString()} (${direction > 0 ? "+" : "-"}${change})`);
+  const updated = await setPrice(stock.id, Math.max(1, next));
   return updated.price;
 }
 
@@ -195,19 +147,13 @@ let updating = false;
 async function updateMarket() {
   if (updating) return;
   updating = true;
-
   try {
     const stocks = await getStocks();
-    if (!stocks.length) {
-      console.log("[MARKET] 등록된 주식이 없습니다.");
-      return;
-    }
-
     for (const stock of stocks) {
       try {
         await updateStockMarket(stock);
       } catch (error) {
-        console.error(`[MARKET] ${stock.id}:`, error.message);
+        console.error(`MARKET UPDATE ${stock.id}:`, error.message);
       }
     }
   } finally {
@@ -217,12 +163,10 @@ async function updateMarket() {
 
 function startMarketEngine(interval = 5000) {
   if (marketTimer) return;
-
   console.log(`📈 주가 엔진 시작 · ${interval / 1000}초 간격`);
-  updateMarket().catch(error => console.error("[MARKET] 초기 업데이트:", error));
-
+  updateMarket().catch(error => console.error("MARKET INITIAL UPDATE:", error));
   marketTimer = setInterval(() => {
-    updateMarket().catch(error => console.error("[MARKET] 업데이트:", error));
+    updateMarket().catch(error => console.error("MARKET UPDATE:", error));
   }, interval);
 }
 
