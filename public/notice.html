@@ -1,1 +1,624 @@
 
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>VSM - 공지사항</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100%;
+        }
+
+        body {
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            background: #f5f6f8;
+            color: #17191c;
+        }
+
+
+        /* ========================================
+           상단바
+        ======================================== */
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+
+            height: 64px;
+
+            display: flex;
+            align-items: center;
+
+            padding: 0 24px;
+
+            background: #ffffff;
+
+            border-bottom:
+                1px solid #e5e7eb;
+        }
+
+        .brand {
+            font-size: 20px;
+            font-weight: 800;
+
+            color: #111827;
+
+            text-decoration: none;
+        }
+
+        .topbar-spacer {
+            flex: 1;
+        }
+
+        .back-button {
+            border: none;
+
+            padding: 10px 16px;
+
+            border-radius: 10px;
+
+            background: #111827;
+            color: #ffffff;
+
+            font-size: 14px;
+            font-weight: 700;
+
+            cursor: pointer;
+        }
+
+        .back-button:hover {
+            opacity: 0.88;
+        }
+
+
+        /* ========================================
+           메인
+        ======================================== */
+
+        .container {
+            width: min(
+                100% - 32px,
+                900px
+            );
+
+            margin:
+                40px auto 80px;
+        }
+
+        .page-header {
+            margin-bottom: 24px;
+        }
+
+        .page-header h1 {
+            margin: 0 0 8px;
+
+            font-size: 30px;
+            font-weight: 800;
+        }
+
+        .page-header p {
+            margin: 0;
+
+            color: #6b7280;
+
+            font-size: 14px;
+        }
+
+
+        /* ========================================
+           공지 목록
+        ======================================== */
+
+        #noticeList {
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 14px;
+        }
+
+        .notice-card {
+            background: #ffffff;
+
+            border:
+                1px solid #e5e7eb;
+
+            border-radius: 16px;
+
+            padding: 22px;
+
+            box-shadow:
+                0 4px 14px
+                rgba(0, 0, 0, 0.04);
+        }
+
+        .notice-title {
+            margin: 0;
+
+            font-size: 19px;
+            font-weight: 800;
+
+            color: #111827;
+        }
+
+        .notice-date {
+            margin-top: 7px;
+
+            color: #9ca3af;
+
+            font-size: 12px;
+        }
+
+        .notice-content {
+            margin-top: 18px;
+
+            color: #374151;
+
+            font-size: 15px;
+
+            line-height: 1.75;
+
+            white-space: pre-wrap;
+
+            word-break: break-word;
+        }
+
+
+        /* ========================================
+           상태
+        ======================================== */
+
+        .loading,
+        .empty,
+        .error {
+            background: #ffffff;
+
+            border:
+                1px solid #e5e7eb;
+
+            border-radius: 16px;
+
+            padding: 40px 20px;
+
+            text-align: center;
+
+            color: #6b7280;
+
+            font-size: 14px;
+        }
+
+        .error {
+            color: #dc2626;
+        }
+
+
+        /* ========================================
+           다크모드
+        ======================================== */
+
+        body.dark {
+            background: #101214;
+            color: #f1f3f5;
+        }
+
+        body.dark .topbar {
+            background: #181b1f;
+            border-color: #2d3238;
+        }
+
+        body.dark .brand {
+            color: #f1f3f5;
+        }
+
+        body.dark .back-button {
+            background: #292e34;
+        }
+
+        body.dark .page-header p {
+            color: #9ca3af;
+        }
+
+        body.dark .notice-card,
+        body.dark .loading,
+        body.dark .empty,
+        body.dark .error {
+            background: #181b1f;
+            border-color: #2d3238;
+        }
+
+        body.dark .notice-title {
+            color: #f1f3f5;
+        }
+
+        body.dark .notice-date {
+            color: #9ca3af;
+        }
+
+        body.dark .notice-content {
+            color: #d1d5db;
+        }
+
+
+        /* ========================================
+           모바일
+        ======================================== */
+
+        @media (max-width: 600px) {
+
+            .topbar {
+                padding: 0 16px;
+            }
+
+            .brand {
+                font-size: 18px;
+            }
+
+            .container {
+                width:
+                    min(
+                        100% - 20px,
+                        900px
+                    );
+
+                margin-top: 28px;
+            }
+
+            .page-header h1 {
+                font-size: 25px;
+            }
+
+            .notice-card {
+                padding: 18px;
+            }
+
+            .notice-title {
+                font-size: 17px;
+            }
+
+            .notice-content {
+                font-size: 14px;
+            }
+
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <!-- ========================================
+         상단바
+    ======================================== -->
+
+    <header class="topbar">
+
+        <a
+            href="/"
+            class="brand"
+        >
+            VSM
+        </a>
+
+        <div class="topbar-spacer"></div>
+
+        <button
+            class="back-button"
+            onclick="goBack()"
+        >
+            ← 돌아가기
+        </button>
+
+    </header>
+
+
+    <!-- ========================================
+         메인
+    ======================================== -->
+
+    <main class="container">
+
+        <div class="page-header">
+
+            <h1>
+                📢 공지사항
+            </h1>
+
+            <p>
+                VSM의 새로운 소식과 중요한 안내를 확인하세요.
+            </p>
+
+        </div>
+
+
+        <div id="noticeList">
+
+            <div class="loading">
+                공지사항을 불러오는 중...
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <script>
+
+        /* ========================================
+           테마
+        ======================================== */
+
+        function applyTheme() {
+
+            const theme =
+                localStorage.getItem(
+                    "vsm-theme"
+                );
+
+            document.body.classList.toggle(
+                "dark",
+                theme === "dark"
+            );
+
+        }
+
+        applyTheme();
+
+
+        /* ========================================
+           뒤로가기
+        ======================================== */
+
+        function goBack() {
+
+            if (
+                window.history.length > 1
+            ) {
+
+                window.history.back();
+
+            } else {
+
+                window.location.href = "/";
+
+            }
+
+        }
+
+
+        /* ========================================
+           날짜
+        ======================================== */
+
+        function formatDate(timestamp) {
+
+            if (!timestamp) {
+                return "";
+            }
+
+            const date =
+                new Date(
+                    Number(timestamp)
+                );
+
+            if (
+                Number.isNaN(
+                    date.getTime()
+                )
+            ) {
+
+                return "";
+
+            }
+
+            return date.toLocaleString(
+                "ko-KR",
+                {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+
+                    hour: "2-digit",
+                    minute: "2-digit"
+                }
+            );
+
+        }
+
+
+        /* ========================================
+           HTML 이스케이프
+        ======================================== */
+
+        function escapeHtml(value) {
+
+            return String(
+                value ?? ""
+            )
+                .replace(
+                    /&/g,
+                    "&amp;"
+                )
+                .replace(
+                    /</g,
+                    "&lt;"
+                )
+                .replace(
+                    />/g,
+                    "&gt;"
+                )
+                .replace(
+                    /"/g,
+                    "&quot;"
+                )
+                .replace(
+                    /'/g,
+                    "&#039;"
+                );
+
+        }
+
+
+        /* ========================================
+           공지사항 불러오기
+        ======================================== */
+
+        async function loadNotices() {
+
+            const list =
+                document.getElementById(
+                    "noticeList"
+                );
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/api/notices"
+                    );
+
+                const data =
+                    await response.json();
+
+                if (
+                    !response.ok ||
+                    data.ok === false
+                ) {
+
+                    throw new Error(
+                        data.error ||
+                        "공지사항을 불러오지 못했습니다."
+                    );
+
+                }
+
+                const notices =
+                    Array.isArray(
+                        data.notices
+                    )
+                        ? data.notices
+                        : [];
+
+
+                /* 최신순 */
+
+                notices.sort(
+                    (
+                        a,
+                        b
+                    ) =>
+                        Number(
+                            b.created_at || 0
+                        ) -
+                        Number(
+                            a.created_at || 0
+                        )
+                );
+
+
+                if (
+                    notices.length === 0
+                ) {
+
+                    list.innerHTML = `
+                        <div class="empty">
+                            등록된 공지사항이 없습니다.
+                        </div>
+                    `;
+
+                    return;
+
+                }
+
+
+                list.innerHTML =
+                    notices
+                        .map(
+                            notice => `
+                                <article
+                                    class="notice-card"
+                                >
+
+                                    <h2
+                                        class="notice-title"
+                                    >
+                                        ${escapeHtml(
+                                            notice.title
+                                        )}
+                                    </h2>
+
+                                    <div
+                                        class="notice-date"
+                                    >
+                                        ${escapeHtml(
+                                            formatDate(
+                                                notice.created_at
+                                            )
+                                        )}
+                                    </div>
+
+                                    <div
+                                        class="notice-content"
+                                    >
+                                        ${escapeHtml(
+                                            notice.content
+                                        )}
+                                    </div>
+
+                                </article>
+                            `
+                        )
+                        .join("");
+
+            } catch (error) {
+
+                console.error(
+                    "NOTICE LOAD ERROR:",
+                    error
+                );
+
+                list.innerHTML = `
+                    <div class="error">
+                        ${escapeHtml(
+                            error.message ||
+                            "공지사항을 불러오지 못했습니다."
+                        )}
+                    </div>
+                `;
+
+            }
+
+        }
+
+
+        /* ========================================
+           시작
+        ======================================== */
+
+        loadNotices();
+
+    </script>
+
+</body>
+</html>
+
