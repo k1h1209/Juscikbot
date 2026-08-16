@@ -2,6 +2,8 @@ const express = require("express");
 const crypto = require("crypto");
 const { pool } = require("../services/market");
 
+console.log("✅ ADMIN ROUTER LOADED");
+console.log("✅ ADMIN FEEDBACK ROUTE = /api/admin/feedback");
 
 const router = express.Router();
 // =====================================================
