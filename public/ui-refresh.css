@@ -1,0 +1,25 @@
+/* VSM UI refresh layer - keeps existing functionality while modernizing the visual system. */
+:root{--vsm-accent:#6d5dfc;--vsm-accent2:#20c9a6;--vsm-bg:#f5f7fb;--vsm-card:#fff;--vsm-text:#182033;--vsm-muted:#6e7890;--vsm-line:#e7eaf1;--vsm-shadow:0 16px 45px rgba(28,38,70,.09)}
+body{background:var(--vsm-bg)!important;color:var(--vsm-text)}
+header,.topbar,.navbar,.sidebar,.menu-panel,.dashboard-card,.card,.panel,.stock-card{transition:background .2s,border-color .2s,box-shadow .2s,transform .2s}
+.card,.panel,.dashboard-card,.stock-card{border-radius:20px!important;box-shadow:var(--vsm-shadow)!important;border-color:var(--vsm-line)!important}
+button{border-radius:12px!important}
+button:hover,.clickable:hover{transform:translateY(-1px)}
+.vsm-module-chip{display:inline-flex;align-items:center;gap:7px;padding:8px 11px;border:1px solid var(--vsm-line);border-radius:999px;background:var(--vsm-card);font-size:12px;font-weight:800;color:var(--vsm-text);margin:3px}
+.vsm-module-chip[data-active="true"]{background:linear-gradient(135deg,var(--vsm-accent),#8a7dff);color:#fff;border-color:transparent}
+.vsm-refresh-modal{position:fixed;inset:0;background:rgba(10,14,25,.58);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:99999;padding:20px}
+.vsm-refresh-modal.on{display:flex}
+.vsm-refresh-modal .box{width:min(520px,100%);background:var(--vsm-card);color:var(--vsm-text);border:1px solid var(--vsm-line);border-radius:24px;padding:26px;box-shadow:0 30px 80px rgba(0,0,0,.22)}
+.vsm-refresh-modal h3{margin:0 0 8px;font-size:22px}.vsm-refresh-modal p{color:var(--vsm-muted);line-height:1.6}.vsm-refresh-modal .close{margin-top:14px;padding:10px 15px;border:0;background:var(--vsm-accent);color:#fff;font-weight:800}
+@media(max-width:700px){.vsm-module-chip{font-size:11px;padding:7px 9px}}
+
+/* Admin refresh */
+#app .side{background:linear-gradient(180deg,#080d19,#0b1220)!important;border-right-color:#202b42!important}
+#app .main{background:#070b14!important}
+#app .top{box-shadow:0 8px 30px rgba(0,0,0,.12)}
+#app .stat,#app .card{border-radius:22px!important;box-shadow:0 14px 42px rgba(0,0,0,.16)!important}
+#app .nav button{border-radius:14px!important;padding:12px 13px!important}
+#app .nav button.active{box-shadow:inset 3px 0 0 var(--accent)}
+#app .section-label{color:#71809a!important}
+.vsm-admin-module{border:1px solid #24304a;background:linear-gradient(145deg,#101a2c,#0c1422);border-radius:18px;padding:16px;margin-top:14px}
+.vsm-admin-module h3{margin:0 0 6px;font-size:15px}.vsm-admin-module p{margin:0;color:#8793aa;font-size:11px;line-height:1.6}
