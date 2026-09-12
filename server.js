@@ -31,8 +31,6 @@ app.use("/api/bank", bankRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/notices", noticeRoutes);
 
-// 새 주식/시장 라우터를 기존 관리자 라우터보다 먼저 연결합니다.
-// 따라서 예전 admin.js의 전체 커트라인 로직은 더 이상 주가 엔진을 건드리지 않습니다.
 app.use("/api/admin", adminMarketRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/admin-shares", adminSharesRoutes);
@@ -85,11 +83,17 @@ function verifyAdminSiteToken(token) {
   }
 }
 
-// /admin은 실제 V2 관리자 화면을 직접 제공합니다.
-// 기존 admin.html 리다이렉트 + 오래된 보정 스크립트 체인은 사용하지 않습니다.
+function injectUiRefresh(file, includeAdmin = false) {
+  const assets = includeAdmin
+    ? '<link rel="stylesheet" href="/ui-refresh.css"><script src="/ui-refresh.js"></script>'
+    : '<link rel="stylesheet" href="/ui-refresh.css"><script src="/ui-refresh.js"></script>';
+  return file.replace("</head>", `${assets}</head>`);
+}
+
 function renderAdmin() {
   const file = fs.readFileSync(path.join(publicDir, "admin-v2.html"), "utf8");
-  return file.replace(
+  const refreshed = injectUiRefresh(file, true);
+  return refreshed.replace(
     "</body>",
     '<script src="/admin-auto.js"></script></body>'
   );
@@ -97,7 +101,8 @@ function renderAdmin() {
 
 function renderPlayerPage() {
   const file = fs.readFileSync(path.join(publicDir, "index.html"), "utf8");
-  return file.replace("</body>", '<script src="/maintenance.js"></script></body>');
+  const refreshed = injectUiRefresh(file, false);
+  return refreshed.replace("</body>", '<script src="/maintenance.js"></script></body>');
 }
 
 app.get("/admin", (req, res) => {
