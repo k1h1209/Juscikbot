@@ -4,6 +4,10 @@ const { auth } = require("./auth");
 
 const router = express.Router();
 
+// 개인별 동일 종목 최대 보유량.
+// 전체 시장 max_shares와 별개로 한 명이 최저가에서 물량을 과점하는 것을 막습니다.
+const MAX_HOLDINGS_PER_STOCK = 30;
+
 function publicStock(stock) {
     const price = Number(stock.price);
     const previous = Number(stock.previous);
@@ -18,6 +22,7 @@ function publicStock(stock) {
         volume: Number(stock.volume),
         maxShares: Number(stock.max_shares || 0),
         availableShares: Number(stock.available_shares || 0),
+        maxPerUser: MAX_HOLDINGS_PER_STOCK,
         change: price - previous,
         changeRate: previous === 0 ? 0 : ((price - previous) / previous) * 100
     };
@@ -26,7 +31,7 @@ function publicStock(stock) {
 router.get("/", async (req, res) => {
     try {
         const stocks = await getStocks();
-        res.json({ ok: true, stocks: stocks.map(publicStock) });
+        res.json({ ok: true, maxHoldingsPerStock: MAX_HOLDINGS_PER_STOCK, stocks: stocks.map(publicStock) });
     } catch (error) {
         console.error("STOCK LIST ERROR:", error);
         res.status(500).json({ error: "주식 정보를 불러오지 못했습니다." });
@@ -66,9 +71,9 @@ router.get("/portfolio/me", auth, async (req, res) => {
             if (!stock) continue;
             const qty = Number(quantity);
             const price = Number(stock.price);
-            result.push({ id: stock.id, name: stock.name, quantity: qty, price, value: qty * price });
+            result.push({ id: stock.id, name: stock.name, quantity: qty, price, value: qty * price, maxPerUser: MAX_HOLDINGS_PER_STOCK });
         }
-        res.json({ ok: true, holdings: result });
+        res.json({ ok: true, holdings: result, maxHoldingsPerStock: MAX_HOLDINGS_PER_STOCK });
     } catch (error) {
         console.error("PORTFOLIO ERROR:", error);
         res.status(500).json({ error: "보유주식을 불러오지 못했습니다." });
@@ -120,14 +125,23 @@ router.post("/buy", auth, async (req, res) => {
 
         const user = userResult.rows[0];
         const cash = Number(user.cash);
+        const holdings = user.holdings || {};
+        const currentHolding = Number(holdings[stockId] || 0);
+
+        if (currentHolding + qty > MAX_HOLDINGS_PER_STOCK) {
+            await client.query("ROLLBACK");
+            return res.status(400).json({
+                error: `개인 보유 한도는 ${MAX_HOLDINGS_PER_STOCK}주입니다. 현재 ${currentHolding}주를 보유하고 있어 ${Math.max(0, MAX_HOLDINGS_PER_STOCK - currentHolding)}주까지만 추가 매수할 수 있습니다.`
+            });
+        }
+
         if (cash < total) {
             await client.query("ROLLBACK");
             return res.status(400).json({ error: "현금이 부족합니다." });
         }
 
-        const holdings = user.holdings || {};
         const transactions = user.transactions || [];
-        holdings[stockId] = Number(holdings[stockId] || 0) + qty;
+        holdings[stockId] = currentHolding + qty;
         transactions.push({ type: "buy", stockId, stockName: stock.name, quantity: qty, price, total, time: Date.now() });
 
         await client.query(`
@@ -150,6 +164,7 @@ router.post("/buy", auth, async (req, res) => {
             message: `${stock.name} ${qty}주 매수 완료`,
             cash: cash - total,
             holding: holdings[stockId],
+            maxPerUser: MAX_HOLDINGS_PER_STOCK,
             total,
             availableShares: available - qty
         });
