@@ -42,7 +42,29 @@
     nav.parentElement?.appendChild(wrap);
   };
 
-  const run = () => { addPlayerModules(); addAdminModules(); };
+  const syncPublicTheme = () => {
+    const button = document.getElementById('themeButton');
+    if (!button) return;
+    const key = 'vsm-theme';
+    const apply = (theme) => {
+      const dark = theme === 'dark';
+      document.body.classList.toggle('dark', dark);
+      const label = button.querySelector('span');
+      if (label) label.textContent = dark ? '화이트모드' : '다크모드';
+    };
+    apply(localStorage.getItem(key) || 'light');
+    if (button.dataset.themeSyncBound) return;
+    button.dataset.themeSyncBound = '1';
+    button.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const next = (localStorage.getItem(key) || 'light') === 'dark' ? 'light' : 'dark';
+      localStorage.setItem(key, next);
+      apply(next);
+    });
+  };
+
+  const run = () => { addPlayerModules(); addAdminModules(); syncPublicTheme(); };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run); else run();
   setTimeout(run, 1200);
 })();
